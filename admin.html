@@ -33,7 +33,7 @@
         <i class="fa-solid fa-magnifying-glass mr-1"></i> Filter Pencarian Transaksi
       </h2>
       <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
-        <input type="text" id="searchInput" placeholder="Cari Kasir / Nominal / Ket..." class="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-800">
+        <input type="text" id="searchInput" placeholder="Cari Kasir / Nominal / Transaksi..." class="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-800">
         <select id="branchFilter" class="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-800">
           <option value="">Semua Cabang</option>
           <option value="CABANG 1">Cabang 1</option>
@@ -75,7 +75,7 @@
               <th class="py-3 px-4">Cabang</th>
               <th class="py-3 px-4">Tipe</th>
               <th class="py-3 px-4">Nominal</th>
-              <th class="py-3 px-4">Keterangan</th>
+              <th class="py-3 px-4">Transaksi</th>
               <th class="py-3 px-4">Kasir</th>
               <th class="py-3 px-4 text-center">Aksi</th>
             </tr>
@@ -132,12 +132,15 @@
   <script>
     const API_URL = "https://n8n-mzbmiib3etk4.kangkung.sumopod.my.id/webhook/0c2f335e-543b-4f3e-968e-f70d412f194b";
     let rawData = [];
+    let logChanges = [];
+    let deletedData = [];
+    let currentTab = 'active';
 
     document.addEventListener("DOMContentLoaded", () => {
       fetchData();
     });
 
-    // PARSER UNIVERSAL
+    // PARSER DATA UNTUK N8N
     function parseN8nResponse(res) {
       if (Array.isArray(res) && res.length === 1 && res[0] && res[0].json) {
         res = res[0].json;
@@ -152,27 +155,18 @@
       } else if (res.money_in || res.money_out) {
         moneyIn = res.money_in || [];
         moneyOut = res.money_out || [];
-      } else if (Array.isArray(res)) {
-        moneyIn = res.filter(i => {
-          const data = i.json || i;
-          return (data.tipe || data.Tipe || data.type || 'in').toLowerCase() === 'in';
-        });
-        moneyOut = res.filter(i => {
-          const data = i.json || i;
-          return (data.tipe || data.Tipe || data.type || '').toLowerCase() === 'out';
-        });
       }
 
       const normalizeItem = (item, defaultType, idx) => {
         const data = item.json || item;
         return {
-          id: data.id || data.ID || data.row_id || `ID-${idx + 1}`,
-          waktu: data.waktu || data.Waktu || data.created_at || data.tanggal || data.Tanggal || "-",
-          cabang: data.cabang || data.Cabang || "CABANG 1",
-          tipe: (data.tipe || data.Tipe || data.type || defaultType).toLowerCase(),
-          nominal: parseFloat(data.nominal || data.Nominal || data.amount || 0),
-          transaksi: data.transaksi || data.Transaksi || data.keterangan || data.Keterangan || "-",
-          kasir: data.kasir || data.Kasir || data.user || "-"
+          id: data.id || data.ID || data.row_id || (idx + 1),
+          waktu: data.waktu || data.Waktu || data.created_at || "-",
+          cabang: data.CABANG || data.cabang || "CABANG 1",
+          tipe: defaultType,
+          nominal: parseFloat(data.NOMINAL || data.nominal || 0),
+          transaksi: data.TRANSAKSI || data.transaksi || "-",
+          kasir: data.KASIR || data.kasir || "-"
         };
       };
 
@@ -203,27 +197,22 @@
         }
 
         const rawJson = await response.json();
-        console.log("Raw Response Admin:", rawJson);
-
         const { moneyIn, moneyOut } = parseN8nResponse(rawJson);
 
         rawData = [...moneyIn, ...moneyOut];
-        renderTable(rawData);
+        
+        if (currentTab === 'active') renderTable(rawData);
+        else switchTab(currentTab);
 
       } catch (error) {
-        console.error("Fetch error detail:", error);
+        console.error("Fetch error:", error);
         tbody.innerHTML = `
           <tr>
             <td colspan="7" class="text-center py-8 text-rose-600">
               <div class="font-bold text-base mb-1">
-                <i class="fa-solid fa-triangle-exclamation mr-1"></i> Gagal Terhubung ke Webhook n8n
+                <i class="fa-solid fa-triangle-exclamation mr-1"></i> Gagal Memuat Data
               </div>
-              <div class="text-xs text-slate-500 max-w-lg mx-auto bg-rose-50 p-3 rounded-lg border border-rose-200 mt-2 font-mono text-left">
-                <strong>Detail Error:</strong> ${error.message}<br><br>
-                <strong>Checklist:</strong><br>
-                1. Pastikan Workflow n8n dalam keadaan <strong>Active</strong>.<br>
-                2. Periksa Tab Console Browser (Tekan F12) jika ada masalah CORS.
-              </div>
+              <div class="text-xs text-slate-500 font-mono mt-1">${error.message}</div>
             </td>
           </tr>`;
       }
@@ -233,7 +222,7 @@
       const tbody = document.getElementById("transactionTableBody");
       
       if (!data || data.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-slate-400">Tidak ada data transaksi ditemukan.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-slate-400">Tidak ada data transaksi.</td></tr>`;
         return;
       }
 
@@ -251,9 +240,12 @@
           </td>
           <td class="py-3 px-4 text-slate-600">${item.transaksi}</td>
           <td class="py-3 px-4 text-slate-600">${item.kasir}</td>
-          <td class="py-3 px-4 text-center">
+          <td class="py-3 px-4 text-center space-x-1">
             <button onclick="openEditModal('${item.id}', '${item.tipe}', ${item.nominal}, '${item.kasir}', '${item.cabang}')" class="bg-amber-50 text-amber-600 hover:bg-amber-100 px-3 py-1 rounded-lg text-xs font-semibold transition border border-amber-200">
               <i class="fa-solid fa-pen-to-square mr-1"></i>Edit
+            </button>
+            <button onclick="deleteTransaction('${item.id}', '${item.tipe}')" class="bg-rose-50 text-rose-600 hover:bg-rose-100 px-3 py-1 rounded-lg text-xs font-semibold transition border border-rose-200">
+              <i class="fa-solid fa-trash mr-1"></i>Hapus
             </button>
           </td>
         </tr>
@@ -278,6 +270,7 @@
     }
 
     function switchTab(tab) {
+      currentTab = tab;
       const btnActive = document.getElementById("tabActive");
       const btnLogs = document.getElementById("tabLogs");
       const btnDeleted = document.getElementById("tabDeleted");
@@ -294,11 +287,11 @@
       } else if (tab === 'logs') {
         btnLogs.className = "pb-2 font-semibold text-slate-900 border-b-2 border-slate-900 text-sm";
         title.innerText = "Log Perubahan Transaksi";
-        document.getElementById("transactionTableBody").innerHTML = `<tr><td colspan="7" class="text-center py-8 text-slate-400">Belum ada aktivitas perubahan transaksi.</td></tr>`;
+        renderTable(logChanges);
       } else if (tab === 'deleted') {
         btnDeleted.className = "pb-2 font-semibold text-slate-900 border-b-2 border-slate-900 text-sm";
         title.innerText = "Daftar Data Dihapus";
-        document.getElementById("transactionTableBody").innerHTML = `<tr><td colspan="7" class="text-center py-8 text-slate-400">Tidak ada data terhapus.</td></tr>`;
+        renderTable(deletedData);
       }
     }
 
@@ -339,6 +332,18 @@
         const res = await response.json();
         if (res.success || response.ok) {
           alert("Data transaksi berhasil diperbarui!");
+          
+          // Log aktivitas
+          logChanges.unshift({
+            waktu: new Date().toLocaleString("id-ID"),
+            cabang,
+            tipe: type,
+            nominal: parseFloat(nominal),
+            transaksi: "Diperbarui via Admin",
+            kasir,
+            id
+          });
+
           closeModal();
           fetchData();
         } else {
@@ -350,6 +355,42 @@
       } finally {
         btn.innerText = "Simpan Perubahan";
         btn.disabled = false;
+      }
+    }
+
+    async function deleteTransaction(id, tipe) {
+      if (!confirm("Apakah Anda yakin ingin menghapus data transaksi ini?")) return;
+
+      const itemTarget = rawData.find(i => String(i.id) === String(id));
+      const action = tipe === 'in' ? 'edit_in' : 'edit_out';
+
+      try {
+        // Mengirim instruksi hapus melalui jalur edit (menetralkan nominal & menandai hapus)
+        const response = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ 
+            action, 
+            id, 
+            nominal: 0, 
+            kasir: itemTarget ? itemTarget.kasir : "-", 
+            cabang: itemTarget ? itemTarget.cabang : "CABANG 1" 
+          })
+        });
+
+        const res = await response.json();
+        if (res.success || response.ok) {
+          alert("Transaksi berhasil dihapus.");
+          if (itemTarget) {
+            deletedData.unshift({ ...itemTarget, nominal: 0, transaksi: "[DELETED]" });
+          }
+          fetchData();
+        } else {
+          alert("Gagal menghapus data.");
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Terjadi kesalahan koneksi saat menghapus transaksi.");
       }
     }
 
