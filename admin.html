@@ -140,8 +140,9 @@
       fetchData();
     });
 
-    // PARSER DATA UNTUK N8N
+    // PARSER DATA N8N (DAPAT MEMBACA NAMA KOLOM DARI SPREADSHEET/DATABASE)
     function parseN8nResponse(res) {
+      // Jika res adalah array berisikan objek tunggal n8n [{ json: ... }]
       if (Array.isArray(res) && res.length === 1 && res[0] && res[0].json) {
         res = res[0].json;
       }
@@ -149,7 +150,17 @@
       let moneyIn = [];
       let moneyOut = [];
 
-      if (res.data) {
+      // Mengecek beberapa variasi response n8n
+      if (Array.isArray(res)) {
+        moneyIn = res.filter(i => {
+          const item = i.json || i;
+          return item.JENIS === 'MASUK' || item.tipe === 'in' || item.NOMINAL !== undefined;
+        });
+        moneyOut = res.filter(i => {
+          const item = i.json || i;
+          return item.JENIS === 'KELUAR' || item.tipe === 'out' || item["NOMINAL UANG KELUAR"] !== undefined;
+        });
+      } else if (res.data) {
         moneyIn = res.data.money_in || [];
         moneyOut = res.data.money_out || [];
       } else if (res.money_in || res.money_out) {
@@ -159,15 +170,29 @@
 
       const normalizeItem = (item, defaultType, idx) => {
         const data = item.json || item;
-        return {
-          id: data.id || data.ID || data.row_id || (idx + 1),
-          waktu: data.waktu || data.Waktu || data.created_at || "-",
-          cabang: data.CABANG || data.cabang || "CABANG 1",
-          tipe: defaultType,
-          nominal: parseFloat(data.NOMINAL || data.nominal || 0),
-          transaksi: data.TRANSAKSI || data.transaksi || "-",
-          kasir: data.KASIR || data.kasir || "-"
-        };
+
+        // Mendapatkan Waktu
+        const waktu = data.WAKTU || data.waktu || data.created_at || "-";
+
+        // Mendapatkan Cabang
+        const cabang = data.CABANG || data.cabang || "CABANG 1";
+
+        // Mendapatkan Nominal (Mengakomodasi Kategori Masuk & Keluar)
+        const rawNominal = data.NOMINAL || data["NOMINAL UANG KELUAR"] || data.nominal || 0;
+        const nominal = typeof rawNominal === "string" 
+          ? parseFloat(rawNominal.replace(/[^0-9.-]+/g, "")) || 0 
+          : parseFloat(rawNominal || 0);
+
+        // Mendapatkan Keterangan / Transaksi
+        const transaksi = data.KETERANGAN || data["PENGELUARAN UNTUK"] || data.TRANSAKSI || data.transaksi || "-";
+
+        // Mendapatkan Kasir
+        const kasir = data.KASIR || data["NAMA KASIR"] || data.kasir || "-";
+
+        // Mendapatkan ID
+        const id = data.id || data.ID || data.row_id || `TRX-${defaultType}-${idx + 1}`;
+
+        return { id, waktu, cabang, tipe: defaultType, nominal, transaksi, kasir };
       };
 
       return {
@@ -333,7 +358,6 @@
         if (res.success || response.ok) {
           alert("Data transaksi berhasil diperbarui!");
           
-          // Log aktivitas
           logChanges.unshift({
             waktu: new Date().toLocaleString("id-ID"),
             cabang,
@@ -365,7 +389,6 @@
       const action = tipe === 'in' ? 'edit_in' : 'edit_out';
 
       try {
-        // Mengirim instruksi hapus melalui jalur edit (menetralkan nominal & menandai hapus)
         const response = await fetch(API_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
