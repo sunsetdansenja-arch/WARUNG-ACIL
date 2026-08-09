@@ -6,22 +6,33 @@
   <title>Dashboard Kasir - Kasir Warung Acil</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    /* Styling khusus cetak Struk Thermal */
+    /* Styling khusus cetak Struk Thermal 58mm */
     @media print {
       body * {
         visibility: hidden;
       }
-      #receiptSection, #receiptSection * {
+      #receiptModal, #receiptModal * {
         visibility: visible;
       }
-      #receiptSection {
+      #receiptModal {
         position: absolute;
         left: 0;
         top: 0;
-        width: 100%;
-        max-width: 58mm; /* Standar Thermal Printer Kasir Mobile */
-        padding: 5px;
+        width: 58mm !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        background: white !important;
+      }
+      #receiptCard {
+        box-shadow: none !important;
+        padding: 4px !important;
+        width: 58mm !important;
+        border: none !important;
+      }
+      #receiptSection {
+        width: 58mm !important;
         font-family: 'Courier New', Courier, monospace;
+        font-size: 10px;
         color: #000;
       }
       .no-print {
@@ -125,10 +136,17 @@
 
         <div id="alertMsg" class="hidden p-3 rounded-xl text-xs font-semibold text-center"></div>
 
-        <button type="submit" id="submitFormBtn" 
-          class="w-full bg-emerald-600 active:scale-95 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl transition shadow-lg shadow-emerald-600/20 text-sm">
-          SIMPAN & CETAK STRUK
-        </button>
+        <!-- 2 Opsi Tombol Simpan -->
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <button type="button" onclick="handleFormSubmit(false)" id="btnSaveOnly" 
+            class="bg-slate-700 active:scale-95 hover:bg-slate-800 text-white font-bold py-3 rounded-xl transition shadow-md text-xs">
+            💾 SIMPAN SAJA
+          </button>
+          <button type="button" onclick="handleFormSubmit(true)" id="btnSavePrint" 
+            class="bg-emerald-600 active:scale-95 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition shadow-md shadow-emerald-600/20 text-xs">
+            🖨️ SIMPAN & CETAK
+          </button>
+        </div>
       </form>
     </div>
 
@@ -141,32 +159,32 @@
     </div>
   </main>
 
-  <!-- Modal Struk Cetak Thermal (Otomatis Muncul) -->
+  <!-- Modal Struk Cetak Thermal 58mm -->
   <div id="receiptModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl p-4 w-full max-w-xs shadow-2xl space-y-4">
-      <!-- Area Struk yang Dicetak -->
-      <div id="receiptSection" class="text-center text-xs text-black">
-        <h2 class="font-bold text-sm uppercase">WARUNG ACIL</h2>
-        <p class="text-[10px]" id="rBranch">Cabang -</p>
-        <p class="text-[10px] border-b border-dashed border-black pb-2 mb-2" id="rDate">-</p>
+    <div id="receiptCard" class="bg-white rounded-2xl p-4 w-[58mm] shadow-2xl space-y-3">
+      <!-- Area Struk Presisi 58mm -->
+      <div id="receiptSection" class="text-center text-[10px] text-black leading-tight">
+        <h2 class="font-bold text-xs uppercase">WARUNG ACIL</h2>
+        <p class="text-[9px]" id="rBranch">Cabang -</p>
+        <p class="text-[8px] border-b border-dashed border-black pb-1 mb-1.5" id="rDate">-</p>
 
-        <div class="text-left space-y-1 mb-2 text-[11px]">
-          <div class="flex justify-between"><span class="text-gray-600">Tipe:</span> <span id="rType" class="font-bold">-</span></div>
-          <div class="flex justify-between"><span class="text-gray-600">Metode:</span> <span id="rMethod" class="font-bold uppercase">-</span></div>
-          <div class="flex justify-between"><span class="text-gray-600">Kasir:</span> <span id="rKasir">-</span></div>
+        <div class="text-left space-y-0.5 mb-1.5 text-[9px]">
+          <div class="flex justify-between"><span>Tipe:</span> <span id="rType" class="font-bold">-</span></div>
+          <div class="flex justify-between"><span>Metode:</span> <span id="rMethod" class="font-bold uppercase">-</span></div>
+          <div class="flex justify-between"><span>Kasir:</span> <span id="rKasir">-</span></div>
         </div>
 
-        <div class="border-t border-b border-dashed border-black py-2 my-2 flex justify-between items-center">
-          <span class="font-bold text-xs">TOTAL:</span>
-          <span class="font-extrabold text-sm" id="rNominal">Rp 0</span>
+        <div class="border-t border-b border-dashed border-black py-1.5 my-1.5 flex justify-between items-center">
+          <span class="font-bold text-[10px]">TOTAL:</span>
+          <span class="font-extrabold text-xs" id="rNominal">Rp 0</span>
         </div>
 
-        <p class="text-[9px] mt-2 italic">*** Terima Kasih ***</p>
+        <p class="text-[8px] mt-1.5 italic">*** Terima Kasih ***</p>
       </div>
 
-      <div class="flex gap-2 no-print">
-        <button onclick="triggerPrint()" class="flex-1 bg-emerald-600 text-white font-bold text-xs py-2.5 rounded-xl">🖨️ Cetak Struk</button>
-        <button onclick="closeReceiptModal()" class="flex-1 bg-slate-200 text-slate-700 font-bold text-xs py-2.5 rounded-xl">Tutup</button>
+      <div class="flex flex-col gap-1.5 no-print pt-1">
+        <button onclick="triggerPrint()" class="w-full bg-emerald-600 text-white font-bold text-xs py-2 rounded-xl">🖨️ Cetak Struk</button>
+        <button onclick="closeReceiptModal()" class="w-full bg-slate-200 text-slate-700 font-bold text-xs py-1.5 rounded-xl">Tutup</button>
       </div>
     </div>
   </div>
@@ -190,46 +208,46 @@
       currentAction = action;
       const tabIn = document.getElementById('tabIn');
       const tabOut = document.getElementById('tabOut');
-      const submitBtn = document.getElementById('submitFormBtn');
+      const btnSavePrint = document.getElementById('btnSavePrint');
 
       if (action === 'in') {
         tabIn.className = 'flex-1 py-2.5 text-center font-extrabold text-emerald-600 border-b-2 border-emerald-600 text-xs uppercase tracking-wide';
         tabOut.className = 'flex-1 py-2.5 text-center font-extrabold text-slate-400 border-b-2 border-transparent text-xs uppercase tracking-wide';
-        submitBtn.className = 'w-full bg-emerald-600 active:scale-95 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl transition shadow-lg shadow-emerald-600/20 text-sm';
-        submitBtn.innerText = 'SIMPAN & CETAK STRUK';
+        btnSavePrint.className = 'bg-emerald-600 active:scale-95 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition shadow-md shadow-emerald-600/20 text-xs';
       } else {
         tabOut.className = 'flex-1 py-2.5 text-center font-extrabold text-rose-600 border-b-2 border-rose-600 text-xs uppercase tracking-wide';
         tabIn.className = 'flex-1 py-2.5 text-center font-extrabold text-slate-400 border-b-2 border-transparent text-xs uppercase tracking-wide';
-        submitBtn.className = 'w-full bg-rose-600 active:scale-95 hover:bg-rose-700 text-white font-bold py-3.5 rounded-xl transition shadow-lg shadow-rose-600/20 text-sm';
-        submitBtn.innerText = 'SIMPAN UANG KELUAR';
+        btnSavePrint.className = 'bg-rose-600 active:scale-95 hover:bg-rose-700 text-white font-bold py-3 rounded-xl transition shadow-md shadow-rose-600/20 text-xs';
       }
     }
 
-    // Pilihan Filter Periode Laci Kasir
     function switchPeriod(period) {
       activePeriod = period;
-      const periods = ['today', 'week', 'month'];
-      periods.forEach(p => {
+      ['today', 'week', 'month'].forEach(p => {
         const btn = document.getElementById('btn' + p.charAt(0).toUpperCase() + p.slice(1));
-        if (p === period) {
-          btn.className = 'flex-1 py-1.5 rounded-lg bg-white text-emerald-700 shadow-sm transition';
-        } else {
-          btn.className = 'flex-1 py-1.5 rounded-lg transition';
-        }
+        btn.className = (p === period) 
+          ? 'flex-1 py-1.5 rounded-lg bg-white text-emerald-700 shadow-sm transition' 
+          : 'flex-1 py-1.5 rounded-lg transition';
       });
       calculateLaciTotals();
     }
 
-    // Submit Transaksi Baru
-    document.getElementById('transaksiForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
+    // Eksekusi Submit Transaksi (Simpan / Simpan + Cetak)
+    async function handleFormSubmit(shouldPrint) {
+      const nominalInput = document.getElementById('nominal');
+      if (!nominalInput.value || Number(nominalInput.value) <= 0) {
+        showAlert('Masukkan nominal transaksi yang valid!', 'error');
+        return;
+      }
 
-      const nominal = document.getElementById('nominal').value;
+      const nominal = nominalInput.value;
       const jenis = document.querySelector('input[name="transaksi"]:checked').value;
       const alertMsg = document.getElementById('alertMsg');
-      const submitBtn = document.getElementById('submitFormBtn');
+      const btnSaveOnly = document.getElementById('btnSaveOnly');
+      const btnSavePrint = document.getElementById('btnSavePrint');
 
-      submitBtn.disabled = true;
+      btnSaveOnly.disabled = true;
+      btnSavePrint.disabled = true;
       alertMsg.classList.add('hidden');
 
       const payload = {
@@ -254,9 +272,9 @@
           showAlert('Transaksi berhasil dicatat!', 'success');
           document.getElementById('nominal').value = '';
 
-          // Jika Transaksi Masuk, Munculkan Struk Otomatis
-          if (currentAction === 'in') {
-            openReceiptModal(nominal, jenis);
+          // Cetak Struk jika opsi cetak dipilih
+          if (shouldPrint) {
+            openReceiptModal(nominal, jenis, currentAction === 'in' ? 'Uang Masuk' : 'Uang Keluar', session.user, currentBranch, new Date());
           }
 
           loadDashboardData();
@@ -266,9 +284,10 @@
       } catch (err) {
         showAlert('Koneksi terputus. Gagal mengirim data.', 'error');
       } finally {
-        submitBtn.disabled = false;
+        btnSaveOnly.disabled = false;
+        btnSavePrint.disabled = false;
       }
-    });
+    }
 
     function showAlert(msg, type) {
       const alertMsg = document.getElementById('alertMsg');
@@ -277,7 +296,6 @@
       alertMsg.classList.add(type === 'success' ? 'bg-emerald-50' : 'bg-rose-50', type === 'success' ? 'text-emerald-700' : 'text-rose-700');
     }
 
-    // Fetch Semua Data Dashboard
     async function loadDashboardData() {
       try {
         const response = await fetch(WEBHOOK_URL, {
@@ -299,28 +317,23 @@
       }
     }
 
-    // Hitung Total Laci Kasir (Masuk - Keluar)
     function calculateLaciTotals() {
       const now = new Date();
       let listIn = (globalRawData.money_in || []);
       let listOut = (globalRawData.money_out || []);
 
-      // Filter Berdasarkan Cabang
       if (!session.isOwner) {
         listIn = listIn.filter(i => String(i.CABANG).toUpperCase() === currentBranch.toUpperCase());
         listOut = listOut.filter(o => String(o.CABANG).toUpperCase() === currentBranch.toUpperCase());
       }
 
-      // Filter Berdasarkan Periode Waktu
       const filterByDate = (item) => {
         if (!item.createdAt) return true;
         const d = new Date(item.createdAt);
-        
         if (activePeriod === 'today') {
           return d.toDateString() === now.toDateString();
         } else if (activePeriod === 'week') {
-          const diffDays = Math.floor((now - d) / (1000 * 60 * 60 * 24));
-          return diffDays < 7;
+          return Math.floor((now - d) / (1000 * 60 * 60 * 24)) < 7;
         } else if (activePeriod === 'month') {
           return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
         }
@@ -330,7 +343,6 @@
       const filteredIn = listIn.filter(filterByDate);
       const filteredOut = listOut.filter(filterByDate);
 
-      // Hitung per metode
       let totals = { cash: 0, qris: 0, transfer: 0 };
 
       filteredIn.forEach(i => {
@@ -346,7 +358,6 @@
       });
 
       const totalNet = totals.cash + totals.qris + totals.transfer;
-
       const formatCurrency = (val) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(val);
 
       document.getElementById('valCash').innerText = formatCurrency(totals.cash);
@@ -355,7 +366,7 @@
       document.getElementById('valTotalNet').innerText = formatCurrency(totalNet);
     }
 
-    // Render Riwayat Transaksi Mobile Card List
+    // Render Riwayat dengan Tombol Cetak Struk Ulang
     function renderHistoryList() {
       const container = document.getElementById('historyList');
       let listIn = (globalRawData.money_in || []).map(i => ({ ...i, type: 'IN' }));
@@ -374,13 +385,12 @@
         return;
       }
 
-      container.innerHTML = all.slice(0, 8).map(item => {
+      container.innerHTML = all.slice(0, 10).map((item, idx) => {
         const isIn = item.type === 'IN';
         const badgeColor = isIn ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800';
         const formattedNominal = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(item.NOMINAL || 0);
-        const timeStr = item.createdAt 
-          ? new Date(item.createdAt).toLocaleTimeString('id-ID', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit' }) 
-          : '-';
+        const dateObj = item.createdAt ? new Date(item.createdAt) : new Date();
+        const timeStr = dateObj.toLocaleTimeString('id-ID', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit' });
 
         return `
           <div class="flex justify-between items-center p-2.5 bg-slate-50 rounded-xl border border-slate-100">
@@ -391,27 +401,32 @@
                 <p class="text-[10px] text-slate-400 uppercase font-medium">${item.TRANSAKSI || '-'} • ${item.KASIR || '-'}</p>
               </div>
             </div>
-            <span class="text-[10px] font-semibold text-slate-400">${timeStr} WIB</span>
+            <div class="flex items-center gap-2">
+              <span class="text-[10px] font-semibold text-slate-400">${timeStr} WIB</span>
+              <button onclick="reprintReceipt('${item.NOMINAL}', '${item.TRANSAKSI}', '${isIn ? 'Uang Masuk' : 'Uang Keluar'}', '${item.KASIR}', '${item.CABANG}', '${item.createdAt}')" 
+                class="bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 text-[10px] font-bold px-2 py-1 rounded-lg transition shadow-xs">
+                🖨️ Struk
+              </button>
+            </div>
           </div>
         `;
       }).join('');
     }
 
-    // Fungsi Cetak Struk
-    function openReceiptModal(nominal, method) {
-      document.getElementById('rBranch').innerText = currentBranch;
-      document.getElementById('rDate').innerText = new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' }) + ' WIB';
-      document.getElementById('rType').innerText = 'Uang Masuk';
+    function openReceiptModal(nominal, method, type, kasir, cabang, date) {
+      document.getElementById('rBranch').innerText = cabang || currentBranch;
+      document.getElementById('rDate').innerText = new Date(date || Date.now()).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' }) + ' WIB';
+      document.getElementById('rType').innerText = type;
       document.getElementById('rMethod').innerText = method;
-      document.getElementById('rKasir').innerText = session.user;
+      document.getElementById('rKasir').innerText = kasir || session.user;
       document.getElementById('rNominal').innerText = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(nominal);
 
       document.getElementById('receiptModal').classList.remove('hidden');
+    }
 
-      // Trigger cetak otomatis
-      setTimeout(() => {
-        triggerPrint();
-      }, 400);
+    function reprintReceipt(nominal, method, type, kasir, cabang, dateStr) {
+      openReceiptModal(nominal, method, type, kasir, cabang, dateStr);
+      setTimeout(() => { triggerPrint(); }, 300);
     }
 
     function triggerPrint() {
@@ -427,7 +442,6 @@
       window.location.href = 'index.html';
     }
 
-    // Inisialisasi awal
     loadDashboardData();
   </script>
 </body>
