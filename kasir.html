@@ -150,11 +150,11 @@
 
         <!-- 2 Opsi Tombol Simpan -->
         <div class="grid grid-cols-2 gap-2 pt-1">
-          <button type="button" onclick="handleFormSubmit(false)" id="btnSaveOnly" 
+          <button type="button" onclick="openConfirmModal(false)" id="btnSaveOnly" 
             class="bg-slate-700 active:scale-95 hover:bg-slate-800 text-white font-bold py-3 rounded-xl transition shadow-md text-xs cursor-pointer">
             💾 SIMPAN SAJA
           </button>
-          <button type="button" onclick="handleFormSubmit(true)" id="btnSavePrint" 
+          <button type="button" onclick="openConfirmModal(true)" id="btnSavePrint" 
             class="bg-emerald-600 active:scale-95 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition shadow-md shadow-emerald-600/20 text-xs cursor-pointer">
             🖨️ SIMPAN & CETAK
           </button>
@@ -171,8 +171,55 @@
     </div>
   </main>
 
+  <!-- Modal Konfirmasi HTML Sesuai Tema (Dengan Quick Switch Metode) -->
+  <div id="confirmModal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4 no-print">
+    <div class="bg-white rounded-3xl p-5 max-w-xs w-full shadow-2xl space-y-4 animate-in fade-in zoom-in duration-150">
+      <div class="text-center space-y-1">
+        <span class="inline-block p-3 bg-emerald-100 text-emerald-700 rounded-full text-xl mb-1">🔍</span>
+        <h3 class="font-bold text-slate-800 text-base">Konfirmasi Transaksi</h3>
+        <p class="text-xs text-slate-500">Periksa kembali detail sebelum menyimpan</p>
+      </div>
+
+      <div class="bg-slate-50 rounded-2xl p-3.5 border border-slate-200/80 space-y-2 text-xs">
+        <div class="flex justify-between items-center text-slate-500">
+          <span>Tipe Transaksi:</span>
+          <span class="font-bold text-slate-800 uppercase" id="confirmType">-</span>
+        </div>
+        <div class="flex justify-between items-center text-slate-500">
+          <span>Total Nominal:</span>
+          <span class="font-extrabold text-emerald-600 text-sm" id="confirmNominal">Rp 0</span>
+        </div>
+      </div>
+
+      <!-- Quick Change Metode Pembayaran -->
+      <div>
+        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 text-center">Ganti Metode Pembayaran?</label>
+        <div class="grid grid-cols-3 gap-1.5">
+          <button type="button" onclick="quickSelectMethod('cash')" id="btnQuickCash" class="py-2 px-1 rounded-xl text-[11px] font-bold border-2 transition cursor-pointer">
+            💵 CASH
+          </button>
+          <button type="button" onclick="quickSelectMethod('qris')" id="btnQuickQris" class="py-2 px-1 rounded-xl text-[11px] font-bold border-2 transition cursor-pointer">
+            📱 QRIS
+          </button>
+          <button type="button" onclick="quickSelectMethod('transfer')" id="btnQuickTransfer" class="py-2 px-1 rounded-xl text-[11px] font-bold border-2 transition cursor-pointer">
+            🏦 TRF
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2 pt-1">
+        <button type="button" onclick="closeConfirmModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl text-xs cursor-pointer">
+          Batal
+        </button>
+        <button type="button" onclick="executeSubmit()" id="btnConfirmSubmit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs shadow-md shadow-emerald-600/20 cursor-pointer">
+          Ya, Simpan
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal Struk Cetak Thermal 58mm (Tampilan Ramah Pelanggan) -->
-  <div id="receiptModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3">
+  <div id="receiptModal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-3">
     <div id="receiptCard" class="bg-white rounded-2xl p-4 w-[58mm] shadow-2xl space-y-2">
       <!-- Area Struk Presisi 58mm -->
       <div id="receiptSection" class="text-center text-[10px] text-black leading-tight">
@@ -206,6 +253,7 @@
     let currentAction = 'in';
     let activePeriod = 'today';
     let globalRawData = { money_in: [], money_out: [] };
+    let pendingShouldPrint = false; // Menyimpan status cetak saat konfirmasi
 
     // Validasi Sesi Login
     const session = JSON.parse(localStorage.getItem('warung_acil_session'));
@@ -244,32 +292,61 @@
       calculateLaciTotals();
     }
 
-    // Submit Transaksi dengan Langkah Konfirmasi Tambahan
-    async function handleFormSubmit(shouldPrint) {
+    // Buka Modal Konfirmasi Custom
+    function openConfirmModal(shouldPrint) {
       const nominalInput = document.getElementById('nominal');
       if (!nominalInput.value || Number(nominalInput.value) <= 0) {
         showAlert('Masukkan nominal transaksi yang valid!', 'error');
         return;
       }
 
+      // Menutup keyboard pada perangkat HP
+      nominalInput.blur();
+
+      pendingShouldPrint = shouldPrint;
+      const nominal = nominalInput.value;
+      const selectedMethod = document.querySelector('input[name="transaksi"]:checked').value;
+
+      document.getElementById('confirmType').innerText = currentAction === 'in' ? 'Uang Masuk / Penjualan' : 'Uang Keluar / Retur';
+      document.getElementById('confirmNominal').innerText = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(nominal);
+
+      // Update tampilan Quick Select Metode di dalam Modal
+      updateQuickMethodUI(selectedMethod);
+
+      document.getElementById('confirmModal').classList.remove('hidden');
+    }
+
+    function closeConfirmModal() {
+      document.getElementById('confirmModal').classList.add('hidden');
+    }
+
+    // Quick Select Metode Pembayaran di Dalam Modal
+    function quickSelectMethod(method) {
+      const radioBtn = document.querySelector(`input[name="transaksi"][value="${method}"]`);
+      if (radioBtn) {
+        radioBtn.checked = true;
+        updateQuickMethodUI(method);
+      }
+    }
+
+    function updateQuickMethodUI(activeMethod) {
+      ['cash', 'qris', 'transfer'].forEach(m => {
+        const btn = document.getElementById('btnQuick' + m.charAt(0).toUpperCase() + m.slice(1));
+        if (m === activeMethod) {
+          btn.className = 'py-2 px-1 rounded-xl text-[11px] font-bold border-2 border-emerald-600 bg-emerald-50 text-emerald-700 transition cursor-pointer';
+        } else {
+          btn.className = 'py-2 px-1 rounded-xl text-[11px] font-bold border-2 border-slate-200 bg-white text-slate-500 transition cursor-pointer';
+        }
+      });
+    }
+
+    // Eksekusi Submit Transaksi Setelah Konfirmasi
+    async function executeSubmit() {
+      closeConfirmModal();
+
+      const nominalInput = document.getElementById('nominal');
       const nominal = nominalInput.value;
       const jenis = document.querySelector('input[name="transaksi"]:checked').value;
-      const formattedNominal = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(nominal);
-      const jenisTipe = currentAction === 'in' ? 'UANG MASUK / PENJUALAN' : 'UANG KELUAR / RETUR';
-
-      // Langkah Konfirmasi Nominal dan Metode
-      const isConfirmed = confirm(
-        `Konfirmasi Transaksi:\n\n` +
-        `• Tipe: ${jenisTipe}\n` +
-        `• Nominal: ${formattedNominal}\n` +
-        `• Metode: ${jenis.toUpperCase()}\n\n` +
-        `Apakah nominal dan metode transaksi sudah benar?`
-      );
-
-      if (!isConfirmed) {
-        return; // Batalkan proses jika user memilih 'Cancel'
-      }
-
       const alertMsg = document.getElementById('alertMsg');
       const btnSaveOnly = document.getElementById('btnSaveOnly');
       const btnSavePrint = document.getElementById('btnSavePrint');
@@ -301,7 +378,7 @@
           document.getElementById('nominal').value = '';
 
           // Buka Struk jika memilih SIMPAN & CETAK
-          if (shouldPrint) {
+          if (pendingShouldPrint) {
             openReceiptModal(nominal, jenis, currentAction === 'in', session.user, currentBranch, new Date());
           }
 
