@@ -128,18 +128,18 @@
     const API_URL = "https://n8n-mzbmiib3etk4.kangkung.sumopod.my.id/webhook/0c2f335e-543b-4f3e-968e-f70d412f194b";
     
     let rawData = [];
-    let currentTab = 'active';
 
     document.addEventListener("DOMContentLoaded", () => {
       fetchData();
     });
 
+    // Jalur penarikan disamakan persis dengan sistem kasir
     async function fetchData() {
       const tbody = document.getElementById("transactionTableBody");
       tbody.innerHTML = `
         <tr>
           <td colspan="7" class="text-center py-8 text-slate-400">
-            <i class="fa-solid fa-spinner fa-spin mr-2"></i> Memuat data dari server...
+            <i class="fa-solid fa-spinner fa-spin mr-2"></i> Memuat data...
           </td>
         </tr>`;
 
@@ -150,54 +150,56 @@
           body: JSON.stringify({ action: "get_data" })
         });
 
-        if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
-        
         const res = await response.json();
-        
-        // Menangani fleksibilitas struktur JSON dari n8n
+        console.log("Response Webhook Received:", res); // Memudahkan debugging di Inspect Element (Console)
+
+        let rootData = res;
+
+        // Mendeteksi pembungkusan Array bawaan n8n [ { json: { ... } } ]
+        if (Array.isArray(res) && res.length > 0 && res[0].json) {
+          rootData = res[0].json;
+        }
+
+        // Ekstraksi array money_in dan money_out
         let moneyIn = [];
         let moneyOut = [];
 
-        if (res.data) {
-          moneyIn = res.data.money_in || [];
-          moneyOut = res.data.money_out || [];
-        } else if (Array.isArray(res)) {
-          // Jika n8n mengembalikan array tunggal
-          moneyIn = res.filter(item => item.tipe === 'in' || item.type === 'in' || item.nominal > 0);
-          moneyOut = res.filter(item => item.tipe === 'out' || item.type === 'out');
-        } else if (res.money_in || res.money_out) {
-          moneyIn = res.money_in || [];
-          moneyOut = res.money_out || [];
+        if (rootData.data) {
+          moneyIn = rootData.data.money_in || [];
+          moneyOut = rootData.data.money_out || [];
+        } else {
+          moneyIn = rootData.money_in || [];
+          moneyOut = rootData.money_out || [];
         }
 
-        // Format dan gabungkan data
-        const formattedIn = moneyIn.map((item, idx) => normalizeItem(item, 'in', idx));
-        const formattedOut = moneyOut.map((item, idx) => normalizeItem(item, 'out', idx));
+        // Mapping data agar aman terhadap huruf besar/kecil properti dari Google Sheets
+        const formattedIn = moneyIn.map((item, idx) => parseTransaction(item, 'in', idx));
+        const formattedOut = moneyOut.map((item, idx) => parseTransaction(item, 'out', idx));
 
         rawData = [...formattedIn, ...formattedOut];
         renderTable(rawData);
 
       } catch (error) {
-        console.error("Gagal mengambil data:", error);
+        console.error("Gagal menarik data:", error);
         tbody.innerHTML = `
           <tr>
             <td colspan="7" class="text-center py-8 text-red-500 font-semibold">
-              <i class="fa-solid fa-triangle-exclamation mr-2"></i> Gagal memuat data. Silakan periksa koneksi atau webhook backend.
+              <i class="fa-solid fa-triangle-exclamation mr-2"></i> Gagal terhubung ke server/webhook.
             </td>
           </tr>`;
       }
     }
 
-    // Normalisasi struktur field data agar konsisten
-    function normalizeItem(item, defaultType, index) {
+    // Ekstraksi nilai properti secara fleksibel
+    function parseTransaction(item, defaultType, idx) {
       return {
-        id: item.id || item.row_id || item.ID || `ID-${index}`,
-        waktu: item.waktu || item.created_at || item.tanggal || item.Date || "-",
-        cabang: item.cabang || item.branch || "CABANG 1",
-        tipe: item.tipe || item.type || defaultType,
-        nominal: parseFloat(item.nominal || item.amount || 0),
-        transaksi: item.transaksi || item.keterangan || item.description || "-",
-        kasir: item.kasir || item.user || "-"
+        id: item.id || item.ID || item.row_id || `ROW-${idx + 1}`,
+        waktu: item.waktu || item.Waktu || item.created_at || item.tanggal || item.Tanggal || "-",
+        cabang: item.cabang || item.Cabang || "CABANG 1",
+        tipe: item.tipe || item.Tipe || defaultType,
+        nominal: parseFloat(item.nominal || item.Nominal || 0),
+        transaksi: item.transaksi || item.Transaksi || item.keterangan || item.Keterangan || "-",
+        kasir: item.kasir || item.Kasir || "-"
       };
     }
 
@@ -215,7 +217,7 @@
       if (!data || data.length === 0) {
         tbody.innerHTML = `
           <tr>
-            <td colspan="7" class="text-center py-8 text-slate-400">Tidak ada transaksi ditemukan.</td>
+            <td colspan="7" class="text-center py-8 text-slate-400">Tidak ada data transaksi.</td>
           </tr>`;
         return;
       }
@@ -249,7 +251,9 @@
       const type = document.getElementById("typeFilter").value;
 
       const filtered = rawData.filter(item => {
-        const matchSearch = item.kasir.toLowerCase().includes(search) || item.nominal.toString().includes(search) || item.transaksi.toLowerCase().includes(search);
+        const matchSearch = item.kasir.toLowerCase().includes(search) || 
+                            item.nominal.toString().includes(search) || 
+                            item.transaksi.toLowerCase().includes(search);
         const matchBranch = branch === "" || item.cabang === branch;
         const matchType = type === "" || item.tipe === type;
         return matchSearch && matchBranch && matchType;
@@ -259,7 +263,6 @@
     }
 
     function switchTab(tab) {
-      currentTab = tab;
       const btnActive = document.getElementById("tabActive");
       const btnLogs = document.getElementById("tabLogs");
       const btnDeleted = document.getElementById("tabDeleted");
@@ -322,9 +325,9 @@
         if (res.success || response.ok) {
           alert("Data transaksi berhasil diperbarui!");
           closeModal();
-          fetchData(); // Reload data
+          fetchData();
         } else {
-          alert("Gagal memperbarui data: " + (res.message || "Unknown error"));
+          alert("Gagal memperbarui data: " + (res.message || "Terjadi kesalahan"));
         }
       } catch (err) {
         console.error(err);
