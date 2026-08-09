@@ -7,7 +7,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="bg-slate-100 min-h-screen text-slate-800 font-sans">
+<body class="bg-slate-100 min-h-screen text-slate-800 font-sans pb-10">
 
   <!-- Header -->
   <header class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center shadow-md">
@@ -15,9 +15,14 @@
       <h1 class="text-xl font-bold">Warung Acil - Admin Control</h1>
       <p class="text-xs text-slate-400">Edit, Log Audit & Data Hapus</p>
     </div>
-    <a href="index.html" class="bg-slate-700 hover:bg-slate-600 text-white text-sm px-4 py-2 rounded-lg transition duration-200">
-      <i class="fa-solid fa-arrow-left mr-2"></i>Kembali
-    </a>
+    <div class="flex items-center space-x-3">
+      <button onclick="fetchData()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs px-3 py-2 rounded-lg border border-slate-700 transition">
+        <i class="fa-solid fa-rotate mr-1"></i> Muat Ulang
+      </button>
+      <a href="index.html" class="bg-slate-700 hover:bg-slate-600 text-white text-sm px-4 py-2 rounded-lg transition duration-200">
+        <i class="fa-solid fa-arrow-left mr-2"></i>Kembali
+      </a>
+    </div>
   </header>
 
   <main class="max-w-7xl mx-auto p-6 space-y-6">
@@ -28,7 +33,7 @@
         <i class="fa-solid fa-magnifying-glass mr-1"></i> Filter Pencarian Transaksi
       </h2>
       <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
-        <input type="text" id="searchInput" placeholder="Cari Kasir / Nominal..." class="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-800">
+        <input type="text" id="searchInput" placeholder="Cari Kasir / Nominal / Ket..." class="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-800">
         <select id="branchFilter" class="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-800">
           <option value="">Semua Cabang</option>
           <option value="CABANG 1">Cabang 1</option>
@@ -126,99 +131,109 @@
 
   <script>
     const API_URL = "https://n8n-mzbmiib3etk4.kangkung.sumopod.my.id/webhook/0c2f335e-543b-4f3e-968e-f70d412f194b";
-    
     let rawData = [];
 
     document.addEventListener("DOMContentLoaded", () => {
       fetchData();
     });
 
-    // Jalur penarikan disamakan persis dengan sistem kasir
+    // PARSER UNIVERSAL
+    function parseN8nResponse(res) {
+      if (Array.isArray(res) && res.length === 1 && res[0] && res[0].json) {
+        res = res[0].json;
+      }
+
+      let moneyIn = [];
+      let moneyOut = [];
+
+      if (res.data) {
+        moneyIn = res.data.money_in || [];
+        moneyOut = res.data.money_out || [];
+      } else if (res.money_in || res.money_out) {
+        moneyIn = res.money_in || [];
+        moneyOut = res.money_out || [];
+      } else if (Array.isArray(res)) {
+        moneyIn = res.filter(i => {
+          const data = i.json || i;
+          return (data.tipe || data.Tipe || data.type || 'in').toLowerCase() === 'in';
+        });
+        moneyOut = res.filter(i => {
+          const data = i.json || i;
+          return (data.tipe || data.Tipe || data.type || '').toLowerCase() === 'out';
+        });
+      }
+
+      const normalizeItem = (item, defaultType, idx) => {
+        const data = item.json || item;
+        return {
+          id: data.id || data.ID || data.row_id || `ID-${idx + 1}`,
+          waktu: data.waktu || data.Waktu || data.created_at || data.tanggal || data.Tanggal || "-",
+          cabang: data.cabang || data.Cabang || "CABANG 1",
+          tipe: (data.tipe || data.Tipe || data.type || defaultType).toLowerCase(),
+          nominal: parseFloat(data.nominal || data.Nominal || data.amount || 0),
+          transaksi: data.transaksi || data.Transaksi || data.keterangan || data.Keterangan || "-",
+          kasir: data.kasir || data.Kasir || data.user || "-"
+        };
+      };
+
+      return {
+        moneyIn: moneyIn.map((item, idx) => normalizeItem(item, 'in', idx)),
+        moneyOut: moneyOut.map((item, idx) => normalizeItem(item, 'out', idx))
+      };
+    }
+
     async function fetchData() {
       const tbody = document.getElementById("transactionTableBody");
       tbody.innerHTML = `
         <tr>
           <td colspan="7" class="text-center py-8 text-slate-400">
-            <i class="fa-solid fa-spinner fa-spin mr-2"></i> Memuat data...
+            <i class="fa-solid fa-spinner fa-spin mr-2"></i> Memuat data dari server...
           </td>
         </tr>`;
 
       try {
         const response = await fetch(API_URL, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", "Accept": "application/json" },
           body: JSON.stringify({ action: "get_data" })
         });
 
-        const res = await response.json();
-        console.log("Response Webhook Received:", res); // Memudahkan debugging di Inspect Element (Console)
-
-        let rootData = res;
-
-        // Mendeteksi pembungkusan Array bawaan n8n [ { json: { ... } } ]
-        if (Array.isArray(res) && res.length > 0 && res[0].json) {
-          rootData = res[0].json;
+        if (!response.ok) {
+          throw new Error(`HTTP Error ${response.status}: ${response.statusText}`);
         }
 
-        // Ekstraksi array money_in dan money_out
-        let moneyIn = [];
-        let moneyOut = [];
+        const rawJson = await response.json();
+        console.log("Raw Response Admin:", rawJson);
 
-        if (rootData.data) {
-          moneyIn = rootData.data.money_in || [];
-          moneyOut = rootData.data.money_out || [];
-        } else {
-          moneyIn = rootData.money_in || [];
-          moneyOut = rootData.money_out || [];
-        }
+        const { moneyIn, moneyOut } = parseN8nResponse(rawJson);
 
-        // Mapping data agar aman terhadap huruf besar/kecil properti dari Google Sheets
-        const formattedIn = moneyIn.map((item, idx) => parseTransaction(item, 'in', idx));
-        const formattedOut = moneyOut.map((item, idx) => parseTransaction(item, 'out', idx));
-
-        rawData = [...formattedIn, ...formattedOut];
+        rawData = [...moneyIn, ...moneyOut];
         renderTable(rawData);
 
       } catch (error) {
-        console.error("Gagal menarik data:", error);
+        console.error("Fetch error detail:", error);
         tbody.innerHTML = `
           <tr>
-            <td colspan="7" class="text-center py-8 text-red-500 font-semibold">
-              <i class="fa-solid fa-triangle-exclamation mr-2"></i> Gagal terhubung ke server/webhook.
+            <td colspan="7" class="text-center py-8 text-rose-600">
+              <div class="font-bold text-base mb-1">
+                <i class="fa-solid fa-triangle-exclamation mr-1"></i> Gagal Terhubung ke Webhook n8n
+              </div>
+              <div class="text-xs text-slate-500 max-w-lg mx-auto bg-rose-50 p-3 rounded-lg border border-rose-200 mt-2 font-mono text-left">
+                <strong>Detail Error:</strong> ${error.message}<br><br>
+                <strong>Checklist:</strong><br>
+                1. Pastikan Workflow n8n dalam keadaan <strong>Active</strong>.<br>
+                2. Periksa Tab Console Browser (Tekan F12) jika ada masalah CORS.
+              </div>
             </td>
           </tr>`;
       }
-    }
-
-    // Ekstraksi nilai properti secara fleksibel
-    function parseTransaction(item, defaultType, idx) {
-      return {
-        id: item.id || item.ID || item.row_id || `ROW-${idx + 1}`,
-        waktu: item.waktu || item.Waktu || item.created_at || item.tanggal || item.Tanggal || "-",
-        cabang: item.cabang || item.Cabang || "CABANG 1",
-        tipe: item.tipe || item.Tipe || defaultType,
-        nominal: parseFloat(item.nominal || item.Nominal || 0),
-        transaksi: item.transaksi || item.Transaksi || item.keterangan || item.Keterangan || "-",
-        kasir: item.kasir || item.Kasir || "-"
-      };
-    }
-
-    function formatRupiah(amount) {
-      return new Intl.NumberFormat("id-ID", {
-        style: "currency",
-        currency: "IDR",
-        maximumFractionDigits: 0
-      }).format(amount);
     }
 
     function renderTable(data) {
       const tbody = document.getElementById("transactionTableBody");
       
       if (!data || data.length === 0) {
-        tbody.innerHTML = `
-          <tr>
-            <td colspan="7" class="text-center py-8 text-slate-400">Tidak ada data transaksi.</td>
-          </tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-slate-400">Tidak ada data transaksi ditemukan.</td></tr>`;
         return;
       }
 
@@ -336,6 +351,14 @@
         btn.innerText = "Simpan Perubahan";
         btn.disabled = false;
       }
+    }
+
+    function formatRupiah(amount) {
+      return new Intl.NumberFormat("id-ID", {
+        style: "currency",
+        currency: "IDR",
+        maximumFractionDigits: 0
+      }).format(amount);
     }
   </script>
 </body>
