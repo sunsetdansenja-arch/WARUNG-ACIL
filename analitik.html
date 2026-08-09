@@ -7,6 +7,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="bg-slate-100 min-h-screen pb-10">
 
@@ -16,9 +17,14 @@
         <h1 class="font-bold text-base">Warung Acil - Business Intelligence</h1>
         <p class="text-xs text-indigo-200">Monitoring & Analytics Dashboard</p>
       </div>
-      <a href="master.html" class="bg-indigo-800 hover:bg-indigo-900 text-xs px-3 py-1.5 rounded-lg border border-indigo-600 font-medium">
-        ← Kembali
-      </a>
+      <div class="flex items-center space-x-2">
+        <button onclick="fetchData()" class="bg-indigo-800 hover:bg-indigo-900 text-xs px-3 py-1.5 rounded-lg border border-indigo-600 font-medium cursor-pointer transition">
+          <i class="fa-solid fa-rotate mr-1"></i> Refresh
+        </button>
+        <a href="master.html" class="bg-indigo-800 hover:bg-indigo-900 text-xs px-3 py-1.5 rounded-lg border border-indigo-600 font-medium">
+          ← Kembali
+        </a>
+      </div>
     </div>
   </nav>
 
@@ -26,15 +32,26 @@
 
     <!-- Chart Grafik Omset Maksimal 1 Tahun Terakhir -->
     <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 space-y-3">
-      <div class="flex justify-between items-center">
-        <h3 class="font-bold text-sm text-slate-800">📈 Grafik Tren Omset (Maksimal 1 Tahun)</h3>
-        <select id="chartPeriodFilter" class="text-xs border px-2 py-1 rounded-lg">
-          <option value="12m">12 Bulan Terakhir</option>
-          <option value="6m">6 Bulan Terakhir</option>
-          <option value="30d">30 Hari Terakhir</option>
-        </select>
+      <div class="flex flex-wrap justify-between items-center gap-2">
+        <h3 class="font-bold text-sm text-slate-800">📈 Grafik Tren Omset</h3>
+        
+        <!-- Filter Periode & Cabang -->
+        <div class="flex items-center space-x-2">
+          <select id="branchChartFilter" onchange="updateChartAndAnalytics()" class="text-xs border border-slate-300 px-2 py-1.5 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+            <option value="">Semua Cabang</option>
+            <option value="CABANG 1">Cabang 1</option>
+            <option value="CABANG 2">Cabang 2</option>
+          </select>
+
+          <select id="chartPeriodFilter" onchange="updateChartAndAnalytics()" class="text-xs border border-slate-300 px-2 py-1.5 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+            <option value="12m">12 Bulan Terakhir</option>
+            <option value="6m">6 Bulan Terakhir</option>
+            <option value="30d">30 Hari Terakhir</option>
+          </select>
+        </div>
       </div>
-      <div class="w-full h-64">
+      
+      <div class="w-full h-64 relative">
         <canvas id="omsetChart"></canvas>
       </div>
     </div>
@@ -43,23 +60,23 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
         <p class="text-xs font-bold text-emerald-600 uppercase">🏆 Top Performance Cabang</p>
-        <h4 class="text-lg font-black text-slate-800 mt-1" id="topBranch">CABANG 1</h4>
-        <p class="text-xs text-slate-500 mt-0.5">Kontribusi omset terbesar periode ini</p>
+        <h4 class="text-lg font-black text-slate-800 mt-1" id="topBranch">Memuat...</h4>
+        <p class="text-xs text-slate-500 mt-0.5" id="topBranchSub">Kontribusi omset terbesar</p>
       </div>
       <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
         <p class="text-xs font-bold text-rose-600 uppercase">💸 Top Expense Cabang</p>
-        <h4 class="text-lg font-black text-slate-800 mt-1" id="topExpenseBranch">CABANG 2</h4>
-        <p class="text-xs text-slate-500 mt-0.5">Pengeluaran terbiaya paling tinggi</p>
+        <h4 class="text-lg font-black text-slate-800 mt-1" id="topExpenseBranch">Memuat...</h4>
+        <p class="text-xs text-slate-500 mt-0.5" id="topExpenseSub">Pengeluaran terbiaya paling tinggi</p>
       </div>
     </div>
 
-    <!-- analisis Jam Sibuk dan Sepe -->
+    <!-- Analisis Jam Sibuk dan Sepi -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-3">
         <div class="p-3 bg-amber-100 text-amber-700 rounded-xl text-xl">🔥</div>
         <div>
-          <p class="text-[11px] font-bold text-slate-400 uppercase">Jam Transaksi Paling Aktif (Minggu Ini)</p>
-          <h4 class="text-base font-extrabold text-slate-800" id="busyHour">12:00 - 14:00 WIB</h4>
+          <p class="text-[11px] font-bold text-slate-400 uppercase">Jam Transaksi Paling Aktif</p>
+          <h4 class="text-base font-extrabold text-slate-800" id="busyHour">Memuat...</h4>
         </div>
       </div>
 
@@ -67,35 +84,35 @@
         <div class="p-3 bg-blue-100 text-blue-700 rounded-xl text-xl">🧊</div>
         <div>
           <p class="text-[11px] font-bold text-slate-400 uppercase">Jam Transaksi Paling Sepi</p>
-          <h4 class="text-base font-extrabold text-slate-800" id="quietHour">08:00 - 10:00 WIB</h4>
+          <h4 class="text-base font-extrabold text-slate-800" id="quietHour">Memuat...</h4>
         </div>
       </div>
     </div>
 
-    <!-- 💡 3 IDE MONITORING TAMBAHAN UNTUK OWNER -->
+    <!-- Analytics Insight Tambahan -->
     <div class="border-t border-slate-300 pt-4 space-y-4">
       <h3 class="font-bold text-xs text-slate-500 uppercase tracking-wider">💡 Analytics Insight Tambahan</h3>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <!-- Fitur 1: Preferensi Payment Method -->
         <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-1">
-          <span class="text-xs font-bold text-indigo-600 uppercase">1. Metode Pembayaran</span>
-          <h5 class="text-sm font-extrabold text-slate-800">Dominasi QRIS (58%)</h5>
-          <p class="text-[11px] text-slate-500">Membantu estimasi kebutuhan uang fisik/kembalian laci kasir.</p>
+          <span class="text-xs font-bold text-indigo-600 uppercase">1. Metode Pembayaran Utama</span>
+          <h5 class="text-sm font-extrabold text-slate-800" id="topPaymentMethod">Memuat...</h5>
+          <p class="text-[11px] text-slate-500">Persentase pilihan metode pembayaran transaksi masuk.</p>
         </div>
 
         <!-- Fitur 2: Forecasting Omset Akhir Bulan -->
         <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-1">
           <span class="text-xs font-bold text-emerald-600 uppercase">2. Proyeksi Akhir Bulan</span>
-          <h5 class="text-sm font-extrabold text-slate-800">Est. Rp 45.000.000</h5>
-          <p class="text-[11px] text-slate-500">Berdasarkan run-rate penjualan harian rata-rata saat ini.</p>
+          <h5 class="text-sm font-extrabold text-slate-800" id="forecastOmset">Memuat...</h5>
+          <p class="text-[11px] text-slate-500">Estimasi total omset berdasarkan rata-rata harian bulan ini.</p>
         </div>
 
         <!-- Fitur 3: Deteksi Fraud & Anomali -->
         <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-1">
           <span class="text-xs font-bold text-rose-600 uppercase">3. Alert Anomali / Fraud</span>
-          <h5 class="text-sm font-extrabold text-slate-800">0 Deteksi Mencurigakan</h5>
-          <p class="text-[11px] text-slate-500">Memantau transaksi pengeluaran melebihi batas batas wajar.</p>
+          <h5 class="text-sm font-extrabold text-slate-800" id="anomalyAlert">Memuat...</h5>
+          <p class="text-[11px] text-slate-500">Deteksi pengeluaran di atas Rp 500.000 dalam 1 transaksi.</p>
         </div>
       </div>
     </div>
@@ -103,29 +120,334 @@
   </main>
 
   <script>
-    // Init Chart Omset menggunakan Chart.js
-    const ctx = document.getElementById('omsetChart').getContext('2d');
-    const omsetChart = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'],
-        datasets: [{
-          label: 'Total Omset (Rp)',
-          data: [12000000, 15000000, 14000000, 18000000, 22000000, 20000000, 25000000, 28000000, 26000000, 30000000, 31000000, 35000000],
-          borderColor: '#4f46e5',
-          backgroundColor: 'rgba(79, 70, 229, 0.1)',
-          fill: true,
-          tension: 0.3
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false }
+    const API_URL = "https://n8n-mzbmiib3etk4.kangkung.sumopod.my.id/webhook/0c2f335e-543b-4f3e-968e-f70d412f194b";
+    
+    let rawMoneyIn = [];
+    let rawMoneyOut = [];
+    let omsetChartInstance = null;
+
+    document.addEventListener("DOMContentLoaded", () => {
+      initChart();
+      fetchData();
+    });
+
+    // Inisialisasi Chart.js
+    function initChart() {
+      const ctx = document.getElementById('omsetChart').getContext('2d');
+      omsetChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: [{
+            label: 'Total Omset (Rp)',
+            data: [],
+            borderColor: '#4f46e5',
+            backgroundColor: 'rgba(79, 70, 229, 0.1)',
+            fill: true,
+            tension: 0.3,
+            borderWidth: 2,
+            pointRadius: 4,
+            pointBackgroundColor: '#4f46e5'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return ' Omset: ' + formatRupiah(context.parsed.y);
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                callback: function(value) {
+                  return 'Rp ' + (value / 1000).toLocaleString('id-ID') + 'k';
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // Normalisasi & Parsing Data Server
+    function parseN8nResponse(res) {
+      let root = Array.isArray(res) && res.length > 0 ? res[0] : res;
+      let moneyIn = [];
+      let moneyOut = [];
+
+      if (root && root.data) {
+        moneyIn = root.data.money_in || [];
+        moneyOut = root.data.money_out || [];
+      } else if (root && (root.money_in || root.money_out)) {
+        moneyIn = root.money_in || [];
+        moneyOut = root.money_out || [];
+      }
+
+      const normalize = (item, defaultType) => {
+        const d = item.json || item;
+        
+        let dateObj = new Date(d.createdAt || d.WAKTU || d.waktu || d.created_at);
+        if (isNaN(dateObj.getTime())) dateObj = new Date();
+
+        const rawNominal = d.NOMINAL ?? d["NOMINAL UANG KELUAR"] ?? d.nominal ?? 0;
+        const nominal = typeof rawNominal === "string" 
+          ? parseFloat(rawNominal.replace(/[^0-9.-]+/g, "")) || 0 
+          : parseFloat(rawNominal || 0);
+
+        return {
+          id: d.id || d.ID || Math.random(),
+          date: dateObj,
+          cabang: (d.CABANG || d.cabang || "CABANG 1").toUpperCase(),
+          tipe: defaultType,
+          nominal: nominal,
+          transaksi: (d.TRANSAKSI || d.KETERANGAN || d["PENGELUARAN UNTUK"] || d.transaksi || "CASH").toLowerCase(),
+          kasir: d.KASIR || d["NAMA KASIR"] || d.kasir || "-"
+        };
+      };
+
+      return {
+        moneyIn: moneyIn.map(i => normalize(i, 'in')).filter(i => i.nominal > 0),
+        moneyOut: moneyOut.map(i => normalize(i, 'out')).filter(i => i.nominal > 0)
+      };
+    }
+
+    // Ambil Data dari Webhook
+    async function fetchData() {
+      try {
+        const response = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Accept": "application/json" },
+          body: JSON.stringify({ action: "get_data" })
+        });
+
+        if (!response.ok) throw new Error("Gagal mengambil data server");
+
+        const json = await response.json();
+        const parsed = parseN8nResponse(json);
+
+        rawMoneyIn = parsed.moneyIn;
+        rawMoneyOut = parsed.moneyOut;
+
+        updateChartAndAnalytics();
+
+      } catch (err) {
+        console.error("Error fetching data:", err);
+        alert("Gagal memperbarui data analitik.");
+      }
+    }
+
+    // Re-render Chart & Hitung Analytics Insight
+    function updateChartAndAnalytics() {
+      const branch = document.getElementById("branchChartFilter").value;
+      const period = document.getElementById("chartPeriodFilter").value;
+
+      // Filter Data sesuai Cabang yang dipilih
+      let filteredIn = rawMoneyIn;
+      let filteredOut = rawMoneyOut;
+
+      if (branch !== "") {
+        filteredIn = filteredIn.filter(i => i.cabang === branch);
+        filteredOut = filteredOut.filter(i => i.cabang === branch);
+      }
+
+      // 1. OLAHAN GRAFIK OMSET
+      renderChartData(filteredIn, period);
+
+      // 2. HIGHLIGHT CABANG (Pemasukan & Pengeluaran Tertinggi)
+      calculateTopBranches();
+
+      // 3. ANALISIS JAM SIBUK & SEPI
+      calculatePeakHours(filteredIn);
+
+      // 4. METODE PEMBAYARAN DOMINAN
+      calculatePaymentMethods(filteredIn);
+
+      // 5. PROYEKSI OMSET AKHIR BULAN
+      calculateMonthlyForecast(filteredIn);
+
+      // 6. DETEKSI ANOMALI / FRAUD
+      detectAnomalies(filteredOut);
+    }
+
+    function renderChartData(data, period) {
+      const now = new Date();
+      let labels = [];
+      let chartValues = [];
+
+      if (period === '30d') {
+        // Kelompokkan per hari (30 Hari Terakhir)
+        let dailyMap = {};
+        for (let i = 29; i >= 0; i--) {
+          let d = new Date();
+          d.setDate(now.getDate() - i);
+          let key = d.toISOString().split('T')[0];
+          let label = d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+          dailyMap[key] = { label, total: 0 };
+        }
+
+        data.forEach(item => {
+          let key = item.date.toISOString().split('T')[0];
+          if (dailyMap[key]) {
+            dailyMap[key].total += item.nominal;
+          }
+        });
+
+        Object.values(dailyMap).forEach(v => {
+          labels.push(v.label);
+          chartValues.push(v.total);
+        });
+
+      } else {
+        // Kelompokkan per bulan (6m atau 12m)
+        let monthsCount = period === '6m' ? 6 : 12;
+        let monthlyMap = {};
+
+        for (let i = monthsCount - 1; i >= 0; i--) {
+          let d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+          let key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+          let label = d.toLocaleDateString('id-ID', { month: 'short', year: '2-digit' });
+          monthlyMap[key] = { label, total: 0 };
+        }
+
+        data.forEach(item => {
+          let key = `${item.date.getFullYear()}-${String(item.date.getMonth() + 1).padStart(2, '0')}`;
+          if (monthlyMap[key]) {
+            monthlyMap[key].total += item.nominal;
+          }
+        });
+
+        Object.values(monthlyMap).forEach(v => {
+          labels.push(v.label);
+          chartValues.push(v.total);
+        });
+      }
+
+      omsetChartInstance.data.labels = labels;
+      omsetChartInstance.data.datasets[0].data = chartValues;
+      omsetChartInstance.update();
+    }
+
+    function calculateTopBranches() {
+      const branchInMap = {};
+      const branchOutMap = {};
+
+      rawMoneyIn.forEach(i => {
+        branchInMap[i.cabang] = (branchInMap[i.cabang] || 0) + i.nominal;
+      });
+
+      rawMoneyOut.forEach(i => {
+        branchOutMap[i.cabang] = (branchOutMap[i.cabang] || 0) + i.nominal;
+      });
+
+      const topIn = Object.keys(branchInMap).reduce((a, b) => branchInMap[a] > branchInMap[b] ? a : b, "-");
+      const topOut = Object.keys(branchOutMap).reduce((a, b) => branchOutMap[a] > branchOutMap[b] ? a : b, "-");
+
+      document.getElementById("topBranch").innerText = topIn !== "-" ? topIn : "Tidak ada data";
+      document.getElementById("topBranchSub").innerText = topIn !== "-" ? `Omset: ${formatRupiah(branchInMap[topIn])}` : "Kontribusi omset terbesar";
+
+      document.getElementById("topExpenseBranch").innerText = topOut !== "-" ? topOut : "Tidak ada data";
+      document.getElementById("topExpenseSub").innerText = topOut !== "-" ? `Pengeluaran: ${formatRupiah(branchOutMap[topOut])}` : "Pengeluaran terbiaya paling tinggi";
+    }
+
+    function calculatePeakHours(data) {
+      if (data.length === 0) {
+        document.getElementById("busyHour").innerText = "-";
+        document.getElementById("quietHour").innerText = "-";
+        return;
+      }
+
+      let hourCounts = Array(24).fill(0);
+      data.forEach(i => {
+        let hour = i.date.getHours();
+        hourCounts[hour]++;
+      });
+
+      let maxHour = 0;
+      let minHour = 0;
+      let maxVal = -1;
+      let minVal = Infinity;
+
+      // Cek kisaran jam operasional utama (07:00 - 22:00)
+      for (let h = 7; h <= 22; h++) {
+        if (hourCounts[h] > maxVal) {
+          maxVal = hourCounts[h];
+          maxHour = h;
+        }
+        if (hourCounts[h] < minVal) {
+          minVal = hourCounts[h];
+          minHour = h;
         }
       }
-    });
+
+      document.getElementById("busyHour").innerText = `${String(maxHour).padStart(2, '0')}:00 - ${String(maxHour + 2).padStart(2, '0')}:00 WIB`;
+      document.getElementById("quietHour").innerText = `${String(minHour).padStart(2, '0')}:00 - ${String(minHour + 2).padStart(2, '0')}:00 WIB`;
+    }
+
+    function calculatePaymentMethods(data) {
+      if (data.length === 0) {
+        document.getElementById("topPaymentMethod").innerText = "-";
+        return;
+      }
+
+      let methods = { cash: 0, qris: 0, transfer: 0 };
+      let total = 0;
+
+      data.forEach(i => {
+        let t = i.transaksi;
+        if (t.includes('qris')) methods.qris++;
+        else if (t.includes('transfer')) methods.transfer++;
+        else methods.cash++;
+        total++;
+      });
+
+      let maxMethod = 'cash';
+      if (methods.qris > methods[maxMethod]) maxMethod = 'qris';
+      if (methods.transfer > methods[maxMethod]) maxMethod = 'transfer';
+
+      let percentage = Math.round((methods[maxMethod] / total) * 100) || 0;
+      document.getElementById("topPaymentMethod").innerText = `Dominasi ${maxMethod.toUpperCase()} (${percentage}%)`;
+    }
+
+    function calculateMonthlyForecast(data) {
+      const now = new Date();
+      const currentMonth = now.getMonth();
+      const currentYear = now.getFullYear();
+
+      const currentMonthData = data.filter(i => i.date.getMonth() === currentMonth && i.date.getFullYear() === currentYear);
+      const totalSoFar = currentMonthData.reduce((sum, i) => sum + i.nominal, 0);
+
+      const dayOfMonth = now.getDate();
+      const totalDaysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+      const avgPerDay = dayOfMonth > 0 ? totalSoFar / dayOfMonth : 0;
+      const forecast = avgPerDay * totalDaysInMonth;
+
+      document.getElementById("forecastOmset").innerText = `Est. ${formatRupiah(forecast)}`;
+    }
+
+    function detectAnomalies(outData) {
+      // Deteksi pengeluaran di atas Rp 500.000
+      const threshold = 500000;
+      const suspicious = outData.filter(i => i.nominal >= threshold);
+
+      document.getElementById("anomalyAlert").innerText = `${suspicious.length} Deteksi Mencurigakan`;
+    }
+
+    function formatRupiah(amount) {
+      return new Intl.NumberFormat("id-ID", {
+        style: "currency",
+        currency: "IDR",
+        maximumFractionDigits: 0
+      }).format(amount);
+    }
   </script>
 </body>
 </html>
