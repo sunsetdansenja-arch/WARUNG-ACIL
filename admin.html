@@ -75,7 +75,7 @@
               <th class="py-3 px-4">Cabang</th>
               <th class="py-3 px-4">Tipe</th>
               <th class="py-3 px-4">Nominal</th>
-              <th class="py-3 px-4">Transaksi</th>
+              <th class="py-3 px-4">Metode Transaksi</th>
               <th class="py-3 px-4">Kasir</th>
               <th class="py-3 px-4 text-center">Aksi</th>
             </tr>
@@ -93,7 +93,7 @@
 
   </main>
 
-  <!-- Modal Edit Transaksi -->
+  <!-- Modal Edit Transaksi (Hanya Edit Nominal & Metode Pembayaran) -->
   <div id="editModal" class="fixed inset-0 bg-slate-900/50 hidden flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4">
       <div class="flex justify-between items-center border-b pb-3">
@@ -101,23 +101,23 @@
         <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 cursor-pointer"><i class="fa-solid fa-xmark text-lg"></i></button>
       </div>
       
-      <form id="editForm" onsubmit="submitEdit(event)" class="space-y-3">
+      <form id="editForm" onsubmit="submitEdit(event)" class="space-y-4">
         <input type="hidden" id="editId">
         <input type="hidden" id="editType">
+        <input type="hidden" id="editKasir">
+        <input type="hidden" id="editCabang">
         
         <div>
           <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Nominal (Rp)</label>
-          <input type="number" id="editNominal" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-slate-800 outline-none">
+          <input type="number" id="editNominal" min="1" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-slate-800 outline-none">
         </div>
+
         <div>
-          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Kasir</label>
-          <input type="text" id="editKasir" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-slate-800 outline-none">
-        </div>
-        <div>
-          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Cabang</label>
-          <select id="editCabang" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-slate-800 outline-none">
-            <option value="CABANG 1">Cabang 1</option>
-            <option value="CABANG 2">Cabang 2</option>
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Metode Pembayaran</label>
+          <select id="editTransaksi" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-slate-800 outline-none uppercase font-semibold text-slate-700">
+            <option value="cash">💵 CASH</option>
+            <option value="qris">📱 QRIS</option>
+            <option value="transfer">🏦 TRANSFER</option>
           </select>
         </div>
 
@@ -140,11 +140,9 @@
       fetchData();
     });
 
-    // PARSER DATA N8N TERPERBARUI
     function parseN8nResponse(res) {
       let root = res;
 
-      // Jika response dibungkus array misal: [{ success: true, data: { ... } }]
       if (Array.isArray(root) && root.length > 0) {
         root = root[0];
       }
@@ -158,22 +156,11 @@
       } else if (root && (root.money_in || root.money_out)) {
         moneyIn = root.money_in || [];
         moneyOut = root.money_out || [];
-      } else if (Array.isArray(res)) {
-        // Fallback jika berupa array datar item
-        moneyIn = res.filter(i => {
-          const item = i.json || i;
-          return item.JENIS === 'MASUK' || item.tipe === 'in' || item.NOMINAL !== undefined;
-        });
-        moneyOut = res.filter(i => {
-          const item = i.json || i;
-          return item.JENIS === 'KELUAR' || item.tipe === 'out' || item["NOMINAL UANG KELUAR"] !== undefined;
-        });
       }
 
       const normalizeItem = (item, defaultType, idx) => {
         const data = item.json || item;
 
-        // Penanganan Format Waktu (createdAt, WAKTU, created_at, dll)
         let waktuRaw = data.createdAt || data.WAKTU || data.waktu || data.created_at;
         let waktu = "-";
         if (waktuRaw) {
@@ -181,28 +168,20 @@
           waktu = isNaN(d.getTime()) ? waktuRaw : d.toLocaleString("id-ID", { timeZone: "Asia/Jakarta" });
         }
 
-        // Penanganan Cabang
         const cabang = data.CABANG || data.cabang || "CABANG 1";
 
-        // Penanganan Nominal
         const rawNominal = data.NOMINAL ?? data["NOMINAL UANG KELUAR"] ?? data.nominal ?? 0;
         const nominal = typeof rawNominal === "string" 
           ? parseFloat(rawNominal.replace(/[^0-9.-]+/g, "")) || 0 
           : parseFloat(rawNominal || 0);
 
-        // Penanganan Keterangan Transaksi
         const transaksi = data.TRANSAKSI || data.KETERANGAN || data["PENGELUARAN UNTUK"] || data.transaksi || "-";
-
-        // Penanganan Kasir
         const kasir = data.KASIR || data["NAMA KASIR"] || data.kasir || "-";
-
-        // Penanganan ID
         const id = data.id || data.ID || data.row_id || `TRX-${defaultType}-${idx + 1}`;
 
         return { id, waktu, cabang, tipe: defaultType, nominal, transaksi, kasir };
       };
 
-      // Filter baris kosong (di mana nominal/kasir bernilai null)
       const validIn = moneyIn
         .map((item, idx) => normalizeItem(item, 'in', idx))
         .filter(item => item.nominal > 0 || item.kasir !== "-");
@@ -276,10 +255,10 @@
           <td class="py-3 px-4 font-semibold ${item.tipe === 'in' ? 'text-emerald-600' : 'text-rose-600'}">
             ${formatRupiah(item.nominal)}
           </td>
-          <td class="py-3 px-4 text-slate-600 uppercase font-medium text-xs">${item.transaksi}</td>
+          <td class="py-3 px-4 text-slate-600 uppercase font-bold text-xs">${item.transaksi}</td>
           <td class="py-3 px-4 text-slate-600">${item.kasir}</td>
           <td class="py-3 px-4 text-center space-x-1">
-            <button onclick="openEditModal('${item.id}', '${item.tipe}', ${item.nominal}, '${item.kasir}', '${item.cabang}')" class="bg-amber-50 text-amber-600 hover:bg-amber-100 px-3 py-1 rounded-lg text-xs font-semibold transition border border-amber-200 cursor-pointer">
+            <button onclick="openEditModal('${item.id}', '${item.tipe}', ${item.nominal}, '${item.transaksi}', '${item.kasir}', '${item.cabang}')" class="bg-amber-50 text-amber-600 hover:bg-amber-100 px-3 py-1 rounded-lg text-xs font-semibold transition border border-amber-200 cursor-pointer">
               <i class="fa-solid fa-pen-to-square mr-1"></i>Edit
             </button>
             <button onclick="deleteTransaction('${item.id}', '${item.tipe}')" class="bg-rose-50 text-rose-600 hover:bg-rose-100 px-3 py-1 rounded-lg text-xs font-semibold transition border border-rose-200 cursor-pointer">
@@ -333,10 +312,15 @@
       }
     }
 
-    function openEditModal(id, tipe, nominal, kasir, cabang) {
+    function openEditModal(id, tipe, nominal, transaksi, kasir, cabang) {
       document.getElementById("editId").value = id;
       document.getElementById("editType").value = tipe;
       document.getElementById("editNominal").value = nominal;
+      
+      // Pilih otomatis metode pembayaran yang sesuai saat ini
+      const method = (transaksi || 'cash').toLowerCase();
+      document.getElementById("editTransaksi").value = ['cash', 'qris', 'transfer'].includes(method) ? method : 'cash';
+
       document.getElementById("editKasir").value = kasir;
       document.getElementById("editCabang").value = cabang;
       document.getElementById("editModal").classList.remove("hidden");
@@ -355,6 +339,7 @@
       const id = document.getElementById("editId").value;
       const type = document.getElementById("editType").value;
       const nominal = document.getElementById("editNominal").value;
+      const transaksi = document.getElementById("editTransaksi").value;
       const kasir = document.getElementById("editKasir").value;
       const cabang = document.getElementById("editCabang").value;
 
@@ -364,7 +349,14 @@
         const response = await fetch(API_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action, id, nominal, kasir, cabang })
+          body: JSON.stringify({ 
+            action, 
+            id, 
+            nominal: String(nominal), 
+            transaksi, 
+            kasir, 
+            cabang 
+          })
         });
 
         const res = await response.json();
@@ -376,7 +368,7 @@
             cabang,
             tipe: type,
             nominal: parseFloat(nominal),
-            transaksi: "Diperbarui via Admin",
+            transaksi: transaksi.toUpperCase(),
             kasir,
             id
           });
@@ -409,6 +401,7 @@
             action, 
             id, 
             nominal: 0, 
+            transaksi: itemTarget ? itemTarget.transaksi : "cash",
             kasir: itemTarget ? itemTarget.kasir : "-", 
             cabang: itemTarget ? itemTarget.cabang : "CABANG 1" 
           })
