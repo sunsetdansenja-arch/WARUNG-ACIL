@@ -16,7 +16,7 @@
       <p class="text-xs text-slate-400">Edit, Log Audit & Data Hapus</p>
     </div>
     <div class="flex items-center space-x-3">
-      <button onclick="fetchData()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs px-3 py-2 rounded-lg border border-slate-700 transition">
+      <button onclick="fetchData()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs px-3 py-2 rounded-lg border border-slate-700 transition cursor-pointer">
         <i class="fa-solid fa-rotate mr-1"></i> Muat Ulang
       </button>
       <a href="index.html" class="bg-slate-700 hover:bg-slate-600 text-white text-sm px-4 py-2 rounded-lg transition duration-200">
@@ -44,7 +44,7 @@
           <option value="in">Uang Masuk (IN)</option>
           <option value="out">Uang Keluar (OUT)</option>
         </select>
-        <button onclick="applyFilter()" class="bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold rounded-lg px-4 py-2 transition">
+        <button onclick="applyFilter()" class="bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold rounded-lg px-4 py-2 transition cursor-pointer">
           Terapkan Filter
         </button>
       </div>
@@ -52,13 +52,13 @@
 
     <!-- Navigation Tabs -->
     <div class="border-b border-slate-300 flex space-x-6">
-      <button onclick="switchTab('active')" id="tabActive" class="pb-2 font-semibold text-slate-900 border-b-2 border-slate-900 text-sm">
+      <button onclick="switchTab('active')" id="tabActive" class="pb-2 font-semibold text-slate-900 border-b-2 border-slate-900 text-sm cursor-pointer">
         Edit Transaksi
       </button>
-      <button onclick="switchTab('logs')" id="tabLogs" class="pb-2 font-semibold text-slate-400 hover:text-slate-600 text-sm">
+      <button onclick="switchTab('logs')" id="tabLogs" class="pb-2 font-semibold text-slate-400 hover:text-slate-600 text-sm cursor-pointer">
         Log Perubahan
       </button>
-      <button onclick="switchTab('deleted')" id="tabDeleted" class="pb-2 font-semibold text-slate-400 hover:text-slate-600 text-sm">
+      <button onclick="switchTab('deleted')" id="tabDeleted" class="pb-2 font-semibold text-slate-400 hover:text-slate-600 text-sm cursor-pointer">
         Data Dihapus
       </button>
     </div>
@@ -98,7 +98,7 @@
     <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4">
       <div class="flex justify-between items-center border-b pb-3">
         <h3 class="font-bold text-slate-800">Edit Transaksi</h3>
-        <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+        <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 cursor-pointer"><i class="fa-solid fa-xmark text-lg"></i></button>
       </div>
       
       <form id="editForm" onsubmit="submitEdit(event)" class="space-y-3">
@@ -122,8 +122,8 @@
         </div>
 
         <div class="flex justify-end space-x-2 pt-3 border-t">
-          <button type="button" onclick="closeModal()" class="px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">Batal</button>
-          <button type="submit" id="btnSaveEdit" class="px-4 py-2 text-sm font-semibold bg-slate-900 text-white rounded-lg hover:bg-slate-800">Simpan Perubahan</button>
+          <button type="button" onclick="closeModal()" class="px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 rounded-lg cursor-pointer">Batal</button>
+          <button type="submit" id="btnSaveEdit" class="px-4 py-2 text-sm font-semibold bg-slate-900 text-white rounded-lg hover:bg-slate-800 cursor-pointer">Simpan Perubahan</button>
         </div>
       </form>
     </div>
@@ -140,18 +140,26 @@
       fetchData();
     });
 
-    // PARSER DATA N8N (DAPAT MEMBACA NAMA KOLOM DARI SPREADSHEET/DATABASE)
+    // PARSER DATA N8N TERPERBARUI
     function parseN8nResponse(res) {
-      // Jika res adalah array berisikan objek tunggal n8n [{ json: ... }]
-      if (Array.isArray(res) && res.length === 1 && res[0] && res[0].json) {
-        res = res[0].json;
+      let root = res;
+
+      // Jika response dibungkus array misal: [{ success: true, data: { ... } }]
+      if (Array.isArray(root) && root.length > 0) {
+        root = root[0];
       }
 
       let moneyIn = [];
       let moneyOut = [];
 
-      // Mengecek beberapa variasi response n8n
-      if (Array.isArray(res)) {
+      if (root && root.data) {
+        moneyIn = root.data.money_in || [];
+        moneyOut = root.data.money_out || [];
+      } else if (root && (root.money_in || root.money_out)) {
+        moneyIn = root.money_in || [];
+        moneyOut = root.money_out || [];
+      } else if (Array.isArray(res)) {
+        // Fallback jika berupa array datar item
         moneyIn = res.filter(i => {
           const item = i.json || i;
           return item.JENIS === 'MASUK' || item.tipe === 'in' || item.NOMINAL !== undefined;
@@ -160,45 +168,50 @@
           const item = i.json || i;
           return item.JENIS === 'KELUAR' || item.tipe === 'out' || item["NOMINAL UANG KELUAR"] !== undefined;
         });
-      } else if (res.data) {
-        moneyIn = res.data.money_in || [];
-        moneyOut = res.data.money_out || [];
-      } else if (res.money_in || res.money_out) {
-        moneyIn = res.money_in || [];
-        moneyOut = res.money_out || [];
       }
 
       const normalizeItem = (item, defaultType, idx) => {
         const data = item.json || item;
 
-        // Mendapatkan Waktu
-        const waktu = data.WAKTU || data.waktu || data.created_at || "-";
+        // Penanganan Format Waktu (createdAt, WAKTU, created_at, dll)
+        let waktuRaw = data.createdAt || data.WAKTU || data.waktu || data.created_at;
+        let waktu = "-";
+        if (waktuRaw) {
+          const d = new Date(waktuRaw);
+          waktu = isNaN(d.getTime()) ? waktuRaw : d.toLocaleString("id-ID", { timeZone: "Asia/Jakarta" });
+        }
 
-        // Mendapatkan Cabang
+        // Penanganan Cabang
         const cabang = data.CABANG || data.cabang || "CABANG 1";
 
-        // Mendapatkan Nominal (Mengakomodasi Kategori Masuk & Keluar)
-        const rawNominal = data.NOMINAL || data["NOMINAL UANG KELUAR"] || data.nominal || 0;
+        // Penanganan Nominal
+        const rawNominal = data.NOMINAL ?? data["NOMINAL UANG KELUAR"] ?? data.nominal ?? 0;
         const nominal = typeof rawNominal === "string" 
           ? parseFloat(rawNominal.replace(/[^0-9.-]+/g, "")) || 0 
           : parseFloat(rawNominal || 0);
 
-        // Mendapatkan Keterangan / Transaksi
-        const transaksi = data.KETERANGAN || data["PENGELUARAN UNTUK"] || data.TRANSAKSI || data.transaksi || "-";
+        // Penanganan Keterangan Transaksi
+        const transaksi = data.TRANSAKSI || data.KETERANGAN || data["PENGELUARAN UNTUK"] || data.transaksi || "-";
 
-        // Mendapatkan Kasir
+        // Penanganan Kasir
         const kasir = data.KASIR || data["NAMA KASIR"] || data.kasir || "-";
 
-        // Mendapatkan ID
+        // Penanganan ID
         const id = data.id || data.ID || data.row_id || `TRX-${defaultType}-${idx + 1}`;
 
         return { id, waktu, cabang, tipe: defaultType, nominal, transaksi, kasir };
       };
 
-      return {
-        moneyIn: moneyIn.map((item, idx) => normalizeItem(item, 'in', idx)),
-        moneyOut: moneyOut.map((item, idx) => normalizeItem(item, 'out', idx))
-      };
+      // Filter baris kosong (di mana nominal/kasir bernilai null)
+      const validIn = moneyIn
+        .map((item, idx) => normalizeItem(item, 'in', idx))
+        .filter(item => item.nominal > 0 || item.kasir !== "-");
+
+      const validOut = moneyOut
+        .map((item, idx) => normalizeItem(item, 'out', idx))
+        .filter(item => item.nominal > 0 || item.kasir !== "-");
+
+      return { moneyIn: validIn, moneyOut: validOut };
     }
 
     async function fetchData() {
@@ -263,13 +276,13 @@
           <td class="py-3 px-4 font-semibold ${item.tipe === 'in' ? 'text-emerald-600' : 'text-rose-600'}">
             ${formatRupiah(item.nominal)}
           </td>
-          <td class="py-3 px-4 text-slate-600">${item.transaksi}</td>
+          <td class="py-3 px-4 text-slate-600 uppercase font-medium text-xs">${item.transaksi}</td>
           <td class="py-3 px-4 text-slate-600">${item.kasir}</td>
           <td class="py-3 px-4 text-center space-x-1">
-            <button onclick="openEditModal('${item.id}', '${item.tipe}', ${item.nominal}, '${item.kasir}', '${item.cabang}')" class="bg-amber-50 text-amber-600 hover:bg-amber-100 px-3 py-1 rounded-lg text-xs font-semibold transition border border-amber-200">
+            <button onclick="openEditModal('${item.id}', '${item.tipe}', ${item.nominal}, '${item.kasir}', '${item.cabang}')" class="bg-amber-50 text-amber-600 hover:bg-amber-100 px-3 py-1 rounded-lg text-xs font-semibold transition border border-amber-200 cursor-pointer">
               <i class="fa-solid fa-pen-to-square mr-1"></i>Edit
             </button>
-            <button onclick="deleteTransaction('${item.id}', '${item.tipe}')" class="bg-rose-50 text-rose-600 hover:bg-rose-100 px-3 py-1 rounded-lg text-xs font-semibold transition border border-rose-200">
+            <button onclick="deleteTransaction('${item.id}', '${item.tipe}')" class="bg-rose-50 text-rose-600 hover:bg-rose-100 px-3 py-1 rounded-lg text-xs font-semibold transition border border-rose-200 cursor-pointer">
               <i class="fa-solid fa-trash mr-1"></i>Hapus
             </button>
           </td>
@@ -301,20 +314,20 @@
       const btnDeleted = document.getElementById("tabDeleted");
       const title = document.getElementById("tableTitle");
 
-      btnActive.className = "pb-2 font-semibold text-slate-400 hover:text-slate-600 text-sm";
-      btnLogs.className = "pb-2 font-semibold text-slate-400 hover:text-slate-600 text-sm";
-      btnDeleted.className = "pb-2 font-semibold text-slate-400 hover:text-slate-600 text-sm";
+      btnActive.className = "pb-2 font-semibold text-slate-400 hover:text-slate-600 text-sm cursor-pointer";
+      btnLogs.className = "pb-2 font-semibold text-slate-400 hover:text-slate-600 text-sm cursor-pointer";
+      btnDeleted.className = "pb-2 font-semibold text-slate-400 hover:text-slate-600 text-sm cursor-pointer";
 
       if (tab === 'active') {
-        btnActive.className = "pb-2 font-semibold text-slate-900 border-b-2 border-slate-900 text-sm";
+        btnActive.className = "pb-2 font-semibold text-slate-900 border-b-2 border-slate-900 text-sm cursor-pointer";
         title.innerText = "Daftar Transaksi Aktif";
         renderTable(rawData);
       } else if (tab === 'logs') {
-        btnLogs.className = "pb-2 font-semibold text-slate-900 border-b-2 border-slate-900 text-sm";
+        btnLogs.className = "pb-2 font-semibold text-slate-900 border-b-2 border-slate-900 text-sm cursor-pointer";
         title.innerText = "Log Perubahan Transaksi";
         renderTable(logChanges);
       } else if (tab === 'deleted') {
-        btnDeleted.className = "pb-2 font-semibold text-slate-900 border-b-2 border-slate-900 text-sm";
+        btnDeleted.className = "pb-2 font-semibold text-slate-900 border-b-2 border-slate-900 text-sm cursor-pointer";
         title.innerText = "Daftar Data Dihapus";
         renderTable(deletedData);
       }
