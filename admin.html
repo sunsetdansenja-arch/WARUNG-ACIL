@@ -3,114 +3,336 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Management - Kasir Warung Acil</title>
+  <title>Warung Acil - Admin Control</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="bg-slate-100 min-h-screen pb-10">
+<body class="bg-slate-100 min-h-screen text-slate-800 font-sans">
 
-  <nav class="bg-slate-800 text-white shadow-md sticky top-0 z-30">
-    <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
-      <div>
-        <h1 class="font-bold text-base">Warung Acil - Admin Control</h1>
-        <p class="text-xs text-slate-400">Edit, Log Audit & Data Hapus</p>
-      </div>
-      <a href="master.html" class="bg-slate-700 hover:bg-slate-600 text-xs px-3 py-1.5 rounded-lg border border-slate-500 font-medium">
-        ← Kembali
-      </a>
+  <!-- Header -->
+  <header class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center shadow-md">
+    <div>
+      <h1 class="text-xl font-bold">Warung Acil - Admin Control</h1>
+      <p class="text-xs text-slate-400">Edit, Log Audit & Data Hapus</p>
     </div>
-  </nav>
+    <a href="index.html" class="bg-slate-700 hover:bg-slate-600 text-white text-sm px-4 py-2 rounded-lg transition duration-200">
+      <i class="fa-solid fa-arrow-left mr-2"></i>Kembali
+    </a>
+  </header>
 
-  <main class="max-w-4xl mx-auto px-4 py-6 space-y-6">
+  <main class="max-w-7xl mx-auto p-6 space-y-6">
 
-    <!-- Panel Filter Multi-Kriteria -->
-    <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 space-y-3">
-      <h3 class="font-bold text-xs text-slate-500 uppercase tracking-wider">🔎 Filter Pencarian Transaksi</h3>
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-2">
-        <input type="text" id="filterKeyword" placeholder="Cari Kasir / Nominal..." class="px-3 py-2 border rounded-xl text-xs focus:ring-2 focus:ring-slate-500 outline-none">
-        <select id="filterCabang" class="px-3 py-2 border rounded-xl text-xs focus:ring-2 focus:ring-slate-500 outline-none">
-          <option value="ALL">Semua Cabang</option>
-          <option value="CABANG 1">CABANG 1</option>
-          <option value="CABANG 2">CABANG 2</option>
+    <!-- Filter Section -->
+    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+      <h2 class="text-xs font-bold text-slate-500 tracking-wider uppercase mb-3">
+        <i class="fa-solid fa-magnifying-glass mr-1"></i> Filter Pencarian Transaksi
+      </h2>
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+        <input type="text" id="searchInput" placeholder="Cari Kasir / Nominal..." class="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-800">
+        <select id="branchFilter" class="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-800">
+          <option value="">Semua Cabang</option>
+          <option value="CABANG 1">Cabang 1</option>
+          <option value="CABANG 2">Cabang 2</option>
         </select>
-        <select id="filterMetode" class="px-3 py-2 border rounded-xl text-xs focus:ring-2 focus:ring-slate-500 outline-none">
-          <option value="ALL">Semua Metode</option>
-          <option value="cash">CASH</option>
-          <option value="qris">QRIS</option>
-          <option value="transfer">TRANSFER</option>
+        <select id="typeFilter" class="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-800">
+          <option value="">Semua Tipe</option>
+          <option value="in">Uang Masuk (IN)</option>
+          <option value="out">Uang Keluar (OUT)</option>
         </select>
-        <button onclick="applyFilter()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold py-2 rounded-xl text-xs cursor-pointer">
+        <button onclick="applyFilter()" class="bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold rounded-lg px-4 py-2 transition">
           Terapkan Filter
         </button>
       </div>
     </div>
 
-    <!-- Tab Section untuk Memisah Tabel -->
-    <div class="flex border-b border-slate-300 font-bold text-xs space-x-4">
-      <button onclick="switchTab('edit')" id="tabEdit" class="pb-2 border-b-2 border-slate-800 text-slate-800">Edit Transaksi</button>
-      <button onclick="switchTab('log')" id="tabLog" class="pb-2 text-slate-400">Log Perubahan</button>
-      <button onclick="switchTab('deleted')" id="tabDeleted" class="pb-2 text-slate-400">Data Dihapus</button>
+    <!-- Navigation Tabs -->
+    <div class="border-b border-slate-300 flex space-x-6">
+      <button onclick="switchTab('active')" id="tabActive" class="pb-2 font-semibold text-slate-900 border-b-2 border-slate-900 text-sm">
+        Edit Transaksi
+      </button>
+      <button onclick="switchTab('logs')" id="tabLogs" class="pb-2 font-semibold text-slate-400 hover:text-slate-600 text-sm">
+        Log Perubahan
+      </button>
+      <button onclick="switchTab('deleted')" id="tabDeleted" class="pb-2 font-semibold text-slate-400 hover:text-slate-600 text-sm">
+        Data Dihapus
+      </button>
     </div>
 
-    <!-- Section 1: Daftar Edit Transaksi -->
-    <div id="sectionEdit" class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
-      <h4 class="font-bold text-xs text-slate-800 mb-3">Daftar Transaksi Aktif</h4>
+    <!-- Table Container -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden p-5">
+      <h3 id="tableTitle" class="font-bold text-slate-700 mb-4 text-base">Daftar Transaksi Aktif</h3>
+      
       <div class="overflow-x-auto">
-        <table class="w-full text-left text-xs">
-          <thead>
-            <tr class="bg-slate-50 text-slate-500 font-bold border-b border-slate-200">
-              <th class="p-2">Waktu</th>
-              <th class="p-2">Cabang</th>
-              <th class="p-2">Tipe</th>
-              <th class="p-2">Nominal</th>
-              <th class="p-2">Metode</th>
-              <th class="p-2">Kasir</th>
-              <th class="p-2 text-center">Aksi</th>
+        <table class="w-full text-left text-sm">
+          <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
+            <tr>
+              <th class="py-3 px-4">Waktu</th>
+              <th class="py-3 px-4">Cabang</th>
+              <th class="py-3 px-4">Tipe</th>
+              <th class="py-3 px-4">Nominal</th>
+              <th class="py-3 px-4">Keterangan</th>
+              <th class="py-3 px-4">Kasir</th>
+              <th class="py-3 px-4 text-center">Aksi</th>
             </tr>
           </thead>
-          <tbody id="tableEditList">
-            <tr><td colspan="7" class="text-center py-4 text-slate-400">Memuat data...</td></tr>
+          <tbody id="transactionTableBody">
+            <tr>
+              <td colspan="7" class="text-center py-8 text-slate-400">
+                <i class="fa-solid fa-spinner fa-spin mr-2"></i> Memuat data...
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>
     </div>
 
-    <!-- Section 2: Log Edit -->
-    <div id="sectionLog" class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 hidden">
-      <h4 class="font-bold text-xs text-slate-800 mb-3">Log Riwayat Edit Transaksi</h4>
-      <div id="logList" class="space-y-2 text-xs">
-        <p class="text-slate-400 text-center py-4">Belum ada riwayat editan.</p>
-      </div>
-    </div>
-
-    <!-- Section 3: Data Dihapus -->
-    <div id="sectionDeleted" class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 hidden">
-      <h4 class="font-bold text-xs text-slate-800 mb-3">Tempat Sampah (Data Terhapus)</h4>
-      <div id="deletedList" class="space-y-2 text-xs">
-        <p class="text-slate-400 text-center py-4">Tidak ada data yang dihapus.</p>
-      </div>
-    </div>
-
   </main>
 
-  <script>
-    const WEBHOOK_URL = 'https://n8n-mzbmiib3etk4.kangkung.sumopod.my.id/webhook/0c2f335e-543b-4f3e-968e-f70d412f194b';
+  <!-- Modal Edit Transaksi -->
+  <div id="editModal" class="fixed inset-0 bg-slate-900/50 hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h3 class="font-bold text-slate-800">Edit Transaksi</h3>
+        <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      
+      <form id="editForm" onsubmit="submitEdit(event)" class="space-y-3">
+        <input type="hidden" id="editId">
+        <input type="hidden" id="editType">
+        
+        <div>
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Nominal (Rp)</label>
+          <input type="number" id="editNominal" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-slate-800 outline-none">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Kasir</label>
+          <input type="text" id="editKasir" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-slate-800 outline-none">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Cabang</label>
+          <select id="editCabang" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-slate-800 outline-none">
+            <option value="CABANG 1">Cabang 1</option>
+            <option value="CABANG 2">Cabang 2</option>
+          </select>
+        </div>
 
-    function switchTab(tab) {
-      ['Edit', 'Log', 'Deleted'].forEach(t => {
-        const sec = document.getElementById('section' + t);
-        const btn = document.getElementById('tab' + t);
-        if (t.toLowerCase() === tab) {
-          sec.classList.remove('hidden');
-          btn.className = 'pb-2 border-b-2 border-slate-800 text-slate-800 font-bold';
-        } else {
-          sec.classList.add('hidden');
-          btn.className = 'pb-2 text-slate-400 font-bold';
+        <div class="flex justify-end space-x-2 pt-3 border-t">
+          <button type="button" onclick="closeModal()" class="px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">Batal</button>
+          <button type="submit" id="btnSaveEdit" class="px-4 py-2 text-sm font-semibold bg-slate-900 text-white rounded-lg hover:bg-slate-800">Simpan Perubahan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = "https://n8n-mzbmiib3etk4.kangkung.sumopod.my.id/webhook/0c2f335e-543b-4f3e-968e-f70d412f194b";
+    
+    let rawData = [];
+    let currentTab = 'active';
+
+    document.addEventListener("DOMContentLoaded", () => {
+      fetchData();
+    });
+
+    async function fetchData() {
+      const tbody = document.getElementById("transactionTableBody");
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="7" class="text-center py-8 text-slate-400">
+            <i class="fa-solid fa-spinner fa-spin mr-2"></i> Memuat data dari server...
+          </td>
+        </tr>`;
+
+      try {
+        const response = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get_data" })
+        });
+
+        if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+        
+        const res = await response.json();
+        
+        // Menangani fleksibilitas struktur JSON dari n8n
+        let moneyIn = [];
+        let moneyOut = [];
+
+        if (res.data) {
+          moneyIn = res.data.money_in || [];
+          moneyOut = res.data.money_out || [];
+        } else if (Array.isArray(res)) {
+          // Jika n8n mengembalikan array tunggal
+          moneyIn = res.filter(item => item.tipe === 'in' || item.type === 'in' || item.nominal > 0);
+          moneyOut = res.filter(item => item.tipe === 'out' || item.type === 'out');
+        } else if (res.money_in || res.money_out) {
+          moneyIn = res.money_in || [];
+          moneyOut = res.money_out || [];
         }
-      });
+
+        // Format dan gabungkan data
+        const formattedIn = moneyIn.map((item, idx) => normalizeItem(item, 'in', idx));
+        const formattedOut = moneyOut.map((item, idx) => normalizeItem(item, 'out', idx));
+
+        rawData = [...formattedIn, ...formattedOut];
+        renderTable(rawData);
+
+      } catch (error) {
+        console.error("Gagal mengambil data:", error);
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" class="text-center py-8 text-red-500 font-semibold">
+              <i class="fa-solid fa-triangle-exclamation mr-2"></i> Gagal memuat data. Silakan periksa koneksi atau webhook backend.
+            </td>
+          </tr>`;
+      }
+    }
+
+    // Normalisasi struktur field data agar konsisten
+    function normalizeItem(item, defaultType, index) {
+      return {
+        id: item.id || item.row_id || item.ID || `ID-${index}`,
+        waktu: item.waktu || item.created_at || item.tanggal || item.Date || "-",
+        cabang: item.cabang || item.branch || "CABANG 1",
+        tipe: item.tipe || item.type || defaultType,
+        nominal: parseFloat(item.nominal || item.amount || 0),
+        transaksi: item.transaksi || item.keterangan || item.description || "-",
+        kasir: item.kasir || item.user || "-"
+      };
+    }
+
+    function formatRupiah(amount) {
+      return new Intl.NumberFormat("id-ID", {
+        style: "currency",
+        currency: "IDR",
+        maximumFractionDigits: 0
+      }).format(amount);
+    }
+
+    function renderTable(data) {
+      const tbody = document.getElementById("transactionTableBody");
+      
+      if (!data || data.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" class="text-center py-8 text-slate-400">Tidak ada transaksi ditemukan.</td>
+          </tr>`;
+        return;
+      }
+
+      tbody.innerHTML = data.map(item => `
+        <tr class="border-b border-slate-100 hover:bg-slate-50 transition">
+          <td class="py-3 px-4 text-xs text-slate-500">${item.waktu}</td>
+          <td class="py-3 px-4 font-medium text-slate-700">${item.cabang}</td>
+          <td class="py-3 px-4">
+            <span class="px-2 py-1 rounded text-xs font-bold ${item.tipe === 'in' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}">
+              ${item.tipe.toUpperCase()}
+            </span>
+          </td>
+          <td class="py-3 px-4 font-semibold ${item.tipe === 'in' ? 'text-emerald-600' : 'text-rose-600'}">
+            ${formatRupiah(item.nominal)}
+          </td>
+          <td class="py-3 px-4 text-slate-600">${item.transaksi}</td>
+          <td class="py-3 px-4 text-slate-600">${item.kasir}</td>
+          <td class="py-3 px-4 text-center">
+            <button onclick="openEditModal('${item.id}', '${item.tipe}', ${item.nominal}, '${item.kasir}', '${item.cabang}')" class="bg-amber-50 text-amber-600 hover:bg-amber-100 px-3 py-1 rounded-lg text-xs font-semibold transition border border-amber-200">
+              <i class="fa-solid fa-pen-to-square mr-1"></i>Edit
+            </button>
+          </td>
+        </tr>
+      `).join('');
     }
 
     function applyFilter() {
-      alert('Sistem filter diterapkan!');
+      const search = document.getElementById("searchInput").value.toLowerCase();
+      const branch = document.getElementById("branchFilter").value;
+      const type = document.getElementById("typeFilter").value;
+
+      const filtered = rawData.filter(item => {
+        const matchSearch = item.kasir.toLowerCase().includes(search) || item.nominal.toString().includes(search) || item.transaksi.toLowerCase().includes(search);
+        const matchBranch = branch === "" || item.cabang === branch;
+        const matchType = type === "" || item.tipe === type;
+        return matchSearch && matchBranch && matchType;
+      });
+
+      renderTable(filtered);
+    }
+
+    function switchTab(tab) {
+      currentTab = tab;
+      const btnActive = document.getElementById("tabActive");
+      const btnLogs = document.getElementById("tabLogs");
+      const btnDeleted = document.getElementById("tabDeleted");
+      const title = document.getElementById("tableTitle");
+
+      btnActive.className = "pb-2 font-semibold text-slate-400 hover:text-slate-600 text-sm";
+      btnLogs.className = "pb-2 font-semibold text-slate-400 hover:text-slate-600 text-sm";
+      btnDeleted.className = "pb-2 font-semibold text-slate-400 hover:text-slate-600 text-sm";
+
+      if (tab === 'active') {
+        btnActive.className = "pb-2 font-semibold text-slate-900 border-b-2 border-slate-900 text-sm";
+        title.innerText = "Daftar Transaksi Aktif";
+        renderTable(rawData);
+      } else if (tab === 'logs') {
+        btnLogs.className = "pb-2 font-semibold text-slate-900 border-b-2 border-slate-900 text-sm";
+        title.innerText = "Log Perubahan Transaksi";
+        document.getElementById("transactionTableBody").innerHTML = `<tr><td colspan="7" class="text-center py-8 text-slate-400">Belum ada aktivitas perubahan transaksi.</td></tr>`;
+      } else if (tab === 'deleted') {
+        btnDeleted.className = "pb-2 font-semibold text-slate-900 border-b-2 border-slate-900 text-sm";
+        title.innerText = "Daftar Data Dihapus";
+        document.getElementById("transactionTableBody").innerHTML = `<tr><td colspan="7" class="text-center py-8 text-slate-400">Tidak ada data terhapus.</td></tr>`;
+      }
+    }
+
+    function openEditModal(id, tipe, nominal, kasir, cabang) {
+      document.getElementById("editId").value = id;
+      document.getElementById("editType").value = tipe;
+      document.getElementById("editNominal").value = nominal;
+      document.getElementById("editKasir").value = kasir;
+      document.getElementById("editCabang").value = cabang;
+      document.getElementById("editModal").classList.remove("hidden");
+    }
+
+    function closeModal() {
+      document.getElementById("editModal").classList.add("hidden");
+    }
+
+    async function submitEdit(e) {
+      e.preventDefault();
+      const btn = document.getElementById("btnSaveEdit");
+      btn.innerText = "Menyimpan...";
+      btn.disabled = true;
+
+      const id = document.getElementById("editId").value;
+      const type = document.getElementById("editType").value;
+      const nominal = document.getElementById("editNominal").value;
+      const kasir = document.getElementById("editKasir").value;
+      const cabang = document.getElementById("editCabang").value;
+
+      const action = type === 'in' ? 'edit_in' : 'edit_out';
+
+      try {
+        const response = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action, id, nominal, kasir, cabang })
+        });
+
+        const res = await response.json();
+        if (res.success || response.ok) {
+          alert("Data transaksi berhasil diperbarui!");
+          closeModal();
+          fetchData(); // Reload data
+        } else {
+          alert("Gagal memperbarui data: " + (res.message || "Unknown error"));
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Terjadi kesalahan koneksi saat menyimpan perubahan.");
+      } finally {
+        btn.innerText = "Simpan Perubahan";
+        btn.disabled = false;
+      }
     }
   </script>
 </body>
