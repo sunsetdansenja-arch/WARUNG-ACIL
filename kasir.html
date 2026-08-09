@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Kasir - Kasir Warung Acil</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 min-h-screen">
+  <!-- Navbar -->
+  <nav class="bg-emerald-600 text-white shadow-md">
+    <div class="max-w-5xl mx-auto px-4 py-4 flex justify-between items-center">
+      <div>
+        <h1 class="font-bold text-lg">Kasir Warung Acil</h1>
+        <p class="text-xs text-emerald-100" id="userInfo">Loading user info...</p>
+      </div>
+      <button onclick="logout()" class="bg-emerald-700 hover:bg-emerald-800 text-xs px-3 py-1.5 rounded-lg border border-emerald-500 font-medium transition">
+        Logout
+      </button>
+    </div>
+  </nav>
+
+  <main class="max-w-5xl mx-auto px-4 py-6 space-y-6">
+    <!-- Form Input Section -->
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+      <div class="flex border-b border-slate-200 mb-6">
+        <button id="tabIn" onclick="switchAction('in')" 
+          class="flex-1 py-3 text-center font-bold text-emerald-600 border-b-2 border-emerald-600 focus:outline-none transition">
+          + UANG MASUK
+        </button>
+        <button id="tabOut" onclick="switchAction('out')" 
+          class="flex-1 py-3 text-center font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-600 focus:outline-none transition">
+          - UANG KELUAR
+        </button>
+      </div>
+
+      <form id="transaksiForm" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Nominal (Rp)</label>
+          <input type="number" id="nominal" required min="1" placeholder="Masukkan angka, contoh: 50000" 
+            class="w-full px-4 py-3 text-lg font-bold rounded-lg border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-2">Metode Transaksi</label>
+          <div class="grid grid-cols-3 gap-3">
+            <label class="flex items-center justify-center p-3 border rounded-lg cursor-pointer bg-slate-50 hover:bg-emerald-50 has-[:checked]:bg-emerald-100 has-[:checked]:border-emerald-600 has-[:checked]:text-emerald-800 font-semibold text-sm">
+              <input type="radio" name="transaksi" value="cash" checked class="hidden"> Cash
+            </label>
+            <label class="flex items-center justify-center p-3 border rounded-lg cursor-pointer bg-slate-50 hover:bg-emerald-50 has-[:checked]:bg-emerald-100 has-[:checked]:border-emerald-600 has-[:checked]:text-emerald-800 font-semibold text-sm">
+              <input type="radio" name="transaksi" value="qris" class="hidden"> QRIS
+            </label>
+            <label class="flex items-center justify-center p-3 border rounded-lg cursor-pointer bg-slate-50 hover:bg-emerald-50 has-[:checked]:bg-emerald-100 has-[:checked]:border-emerald-600 has-[:checked]:text-emerald-800 font-semibold text-sm">
+              <input type="radio" name="transaksi" value="transfer" class="hidden"> Transfer
+            </label>
+          </div>
+        </div>
+
+        <div id="alertMsg" class="hidden p-3 rounded-lg text-sm font-medium text-center"></div>
+
+        <button type="submit" id="submitFormBtn" 
+          class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-lg transition shadow-md shadow-emerald-600/20 disabled:opacity-50">
+          SIMPAN TRANSAKSI
+        </button>
+      </form>
+    </div>
+
+    <!-- Read-Only Riwayat Transaksi -->
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="font-bold text-slate-800 text-base">Riwayat Transaksi Terakhir (Cabang Ini)</h2>
+        <button onclick="loadRecentData()" class="text-xs text-emerald-600 hover:underline font-semibold">
+          🔄 Refresh
+        </button>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm border-collapse">
+          <thead>
+            <tr class="bg-slate-100 text-slate-600 text-xs font-bold uppercase border-b">
+              <th class="p-3">Tipe</th>
+              <th class="p-3">Nominal</th>
+              <th class="p-3">Metode</th>
+              <th class="p-3">Kasir</th>
+              <th class="p-3 text-right">Waktu (WIB)</th>
+            </tr>
+          </thead>
+          <tbody id="historyTable" class="divide-y divide-slate-100 text-slate-700">
+            <tr>
+              <td colspan="5" class="p-4 text-center text-slate-400">Memuat data...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const WEBHOOK_URL = 'https://n8n-mzbmiib3etk4.kangkung.sumopod.my.id/webhook/0c2f335e-543b-4f3e-968e-f70d412f194b';
+    let currentAction = 'in'; // default 'in'
+
+    // Auth Check Guard
+    const session = JSON.parse(localStorage.getItem('warung_acil_session'));
+    if (!session) {
+      window.location.href = 'index.html';
+    }
+
+    const currentBranch = session.isOwner ? 'CABANG ALL' : `CABANG ${session.akses}`;
+    document.getElementById('userInfo').innerText = `${session.user} | ${currentBranch}`;
+
+    function switchAction(action) {
+      currentAction = action;
+      const tabIn = document.getElementById('tabIn');
+      const tabOut = document.getElementById('tabOut');
+      const submitBtn = document.getElementById('submitFormBtn');
+
+      if (action === 'in') {
+        tabIn.className = 'flex-1 py-3 text-center font-bold text-emerald-600 border-b-2 border-emerald-600 focus:outline-none transition';
+        tabOut.className = 'flex-1 py-3 text-center font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-600 focus:outline-none transition';
+        submitBtn.className = 'w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-lg transition shadow-md shadow-emerald-600/20';
+        submitBtn.innerText = 'SIMPAN UANG MASUK';
+      } else {
+        tabOut.className = 'flex-1 py-3 text-center font-bold text-rose-600 border-b-2 border-rose-600 focus:outline-none transition';
+        tabIn.className = 'flex-1 py-3 text-center font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-600 focus:outline-none transition';
+        submitBtn.className = 'w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-3.5 rounded-lg transition shadow-md shadow-rose-600/20';
+        submitBtn.innerText = 'SIMPAN UANG KELUAR';
+      }
+    }
+
+    document.getElementById('transaksiForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const nominal = document.getElementById('nominal').value;
+      const jenis = document.querySelector('input[name="transaksi"]:checked').value;
+      const alertMsg = document.getElementById('alertMsg');
+      const submitBtn = document.getElementById('submitFormBtn');
+
+      submitBtn.disabled = true;
+      alertMsg.classList.add('hidden');
+
+      const payload = {
+        action: currentAction,
+        nominal: String(nominal),
+        transaksi: jenis,
+        kasir: session.user,
+        cabang: currentBranch
+      };
+
+      try {
+        const response = await fetch(WEBHOOK_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const resData = await response.json();
+        const result = Array.isArray(resData) ? resData[0] : resData;
+
+        if (result && result.success) {
+          showAlert('Transaksi berhasil dicatat!', 'success');
+          document.getElementById('nominal').value = '';
+          loadRecentData();
+        } else {
+          showAlert('Gagal mencatat transaksi: ' + (result.message || 'Terjadi kesalahan'), 'error');
+        }
+      } catch (err) {
+        showAlert('Koneksi terputus. Gagal mengirim data.', 'error');
+      } finally {
+        submitBtn.disabled = false;
+      }
+    });
+
+    function showAlert(msg, type) {
+      const alertMsg = document.getElementById('alertMsg');
+      alertMsg.innerText = msg;
+      alertMsg.classList.remove('hidden', 'bg-emerald-50', 'text-emerald-700', 'bg-rose-50', 'text-rose-700');
+      
+      if (type === 'success') {
+        alertMsg.classList.add('bg-emerald-50', 'text-emerald-700');
+      } else {
+        alertMsg.classList.add('bg-rose-50', 'text-rose-700');
+      }
+    }
+
+    async function loadRecentData() {
+      const tableBody = document.getElementById('historyTable');
+      try {
+        const response = await fetch(WEBHOOK_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'get_data' })
+        });
+
+        const resData = await response.json();
+        const raw = Array.isArray(resData) ? resData[0] : resData;
+
+        if (raw && raw.success && raw.data) {
+          let listIn = (raw.data.money_in || []).map(i => ({ ...i, type: 'IN' }));
+          let listOut = (raw.data.money_out || []).map(i => ({ ...i, type: 'OUT' }));
+
+          let all = [...listIn, ...listOut];
+
+          // Filter khusus cabang jika bukan ALL
+          if (!session.isOwner) {
+            all = all.filter(item => String(item.CABANG).toUpperCase() === currentBranch.toUpperCase());
+          }
+
+          // Urutkan berdasarkan waktu paling baru
+          all.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+
+          if (all.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-400">Belum ada transaksi.</td></tr>`;
+            return;
+          }
+
+          tableBody.innerHTML = all.slice(0, 10).map(item => {
+            const badgeClass = item.type === 'IN' 
+              ? 'bg-emerald-100 text-emerald-800' 
+              : 'bg-rose-100 text-rose-800';
+            
+            const formattedNominal = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(item.NOMINAL || 0);
+            
+            const timeStr = item.createdAt 
+              ? new Date(item.createdAt).toLocaleTimeString('id-ID', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit' }) 
+              : '-';
+
+            return `
+              <tr class="hover:bg-slate-50 transition">
+                <td class="p-3"><span class="px-2 py-0.5 rounded font-bold text-xs ${badgeClass}">${item.type}</span></td>
+                <td class="p-3 font-bold">${formattedNominal}</td>
+                <td class="p-3 uppercase text-xs font-semibold">${item.TRANSAKSI || '-'}</td>
+                <td class="p-3 text-xs">${item.KASIR || '-'}</td>
+                <td class="p-3 text-right text-xs text-slate-500">${timeStr} WIB</td>
+              </tr>
+            `;
+          }).join('');
+        }
+      } catch (err) {
+        tableBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-rose-500">Gagal memuat riwayat data.</td></tr>`;
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem('warung_acil_session');
+      window.location.href = 'index.html';
+    }
+
+    // Load data awal saat halaman dibuka
+    loadRecentData();
+  </script>
+</body>
+</html>
