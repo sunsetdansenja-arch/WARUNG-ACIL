@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Master Hub - Kasir Warung Acil</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 min-h-screen pb-10">
+
+  <nav class="bg-emerald-700 text-white shadow-md sticky top-0 z-30">
+    <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
+      <div>
+        <h1 class="font-bold text-base">Warung Acil - Master Hub</h1>
+        <p class="text-xs text-emerald-200" id="userInfo">Owner Panel</p>
+      </div>
+      <button onclick="logout()" class="bg-emerald-800 hover:bg-emerald-900 text-xs px-3 py-1.5 rounded-lg border border-emerald-600 font-medium cursor-pointer">
+        Logout
+      </button>
+    </div>
+  </nav>
+
+  <main class="max-w-4xl mx-auto px-4 py-6 space-y-6">
+
+    <!-- Navigasi Cepat Ke Seluruh Modul -->
+    <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
+      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Navigasi Modul Aplikasi</h2>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <a href="kasir.html" class="flex flex-col items-center justify-center p-3 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl transition text-center">
+          <span class="text-2xl mb-1">🛒</span>
+          <span class="font-bold text-xs text-emerald-800">Kasir App</span>
+        </a>
+        <a href="master.html" class="flex flex-col items-center justify-center p-3 bg-emerald-600 text-white rounded-xl shadow-sm text-center font-bold">
+          <span class="text-2xl mb-1">👑</span>
+          <span class="text-xs">Master Hub</span>
+        </a>
+        <a href="admin.html" class="flex flex-col items-center justify-center p-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition text-center">
+          <span class="text-2xl mb-1">⚙️</span>
+          <span class="font-bold text-xs text-slate-700">Admin Log</span>
+        </a>
+        <a href="analitik.html" class="flex flex-col items-center justify-center p-3 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-xl transition text-center">
+          <span class="text-2xl mb-1">📊</span>
+          <span class="font-bold text-xs text-indigo-800">Analitik Omset</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Total Omset & Jumlah Transaksi -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+        <p class="text-xs font-bold text-slate-400 uppercase">Hari Ini</p>
+        <h3 class="text-xl font-extrabold text-emerald-600 mt-1" id="omsetHariIni">Rp 0</h3>
+        <p class="text-[11px] text-slate-500 font-semibold mt-1" id="trxHariIni">0 Transaksi</p>
+      </div>
+
+      <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+        <p class="text-xs font-bold text-slate-400 uppercase">Minggu Ini</p>
+        <h3 class="text-xl font-extrabold text-emerald-600 mt-1" id="omsetMingguIni">Rp 0</h3>
+        <p class="text-[11px] text-slate-500 font-semibold mt-1" id="trxMingguIni">0 Transaksi</p>
+      </div>
+
+      <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+        <p class="text-xs font-bold text-slate-400 uppercase">Bulan Ini</p>
+        <h3 class="text-xl font-extrabold text-emerald-600 mt-1" id="omsetBulanIni">Rp 0</h3>
+        <p class="text-[11px] text-slate-500 font-semibold mt-1" id="trxBulanIni">0 Transaksi</p>
+      </div>
+    </div>
+
+    <!-- Peringkat Cabang (Auto Ranking Pemasukan Terbanyak) -->
+    <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 space-y-3">
+      <div class="flex justify-between items-center">
+        <h3 class="font-bold text-sm text-slate-800">🏆 Performa Cabang (Urut Pemasukan Terbanyak)</h3>
+        <button onclick="loadMasterData()" class="text-xs text-emerald-600 font-semibold hover:underline">🔄 Refresh</button>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs">
+          <thead>
+            <tr class="bg-slate-50 text-slate-500 font-bold border-b border-slate-200">
+              <th class="p-2.5">Peringkat</th>
+              <th class="p-2.5">Cabang</th>
+              <th class="p-2.5">Pemasukan</th>
+              <th class="p-2.5">Pengeluaran</th>
+              <th class="p-2.5">Laba Bersih</th>
+            </tr>
+          </thead>
+          <tbody id="branchRankTable">
+            <tr><td colspan="5" class="text-center py-4 text-slate-400">Memuat data cabang...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    const WEBHOOK_URL = 'https://n8n-mzbmiib3etk4.kangkung.sumopod.my.id/webhook/0c2f335e-543b-4f3e-968e-f70d412f194b';
+    const session = JSON.parse(localStorage.getItem('warung_acil_session'));
+
+    if (!session || !session.isOwner) {
+      alert('Akses khusus Owner!');
+      window.location.href = 'kasir.html';
+    }
+
+    async function loadMasterData() {
+      try {
+        const res = await fetch(WEBHOOK_URL, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ action: 'get_data' })
+        });
+        const resData = await res.json();
+        const raw = Array.isArray(resData) ? resData[0] : resData;
+
+        if (raw && raw.success) {
+          processOmsetAndBranch(raw.data);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function processOmsetAndBranch(data) {
+      const now = new Date();
+      const listIn = data.money_in || [];
+      const listOut = data.money_out || [];
+
+      // Perhitungan Omset Periode
+      let hNom = 0, hTrx = 0;
+      let mNom = 0, mTrx = 0;
+      let bNom = 0, bTrx = 0;
+
+      listIn.forEach(i => {
+        if (!i.createdAt) return;
+        const d = new Date(i.createdAt);
+        const nom = Number(i.NOMINAL || 0);
+
+        if (d.toDateString() === now.toDateString()) {
+          hNom += nom; hTrx++;
+        }
+        if (Math.floor((now - d) / (1000 * 60 * 60 * 24)) < 7) {
+          mNom += nom; mTrx++;
+        }
+        if (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) {
+          bNom += nom; bTrx++;
+        }
+      });
+
+      const fmt = (v) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(v);
+
+      document.getElementById('omsetHariIni').innerText = fmt(hNom);
+      document.getElementById('trxHariIni').innerText = `${hTrx} Transaksi`;
+      document.getElementById('omsetMingguIni').innerText = fmt(mNom);
+      document.getElementById('trxMingguIni').innerText = `${mTrx} Transaksi`;
+      document.getElementById('omsetBulanIni').innerText = fmt(bNom);
+      document.getElementById('trxBulanIni').innerText = `${bTrx} Transaksi`;
+
+      // Perhitungan Rekap Cabang
+      const branchStats = {};
+
+      listIn.forEach(i => {
+        const c = (i.CABANG || 'CABANG UNKNOWN').toUpperCase();
+        if (!branchStats[c]) branchStats[c] = { masuk: 0, keluar: 0 };
+        branchStats[c].masuk += Number(i.NOMINAL || 0);
+      });
+
+      listOut.forEach(o => {
+        const c = (o.CABANG || 'CABANG UNKNOWN').toUpperCase();
+        if (!branchStats[c]) branchStats[c] = { masuk: 0, keluar: 0 };
+        branchStats[c].keluar += Number(o.NOMINAL || 0);
+      });
+
+      // Urutkan Pemasukan Terbanyak ke Tersedikit
+      const sortedBranches = Object.keys(branchStats).map(name => ({
+        name,
+        masuk: branchStats[name].masuk,
+        keluar: branchStats[name].keluar,
+        laba: branchStats[name].masuk - branchStats[name].keluar
+      })).sort((a, b) => b.masuk - a.masuk);
+
+      const tableBody = document.getElementById('branchRankTable');
+      if(sortedBranches.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-slate-400">Belum ada data transaksi cabang.</td></tr>`;
+        return;
+      }
+
+      tableBody.innerHTML = sortedBranches.map((b, idx) => `
+        <tr class="border-b border-slate-100 hover:bg-slate-50">
+          <td class="p-2.5 font-bold text-center">${idx === 0 ? '🥇 1' : idx === 1 ? '🥈 2' : idx === 2 ? '🥉 3' : idx + 1}</td>
+          <td class="p-2.5 font-bold text-slate-800">${b.name}</td>
+          <td class="p-2.5 font-bold text-emerald-600">${fmt(b.masuk)}</td>
+          <td class="p-2.5 font-bold text-rose-600">${fmt(b.keluar)}</td>
+          <td class="p-2.5 font-black text-slate-800">${fmt(b.laba)}</td>
+        </tr>
+      `).join('');
+    }
+
+    function logout() {
+      localStorage.removeItem('warung_acil_session');
+      window.location.href = 'index.html';
+    }
+
+    loadMasterData();
+  </script>
+</body>
+</html>
