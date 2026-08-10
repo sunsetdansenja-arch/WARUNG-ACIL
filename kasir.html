@@ -258,7 +258,7 @@
       </div>
 
       <div class="flex flex-col gap-1.5 no-print pt-2">
-        <button onclick="triggerPrint()" class="w-full bg-emerald-600 text-white font-bold text-xs py-2 rounded-xl cursor-pointer">🖨️ Cetak Struk (BR RawPrinter)</button>
+        <button onclick="triggerPrint()" class="w-full bg-emerald-600 text-white font-bold text-xs py-2 rounded-xl cursor-pointer">🖨️ Cetak Bluetooth Direct</button>
         <button onclick="closeReceiptModal()" class="w-full bg-slate-200 text-slate-700 font-bold text-xs py-1.5 rounded-xl cursor-pointer">Tutup</button>
       </div>
     </div>
@@ -457,7 +457,7 @@
         cabang: targetBranch
       };
 
-      // Tampilkan Struk & Panggil Direct Print BR RawPrinter
+      // Tampilkan Struk & Panggil Direct Print Web Bluetooth
       openReceiptModal(finalCalculatedNominal, method, finalActionType === 'in', session.user, targetBranch, new Date());
       setTimeout(() => { triggerPrint(); }, 200);
 
@@ -469,11 +469,11 @@
         });
         clearCalc();
       } catch (err) {
-        alert('Gagal sinkronisasi data ke server, namun perintah cetak telah dikirim.');
+        alert('Gagal sinkronisasi data ke server, namun perintah cetak telah diproses.');
       }
     }
 
-    // LOGIKA STRUK & DIRECT PRINT BR RAWPRINTER INTENT
+    // LOGIKA STRUK & DIRECT PRINT WEB BLUETOOTH
     function openReceiptModal(nominal, method, isMoneyIn, kasir, cabang, date) {
       const formattedNominal = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(nominal);
       const formattedDate = new Date(date || Date.now()).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' }) + ' WIB';
@@ -487,7 +487,7 @@
       document.getElementById('rKasir').innerText = kasir || session.user;
       document.getElementById('rNominal').innerText = formattedNominal;
 
-      // Simpan data terstruktur untuk dikirim ke BR RawPrinter
+      // Simpan data terstruktur untuk dikirim ke Printer
       activeReceiptData = {
         branch: cabang || currentBranch,
         date: formattedDate,
@@ -500,32 +500,75 @@
       document.getElementById('receiptModal').classList.remove('hidden');
     }
 
-    // METODE PEMANGGILAN LANGSUNG APLIKASI BR RAWPRINTER VIA INTENT
-    function triggerPrint() {
+    // METODE CETAK DIRECT VIA WEB BLUETOOTH API
+    async function triggerPrint() {
       if (!activeReceiptData) {
         alert('Data struk tidak ditemukan!');
         return;
       }
 
-      // Susun Teks Struk Khusus Kertas 58mm (Max 32 Karakter per baris)
-      let printText = "";
-      printText += "[C]<b>WARUNG ACIL</b>\n";
-      printText += "[C]" + activeReceiptData.branch + "\n";
-      printText += "[C]" + activeReceiptData.date + "\n";
-      printText += "[C]--------------------------------\n";
-      printText += "[L]Jenis   : " + activeReceiptData.type.toUpperCase() + "\n";
-      printText += "[L]Metode  : " + activeReceiptData.method.toUpperCase() + "\n";
-      printText += "[L]Kasir   : " + activeReceiptData.kasir + "\n";
-      printText += "[C]--------------------------------\n";
-      printText += "[L]TOTAL   : [R]<b>" + activeReceiptData.nominal + "</b>\n";
-      printText += "[C]--------------------------------\n";
-      printText += "[C]*** Terima Kasih ***\n\n\n";
+      if (!navigator.bluetooth) {
+        alert('Browser ini belum mendukung Web Bluetooth. Pastikan menggunakan Google Chrome versi terbaru.');
+        return;
+      }
 
-      // Intent Protocol melempar langsung data teks ke aplikasi BR RawPrinter (ru.rawprinter)
-      const intentUrl = "intent:" + encodeURIComponent(printText) + "#Intent;scheme=rawbt;package=ru.rawprinter;end;";
-      
-      // Buka Intent
-      window.location.href = intentUrl;
+      try {
+        // 1. Minta Izin & Cari Device Bluetooth
+        const device = await navigator.bluetooth.requestDevice({
+          acceptAllDevices: true, // Memastikan printer 58mm / RPP02N terdeteksi
+          optionalServices: CONFIG.PRINTER ? CONFIG.PRINTER.OPTIONAL_SERVICES : [
+            '000018f0-0000-1000-8000-00805f9b34fb',
+            '0000e025-0000-1000-8000-00805f9b34fb',
+            '00001101-0000-1000-8000-00805f9b34fb'
+          ]
+        });
+
+        // 2. Connect ke GATT Server & Service
+        const server = await device.gatt.connect();
+        const serviceUuid = (CONFIG.PRINTER && CONFIG.PRINTER.SERVICE_UUID) ? CONFIG.PRINTER.SERVICE_UUID : '000018f0-0000-1000-8000-00805f9b34fb';
+        const charUuid = (CONFIG.PRINTER && CONFIG.PRINTER.CHARACTERISTIC_UUID) ? CONFIG.PRINTER.CHARACTERISTIC_UUID : '00002af1-0000-1000-8000-00805f9b34fb';
+
+        const service = await server.getPrimaryService(serviceUuid);
+        const characteristic = await service.getCharacteristic(charUuid);
+
+        const encoder = new TextEncoder();
+
+        // 3. Formating Perintah Struk ESC/POS
+        let commands = "";
+        
+        // Reset Printer & Align Center
+        commands += "\x1B\x40"; 
+        commands += "\x1B\x61\x01"; 
+        
+        // Header
+        commands += "\x1B\x45\x01WARUNG ACIL\x1B\x45\x00\n";
+        commands += activeReceiptData.branch + "\n";
+        commands += activeReceiptData.date + "\n";
+        commands += "--------------------------------\n";
+        
+        // Align Left - Transaksi Detail
+        commands += "\x1B\x61\x00"; 
+        commands += "Jenis   : " + activeReceiptData.type.toUpperCase() + "\n";
+        commands += "Metode  : " + activeReceiptData.method.toUpperCase() + "\n";
+        commands += "Kasir   : " + activeReceiptData.kasir + "\n";
+        
+        // Align Center - Total
+        commands += "\x1B\x61\x01"; 
+        commands += "--------------------------------\n";
+        commands += "TOTAL   : \x1B\x45\x01" + activeReceiptData.nominal + "\x1B\x45\x00\n";
+        commands += "--------------------------------\n";
+        commands += "*** Terima Kasih ***\n\n\n\n";
+
+        // 4. Kirim Data Byte ke Printer
+        await characteristic.writeValue(encoder.encode(commands));
+        
+        // Disconnect
+        device.gatt.disconnect();
+
+      } catch (error) {
+        console.error('Error Web Bluetooth:', error);
+        alert('Batal/Gagal mencetak: ' + error.message);
+      }
     }
 
     function closeReceiptModal() {
