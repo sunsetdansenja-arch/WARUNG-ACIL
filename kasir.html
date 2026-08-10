@@ -110,11 +110,11 @@
       </button>
     </div>
 
-    <!-- Dropdown Pilih Cabang (Akses Owner / Khusus Acil & Lulu) -->
+    <!-- Dropdown Pilih Cabang (Akses Multi-Cabang / ACIL & LULU) -->
     <div id="ownerBranchContainer" class="hidden mb-3">
       <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Pilih Cabang Transaksi</label>
       <select id="selectBranch" class="w-full px-3 py-2 text-xs font-bold rounded-xl border border-slate-300 bg-amber-50 text-slate-800 focus:outline-none">
-        <!-- Opsi cabang diisi secara dinamis sesuai role user (Acil: 1-6, Lulu: 4-6) -->
+        <!-- Opsi cabang diisi dinamis sesuai isi kolom AKSES dari database -->
       </select>
     </div>
 
@@ -214,7 +214,7 @@
         <div id="modalNominal" class="text-2xl font-black text-emerald-600 pt-1">Rp 0</div>
       </div>
 
-      <!-- 3 Opsi Pembayaran Satset -->
+      <!-- 3 Opsi Pembayaran -->
       <div class="grid grid-cols-1 gap-2.5 pt-2">
         <button onclick="submitTransaction('cash')" class="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black py-3.5 rounded-2xl text-sm shadow-md flex items-center justify-center gap-2 cursor-pointer">
           💵 CASH
@@ -279,7 +279,7 @@
     let activePeriod = 'today';
     let globalRawData = { money_in: [], money_out: [] };
 
-    // Validasi Login
+    // Validasi Session
     const session = JSON.parse(localStorage.getItem('warung_acil_session'));
     if (!session) {
       window.location.href = 'index.html';
@@ -293,34 +293,28 @@
       return `CABANG ${rawCabang}`;
     }
 
-    const usernameLower = String(session.user || '').toLowerCase().trim();
-    const isAcil = usernameLower === 'acil';
-    const isLulu = usernameLower === 'lulu';
-    const isOwnerUser = session.isOwner || isAcil || isLulu;
+    // --- LOGIKA AKSES DINAMIS CABANG DARI DATABASE ---
+    const rawAkses = String(session.akses || '').trim();
+    let userBranches = [];
 
-    // Tampilkan tombol navigasi Master Hub jika Owner
-    if (isOwnerUser) {
+    if (rawAkses.toUpperCase() === 'ALL') {
+      userBranches = Object.keys((typeof CONFIG !== 'undefined' && CONFIG.BRANCHES) ? CONFIG.BRANCHES : {'1':'1','2':'2','3':'3','4':'4','5':'5','6':'6'});
+    } else if (rawAkses.includes(',')) {
+      userBranches = rawAkses.split(',').map(b => b.trim());
+    } else if (rawAkses) {
+      userBranches = [rawAkses];
+    }
+
+    const isMultiBranchUser = session.isOwner || userBranches.length > 1;
+
+    if (isMultiBranchUser) {
       document.getElementById('btnBackToMaster').classList.remove('hidden');
       document.getElementById('ownerBranchContainer').classList.remove('hidden');
 
       const selectBranchEl = document.getElementById('selectBranch');
       selectBranchEl.innerHTML = '';
 
-      // Tentukan daftar kode cabang yang berhak diakses:
-      // - Acil: Cabang 1, 2, 3, 4, 5, 6
-      // - Lulu: Cabang 4, 5, 6
-      let allowedBranches = [];
-      if (isAcil) {
-        allowedBranches = ['1', '2', '3', '4', '5', '6'];
-      } else if (isLulu) {
-        allowedBranches = ['4', '5', '6'];
-      } else {
-        // Fallback untuk Owner lain
-        allowedBranches = Object.keys((typeof CONFIG !== 'undefined' && CONFIG.BRANCHES) ? CONFIG.BRANCHES : {'1': 'CABANG 1'});
-      }
-
-      // Populate dropdown dengan Nama Resmi Cabang dari config.js
-      allowedBranches.forEach(code => {
+      userBranches.forEach(code => {
         const option = document.createElement('option');
         option.value = code;
         option.textContent = getBranchName(code);
@@ -329,10 +323,10 @@
     }
 
     const currentBranchName = session.branch_name || getBranchName(session.akses);
-    document.getElementById('userInfo').innerText = `${session.user} | ${isOwnerUser ? 'OWNER MODE' : currentBranchName}`;
+    document.getElementById('userInfo').innerText = `${session.user} | ${isMultiBranchUser ? 'MULTI CABANG' : currentBranchName}`;
 
     function getSelectedTargetBranch() {
-      if (isOwnerUser) {
+      if (isMultiBranchUser) {
         return document.getElementById('selectBranch').value;
       }
       return session.akses;
@@ -447,7 +441,7 @@
       }
     }
 
-    // ALUR TRANSAKSI SATSET
+    // ALUR TRANSAKSI
     function openPaymentModal() {
       let finalVal = calculateResult();
       
@@ -638,7 +632,7 @@
       let listIn = (globalRawData.money_in || []);
       let listOut = (globalRawData.money_out || []);
 
-      if (!isOwnerUser) {
+      if (!isMultiBranchUser) {
         listIn = listIn.filter(i => String(i.CABANG).toUpperCase() === String(session.akses).toUpperCase());
         listOut = listOut.filter(o => String(o.CABANG).toUpperCase() === String(session.akses).toUpperCase());
       }
@@ -682,7 +676,7 @@
       let listOut = (globalRawData.money_out || []).map(o => ({ ...o, type: 'OUT' }));
       let all = [...listIn, ...listOut];
 
-      if (!isOwnerUser) {
+      if (!isMultiBranchUser) {
         all = all.filter(item => String(item.CABANG).toUpperCase() === String(session.akses).toUpperCase());
       }
 
