@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Analitik Omset - Executive Intelligence</title>
+  <title>Analitik Omset - Business Intelligence</title>
   
   <!-- Panggil config.js paling atas -->
   <script src="config.js"></script>
@@ -45,9 +45,9 @@
           <i class="fa-solid fa-layer-group text-lg"></i>
         </div>
         <div>
-          <label class="block text-[10px] font-bold uppercase text-slate-400 tracking-wider">Lingkup Monitoring Data</label>
+          <label class="block text-[10px] font-bold uppercase text-slate-400 tracking-wider">Lingkup Monitoring Analitik</label>
           <select id="entityScopeFilter" onchange="handleScopeChange()" class="text-xs font-bold border border-slate-300 px-3 py-1.5 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-slate-700 bg-slate-50">
-            <!-- Pilihan diisi secara dinamis via JS sesuai Peran User -->
+            <!-- Pilihan diisi secara dinamis via JS sesuai Role User -->
           </select>
         </div>
       </div>
@@ -78,7 +78,7 @@
           <h3 class="font-bold text-sm text-slate-800 flex items-center gap-2">
             📈 Grafik Performance Omset
           </h3>
-          <p class="text-xs text-slate-400" id="chartScopeLabel">Menampilkan seluruh cabang aktif</p>
+          <p class="text-xs text-slate-400" id="chartScopeLabel">Menampilkan data sesuai lingkup terpilih</p>
         </div>
         <span class="text-xs px-2.5 py-1 bg-emerald-100 text-emerald-700 font-bold rounded-full" id="totalOmsetSummary">Rp 0</span>
       </div>
@@ -171,10 +171,10 @@
     let rawMoneyOut = [];
     let omsetChartInstance = null;
 
-    // Tentukan role pengguna aktif (default 'acil' jika tidak ditentukan)
+    // Menentukan role pengguna aktif ('acil' atau 'lulu')
     const currentUserRole = (typeof CONFIG !== 'undefined' && CONFIG.CURRENT_USER_ROLE) 
       ? CONFIG.CURRENT_USER_ROLE 
-      : 'acil'; 
+      : 'acil';
 
     document.addEventListener("DOMContentLoaded", () => {
       setupScopeOptions();
@@ -182,30 +182,30 @@
       fetchData();
     });
 
-    // Inisialisasi Opsi Scope Berdasarkan Role (Acil vs Lulu)
+    // Inisialisasi Opsi Dropdown Sesuai Peraturan Akses
     function setupScopeOptions() {
       const scopeSelect = document.getElementById("entityScopeFilter");
       scopeSelect.innerHTML = "";
 
       if (currentUserRole === 'acil') {
-        document.getElementById("dashboardTitle").innerText = "Warung Acil - Executive Dashboard";
-        document.getElementById("dashboardSubtitle").innerText = "Akses Penuh: Monitoring Acil, Lulu & Kombinasi";
+        document.getElementById("dashboardTitle").innerText = "Warung Acil - Executive Intelligence";
+        document.getElementById("dashboardSubtitle").innerText = "Monitoring Khusus Acil, Acil & Lulu, serta Kombinasi Total";
 
         scopeSelect.appendChild(new Option("Khusus Warung Acil", "acil_only"));
         scopeSelect.appendChild(new Option("Warung Acil & Warung Lulu", "acil_lulu"));
-        scopeSelect.appendChild(new Option("Kombinasi Total (Konsolidasi)", "combined"));
+        scopeSelect.appendChild(new Option("Kombinasi Kedua-duanya (Total)", "combined"));
       } else {
-        document.getElementById("dashboardTitle").innerText = "Warung Lulu - Executive Dashboard";
-        document.getElementById("dashboardSubtitle").innerText = "Akses Terbatas: Monitoring Lulu & Acil";
+        // PERATURAN KHUSUS LULU: Hanya Warung Lulu dan Acil
+        document.getElementById("dashboardTitle").innerText = "Warung Lulu - Executive Intelligence";
+        document.getElementById("dashboardSubtitle").innerText = "Monitoring Terbatas: Warung Lulu & Warung Acil";
 
-        scopeSelect.appendChild(new Option("Khusus Warung Lulu", "lulu_only"));
         scopeSelect.appendChild(new Option("Warung Lulu & Warung Acil", "lulu_acil"));
       }
 
       populateBranchFilter();
     }
 
-    // Mengisi Filter Cabang Terkait Sesuai Scope Entitas
+    // Mengisi Filter Cabang Berdasarkan Lingkup yang Dipilih
     function populateBranchFilter() {
       const branchSelect = document.getElementById("branchChartFilter");
       branchSelect.innerHTML = '<option value="">Semua Cabang Lingkup</option>';
@@ -220,9 +220,12 @@
         const name = branches[code];
         let include = false;
 
-        if (currentScope.includes('acil_only') && name.toUpperCase().includes('ACIL')) include = true;
-        else if (currentScope.includes('lulu_only') && name.toUpperCase().includes('LULU')) include = true;
-        else include = true; // Untuk opsi gabungan/kombinasi
+        if (currentScope === 'acil_only') {
+          include = name.toUpperCase().includes('ACIL');
+        } else {
+          // Opsi acil_lulu, combined, dan lulu_acil mencakup semua cabang
+          include = true;
+        }
 
         if (include) {
           const opt = document.createElement('option');
@@ -358,7 +361,7 @@
       }
     }
 
-    // Filtering Data Berdasarkan Entitas (Scope) & Cabang
+    // Filter Data Menurut Lingkup Dan Cabang
     function filterDataByScope(dataList) {
       const scope = document.getElementById("entityScopeFilter").value;
       const selectedBranch = document.getElementById("branchChartFilter").value;
@@ -369,9 +372,7 @@
 
         if (scope === 'acil_only') {
           matchScope = branchFullName.includes('ACIL');
-        } else if (scope === 'lulu_only') {
-          matchScope = branchFullName.includes('LULU');
-        } else if (scope === 'acil_lulu' || scope === 'lulu_acil' || scope === 'combined') {
+        } else if (scope === 'lulu_acil' || scope === 'acil_lulu' || scope === 'combined') {
           matchScope = branchFullName.includes('ACIL') || branchFullName.includes('LULU');
         } else {
           matchScope = true;
@@ -382,33 +383,21 @@
       });
     }
 
-    // Re-render Chart & Hitung Analytics Insight
     function updateChartAndAnalytics() {
       const period = document.getElementById("chartPeriodFilter").value;
 
       const filteredIn = filterDataByScope(rawMoneyIn);
       const filteredOut = filterDataByScope(rawMoneyOut);
 
-      // Total Omset Summary
+      // Ringkasan Total Omset Lingkup Terpilih
       const totalOmset = filteredIn.reduce((sum, item) => sum + item.nominal, 0);
       document.getElementById("totalOmsetSummary").innerText = formatRupiah(totalOmset);
 
-      // 1. OLAHAN GRAFIK OMSET
       renderChartData(filteredIn, period);
-
-      // 2. HIGHLIGHT CABANG
       calculateTopBranches(filteredIn, filteredOut);
-
-      // 3. ANALISIS JAM SIBUK & SEPI
       calculatePeakHours(filteredIn);
-
-      // 4. METODE PEMBAYARAN DOMINAN
       calculatePaymentMethods(filteredIn);
-
-      // 5. PROYEKSI OMSET AKHIR BULAN
       calculateMonthlyForecast(filteredIn);
-
-      // 6. DETEKSI ANOMALI / FRAUD
       detectAnomalies(filteredOut);
     }
 
