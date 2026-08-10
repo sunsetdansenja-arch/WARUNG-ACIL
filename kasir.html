@@ -19,7 +19,7 @@
 
     /* Custom Scrollbar */
     .custom-scroll::-webkit-scrollbar {
-      width: 5px;
+      width: 6px;
     }
     .custom-scroll::-webkit-scrollbar-track {
       background: #f1f5f9;
@@ -81,163 +81,169 @@
 
   <!-- Header Navbar -->
   <nav class="bg-emerald-600 text-white shadow-md sticky top-0 z-30 no-print flex-none">
-    <div class="max-w-xl mx-auto px-4 py-3 flex justify-between items-center">
+    <div class="max-w-5xl mx-auto px-4 py-3 flex justify-between items-center">
       <div class="flex items-center gap-2">
-        <a id="btnBackToMaster" href="master.html" class="hidden bg-emerald-700 hover:bg-emerald-800 text-xs px-2.5 py-1.5 rounded-lg border border-emerald-500 font-medium cursor-pointer flex items-center gap-1">
+        <a id="btnBackToMaster" href="master.html" class="hidden bg-emerald-700 hover:bg-emerald-800 text-sm px-3 py-1.5 rounded-xl border border-emerald-500 font-bold cursor-pointer flex items-center gap-1">
           ⬅️ Master
         </a>
         <div>
-          <h1 class="font-bold text-base leading-tight">Kasir Warung Acil</h1>
-          <p class="text-xs text-emerald-100" id="userInfo">Loading...</p>
+          <h1 class="font-extrabold text-lg leading-tight">Kasir Warung Acil</h1>
+          <p class="text-xs text-emerald-100 font-medium" id="userInfo">Loading...</p>
         </div>
       </div>
-      <button onclick="logout()" class="bg-emerald-700 hover:bg-emerald-800 text-xs px-3 py-1.5 rounded-lg border border-emerald-500 font-medium cursor-pointer">
+      <button onclick="logout()" class="bg-emerald-700 hover:bg-emerald-800 text-xs md:text-sm px-3.5 py-2 rounded-xl border border-emerald-500 font-bold cursor-pointer">
         Logout
       </button>
     </div>
   </nav>
 
-  <!-- Container Utama -->
-  <main class="max-w-xl w-full mx-auto p-3 flex-1 flex flex-col no-print">
+  <!-- Container Utama (Optimasi Tablet: max-w-5xl & layout 2-kolom jika di Tablet) -->
+  <main class="max-w-5xl w-full mx-auto p-3 md:p-5 flex-1 flex flex-col no-print">
 
-    <!-- Tab Navigasi Ringkas: Kalkulator & Riwayat -->
-    <div class="bg-white rounded-xl shadow-sm p-1 flex mb-3 border border-slate-200">
-      <button id="tabCalc" onclick="switchNav('calc')" class="flex-1 py-2.5 font-black text-xs rounded-lg bg-emerald-600 text-white shadow-sm transition">
+    <!-- Tab Navigasi HP/Mobile (Otomatis tersembunyi di layar Tablet/Desktop) -->
+    <div class="lg:hidden bg-white rounded-2xl shadow-sm p-1.5 flex mb-3 border border-slate-200">
+      <button id="tabCalc" onclick="switchNav('calc')" class="flex-1 py-3 font-black text-xs md:text-sm rounded-xl bg-emerald-600 text-white shadow-sm transition">
         🧮 KALKULATOR
       </button>
-      <button id="tabHistory" onclick="switchNav('history')" class="flex-1 py-2.5 font-black text-xs rounded-lg text-slate-500 transition">
-        📜 RIWAYAT
+      <button id="tabHistory" onclick="switchNav('history')" class="flex-1 py-3 font-black text-xs md:text-sm rounded-xl text-slate-500 transition">
+        📜 RIWAYAT LACI
       </button>
     </div>
 
     <!-- Dropdown Pilih Cabang (Akses Owner) -->
     <div id="ownerBranchContainer" class="hidden mb-3">
-      <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Pilih Cabang Transaksi</label>
-      <select id="selectBranch" class="w-full px-3 py-2 text-xs font-bold rounded-xl border border-slate-300 bg-amber-50 text-slate-800 focus:outline-none">
+      <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Pilih Cabang Transaksi</label>
+      <select id="selectBranch" class="w-full px-4 py-2.5 text-sm font-bold rounded-2xl border border-slate-300 bg-amber-50 text-slate-800 focus:outline-none shadow-xs">
         <option value="CABANG 1">CABANG 1</option>
         <option value="CABANG 2">CABANG 2</option>
         <option value="CABANG 3">CABANG 3</option>
       </select>
     </div>
 
-    <!-- SEKSI 1: KALKULATOR KASIR -->
-    <div id="secCalc" class="flex-1 flex flex-col gap-2">
-      <!-- Layar Display Kalkulator (Diperbesar agar jelas saat transaksi cepat) -->
-      <div class="bg-slate-200 rounded-2xl p-4 md:p-5 border-2 border-slate-300 shadow-inner text-right flex flex-col justify-end min-h-[120px]">
-        <div id="calcFormula" class="text-sm md:text-base font-extrabold text-slate-600 min-h-[22px] overflow-x-auto tracking-wider mb-1">0</div>
-        <div id="calcDisplay" class="text-4xl md:text-5xl font-black text-slate-900 overflow-x-auto whitespace-nowrap tracking-tight">0</div>
+    <!-- WRAPPER UTAMA: Grid 1 Kolom (HP) / Grid 2 Kolom (Tablet Landscape) -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 flex-1">
+      
+      <!-- SEKSI 1: KALKULATOR KASIR (Kolom Kiri Tablet: col-span-7) -->
+      <div id="secCalc" class="lg:col-span-7 flex-1 flex flex-col gap-3">
+        
+        <!-- Display Kalkulator Ekstra Gede & Jelas -->
+        <div class="bg-slate-900 text-white rounded-3xl p-4 md:p-6 border-4 border-slate-700 shadow-2xl text-right flex flex-col justify-end min-h-[140px] md:min-h-[160px]">
+          <div id="calcFormula" class="text-base md:text-xl font-bold text-emerald-400 min-h-[28px] overflow-x-auto tracking-wider mb-1">0</div>
+          <div id="calcDisplay" class="text-5xl md:text-6xl font-black text-white overflow-x-auto whitespace-nowrap tracking-tight">0</div>
+        </div>
+
+        <!-- Keypad Grid Kalkulator Touch-Friendly Tablet -->
+        <div class="grid grid-cols-4 gap-2.5 md:gap-3 flex-1 my-auto">
+          <!-- Baris 1 -->
+          <button onclick="pressNum('7')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition">7</button>
+          <button onclick="pressNum('8')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition">8</button>
+          <button onclick="pressNum('9')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition">9</button>
+          <button onclick="pressOp('/')" class="bg-amber-100 hover:bg-amber-200 active:bg-amber-300 text-amber-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-amber-200 active:scale-95 transition">÷</button>
+
+          <!-- Baris 2 -->
+          <button onclick="pressNum('4')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition">4</button>
+          <button onclick="pressNum('5')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition">5</button>
+          <button onclick="pressNum('6')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition">6</button>
+          <button onclick="pressOp('*')" class="bg-amber-100 hover:bg-amber-200 active:bg-amber-300 text-amber-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-amber-200 active:scale-95 transition">×</button>
+
+          <!-- Baris 3 -->
+          <button onclick="pressNum('1')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition">1</button>
+          <button onclick="pressNum('2')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition">2</button>
+          <button onclick="pressNum('3')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition">3</button>
+          <button onclick="pressOp('-')" class="bg-amber-100 hover:bg-amber-200 active:bg-amber-300 text-amber-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-amber-200 active:scale-95 transition">-</button>
+
+          <!-- Baris 4 -->
+          <button onclick="pressNum('0')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition">0</button>
+          <button onclick="pressDot()" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition">.</button>
+          <button onclick="calculateResult()" class="bg-slate-300 hover:bg-slate-400 active:bg-slate-500 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-300 active:scale-95 transition">=</button>
+          <button onclick="pressOp('+')" class="bg-amber-100 hover:bg-amber-200 active:bg-amber-300 text-amber-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-amber-200 active:scale-95 transition">+</button>
+
+          <!-- Baris 5 -->
+          <button onclick="clearCalc()" class="bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white text-2xl md:text-3xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-md active:scale-95 transition">C</button>
+          <button onclick="press000()" class="bg-slate-200 hover:bg-slate-300 active:bg-slate-400 text-slate-900 text-xl md:text-2xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-300 active:scale-95 transition">000</button>
+          <button onclick="openPaymentModal()" class="col-span-2 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xl md:text-2xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-lg uppercase tracking-wider border-b-4 border-emerald-900 active:scale-95 transition">
+            PROSES ➔
+          </button>
+        </div>
       </div>
 
-      <!-- Keypad Grid Kalkulator Responsive -->
-      <div class="grid grid-cols-4 gap-2 flex-1 my-auto">
-        <!-- Baris 1 -->
-        <button onclick="pressNum('7')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-800 text-2xl font-extrabold rounded-2xl p-4 shadow-sm border border-slate-200">7</button>
-        <button onclick="pressNum('8')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-800 text-2xl font-extrabold rounded-2xl p-4 shadow-sm border border-slate-200">8</button>
-        <button onclick="pressNum('9')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-800 text-2xl font-extrabold rounded-2xl p-4 shadow-sm border border-slate-200">9</button>
-        <button onclick="pressOp('/')" class="bg-slate-300 hover:bg-slate-400 active:bg-slate-500 text-slate-800 text-2xl font-extrabold rounded-2xl p-4 shadow-sm border border-slate-300">÷</button>
-
-        <!-- Baris 2 -->
-        <button onclick="pressNum('4')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-800 text-2xl font-extrabold rounded-2xl p-4 shadow-sm border border-slate-200">4</button>
-        <button onclick="pressNum('5')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-800 text-2xl font-extrabold rounded-2xl p-4 shadow-sm border border-slate-200">5</button>
-        <button onclick="pressNum('6')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-800 text-2xl font-extrabold rounded-2xl p-4 shadow-sm border border-slate-200">6</button>
-        <button onclick="pressOp('*')" class="bg-slate-300 hover:bg-slate-400 active:bg-slate-500 text-slate-800 text-2xl font-extrabold rounded-2xl p-4 shadow-sm border border-slate-300">×</button>
-
-        <!-- Baris 3 -->
-        <button onclick="pressNum('1')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-800 text-2xl font-extrabold rounded-2xl p-4 shadow-sm border border-slate-200">1</button>
-        <button onclick="pressNum('2')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-800 text-2xl font-extrabold rounded-2xl p-4 shadow-sm border border-slate-200">2</button>
-        <button onclick="pressNum('3')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-800 text-2xl font-extrabold rounded-2xl p-4 shadow-sm border border-slate-200">3</button>
-        <button onclick="pressOp('-')" class="bg-slate-300 hover:bg-slate-400 active:bg-slate-500 text-slate-800 text-2xl font-extrabold rounded-2xl p-4 shadow-sm border border-slate-300">-</button>
-
-        <!-- Baris 4 -->
-        <button onclick="pressNum('0')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-800 text-2xl font-extrabold rounded-2xl p-4 shadow-sm border border-slate-200">0</button>
-        <button onclick="pressDot()" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-800 text-2xl font-extrabold rounded-2xl p-4 shadow-sm border border-slate-200">.</button>
-        <button onclick="calculateResult()" class="bg-slate-300 hover:bg-slate-400 active:bg-slate-500 text-slate-800 text-2xl font-extrabold rounded-2xl p-4 shadow-sm border border-slate-300">=</button>
-        <button onclick="pressOp('+')" class="bg-slate-300 hover:bg-slate-400 active:bg-slate-500 text-slate-800 text-2xl font-extrabold rounded-2xl p-4 shadow-sm border border-slate-300">+</button>
-
-        <!-- Baris 5 -->
-        <button onclick="clearCalc()" class="bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white text-xl font-extrabold rounded-2xl p-4 shadow-sm">C</button>
-        <button onclick="press000()" class="bg-slate-200 hover:bg-slate-300 active:bg-slate-400 text-slate-800 text-lg font-extrabold rounded-2xl p-4 shadow-sm">000</button>
-        <button onclick="openPaymentModal()" class="col-span-2 bg-emerald-700 hover:bg-emerald-800 active:bg-emerald-900 text-white text-lg font-black rounded-2xl p-4 shadow-md uppercase tracking-wider">
-          PROSES ➔
-        </button>
-      </div>
-    </div>
-
-    <!-- SEKSI 2: RIWAYAT TRANSAKSI -->
-    <div id="secHistory" class="hidden flex-1 flex flex-col gap-3">
-      <!-- Summary Laci -->
-      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4">
-        <div class="flex justify-between items-center mb-2">
-          <h2 class="font-bold text-slate-800 text-xs flex items-center gap-1">💵 Ringkasan Laci Kasir</h2>
-          <button onclick="loadDashboardData()" class="text-xs text-emerald-600 font-bold">🔄 Refresh</button>
-        </div>
-        <div class="flex bg-slate-100 p-1 rounded-xl mb-3 text-[11px] font-bold text-slate-500">
-          <button id="btnToday" onclick="switchPeriod('today')" class="flex-1 py-1 rounded-lg bg-white text-emerald-700 shadow-xs">Hari Ini</button>
-          <button id="btnWeek" onclick="switchPeriod('week')" class="flex-1 py-1 rounded-lg">7 Hari</button>
-          <button id="btnMonth" onclick="switchPeriod('month')" class="flex-1 py-1 rounded-lg">Bulan Ini</button>
-        </div>
-        <div class="grid grid-cols-3 gap-2 text-center text-xs font-bold">
-          <div class="bg-emerald-50 p-2 rounded-xl border border-emerald-100">
-            <p class="text-[10px] text-emerald-700">CASH</p>
-            <p id="valCash" class="text-slate-800 mt-0.5">Rp 0</p>
+      <!-- SEKSI 2: RIWAYAT TRANSAKSI (Kolom Kanan Tablet: col-span-5) -->
+      <div id="secHistory" class="hidden lg:block lg:col-span-5 flex-1 flex flex-col gap-3">
+        <!-- Summary Laci -->
+        <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-4 md:p-5">
+          <div class="flex justify-between items-center mb-3">
+            <h2 class="font-extrabold text-slate-800 text-sm flex items-center gap-1">💵 Ringkasan Laci Kasir</h2>
+            <button onclick="loadDashboardData()" class="text-xs text-emerald-600 font-extrabold bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">🔄 Refresh</button>
           </div>
-          <div class="bg-blue-50 p-2 rounded-xl border border-blue-100">
-            <p class="text-[10px] text-blue-700">QRIS</p>
-            <p id="valQris" class="text-slate-800 mt-0.5">Rp 0</p>
+          <div class="flex bg-slate-100 p-1.5 rounded-2xl mb-3 text-xs font-bold text-slate-500">
+            <button id="btnToday" onclick="switchPeriod('today')" class="flex-1 py-1.5 rounded-xl bg-white text-emerald-700 shadow-xs">Hari Ini</button>
+            <button id="btnWeek" onclick="switchPeriod('week')" class="flex-1 py-1.5 rounded-xl">7 Hari</button>
+            <button id="btnMonth" onclick="switchPeriod('month')" class="flex-1 py-1.5 rounded-xl">Bulan Ini</button>
           </div>
-          <div class="bg-purple-50 p-2 rounded-xl border border-purple-100">
-            <p class="text-[10px] text-purple-700">TRANSFER</p>
-            <p id="valTransfer" class="text-slate-800 mt-0.5">Rp 0</p>
+          <div class="grid grid-cols-3 gap-2 text-center text-xs font-bold">
+            <div class="bg-emerald-50 p-2.5 rounded-2xl border border-emerald-100">
+              <p class="text-[10px] text-emerald-700 font-extrabold">CASH</p>
+              <p id="valCash" class="text-slate-800 mt-0.5 font-black text-xs md:text-sm">Rp 0</p>
+            </div>
+            <div class="bg-blue-50 p-2.5 rounded-2xl border border-blue-100">
+              <p class="text-[10px] text-blue-700 font-extrabold">QRIS</p>
+              <p id="valQris" class="text-slate-800 mt-0.5 font-black text-xs md:text-sm">Rp 0</p>
+            </div>
+            <div class="bg-purple-50 p-2.5 rounded-2xl border border-purple-100">
+              <p class="text-[10px] text-purple-700 font-extrabold">TRANSFER</p>
+              <p id="valTransfer" class="text-slate-800 mt-0.5 font-black text-xs md:text-sm">Rp 0</p>
+            </div>
+          </div>
+          <div class="mt-3 pt-2.5 border-t border-dashed border-slate-200 flex justify-between items-center text-xs font-bold">
+            <span class="text-slate-500 font-extrabold">Total Bersih:</span>
+            <span class="text-emerald-600 text-base font-black" id="valTotalNet">Rp 0</span>
           </div>
         </div>
-        <div class="mt-2 pt-2 border-t border-dashed border-slate-200 flex justify-between items-center text-xs font-bold">
-          <span class="text-slate-500">Total Bersih:</span>
-          <span class="text-emerald-600 text-sm font-black" id="valTotalNet">Rp 0</span>
+
+        <!-- Tray List Riwayat -->
+        <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-4 md:p-5 flex-1 flex flex-col">
+          <h3 class="font-extrabold text-slate-800 text-xs uppercase tracking-wider mb-3">Daftar Transaksi Terakhir</h3>
+          <div class="max-h-[380px] lg:max-h-[460px] overflow-y-auto pr-1 space-y-2.5 custom-scroll" id="historyList">
+            <p class="text-xs text-center text-slate-400 py-6">Memuat riwayat...</p>
+          </div>
         </div>
       </div>
 
-      <!-- Tray List Riwayat -->
-      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 flex-1 flex flex-col">
-        <h3 class="font-bold text-slate-800 text-xs uppercase tracking-wider mb-2">Daftar Transaksi</h3>
-        <div class="max-h-[350px] overflow-y-auto pr-1 space-y-2 custom-scroll" id="historyList">
-          <p class="text-xs text-center text-slate-400 py-4">Memuat riwayat...</p>
-        </div>
-      </div>
     </div>
   </main>
 
-  <!-- MODAL PILIH METODE PEMBAYARAN (Button Diperbesar untuk Akses Cepat) -->
-  <div id="paymentModal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4 no-print">
-    <div class="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl space-y-5 border border-slate-100">
-      <div class="text-center space-y-1.5">
-        <p id="modalTypeBadge" class="inline-block text-xs font-black uppercase px-3 py-1 rounded-full bg-emerald-100 text-emerald-800">UANG MASUK</p>
-        <h3 class="font-black text-slate-800 text-lg">Pilih Pembayaran</h3>
-        <p class="text-xs text-slate-500 font-medium">Klik metode untuk langsung simpan & cetak</p>
-        <div id="modalNominal" class="text-3xl font-black text-emerald-600 pt-1">Rp 0</div>
+  <!-- MODAL PILIH METODE PEMBAYARAN (SUPER GEDE & SANGAT MUDAH DITAP) -->
+  <div id="paymentModal" class="fixed inset-0 bg-black/70 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4 no-print">
+    <div class="bg-white rounded-[32px] p-6 md:p-8 max-w-md w-full shadow-2xl space-y-6 border border-slate-100 animate-in fade-in zoom-in duration-150">
+      <div class="text-center space-y-2">
+        <p id="modalTypeBadge" class="inline-block text-xs md:text-sm font-black uppercase px-4 py-1.5 rounded-full bg-emerald-100 text-emerald-800 tracking-wider">UANG MASUK</p>
+        <h3 class="font-black text-slate-800 text-xl md:text-2xl">Pilih Pembayaran</h3>
+        <p class="text-xs md:text-sm text-slate-500 font-semibold">Klik metode untuk langsung simpan & cetak</p>
+        <div id="modalNominal" class="text-4xl md:text-5xl font-black text-emerald-600 pt-2 tracking-tight">Rp 0</div>
       </div>
 
-      <!-- Opsi Pembayaran Ekstra Besar & Tegas -->
-      <div class="grid grid-cols-1 gap-3 pt-2">
-        <button onclick="submitTransaction('cash')" class="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black py-5 rounded-2xl text-lg shadow-lg flex items-center justify-center gap-2 cursor-pointer border-b-4 border-emerald-800">
+      <!-- Opsi Pembayaran Ekstra Besar (H-20 & Font Text-2XL) -->
+      <div class="grid grid-cols-1 gap-3.5 pt-2">
+        <button onclick="submitTransaction('cash')" class="w-full h-20 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black rounded-2xl md:rounded-3xl text-2xl shadow-xl flex items-center justify-center gap-3 cursor-pointer border-b-8 border-emerald-900 transition">
           💵 CASH
         </button>
-        <button onclick="submitTransaction('qris')" class="w-full bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-black py-5 rounded-2xl text-lg shadow-lg flex items-center justify-center gap-2 cursor-pointer border-b-4 border-blue-800">
+        <button onclick="submitTransaction('qris')" class="w-full h-20 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-black rounded-2xl md:rounded-3xl text-2xl shadow-xl flex items-center justify-center gap-3 cursor-pointer border-b-8 border-blue-900 transition">
           📱 QRIS
         </button>
-        <button onclick="submitTransaction('transfer')" class="w-full bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black py-5 rounded-2xl text-lg shadow-lg flex items-center justify-center gap-2 cursor-pointer border-b-4 border-purple-800">
+        <button onclick="submitTransaction('transfer')" class="w-full h-20 bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black rounded-2xl md:rounded-3xl text-2xl shadow-xl flex items-center justify-center gap-3 cursor-pointer border-b-8 border-purple-900 transition">
           🏦 TRANSFER
         </button>
       </div>
 
-      <button onclick="closePaymentModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-3 rounded-2xl text-xs mt-1">
+      <button onclick="closePaymentModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-extrabold py-3.5 rounded-2xl text-sm">
         Batal / Kembali
       </button>
     </div>
   </div>
 
   <!-- MODAL STRUK CETAK THERMAL 58MM -->
-  <div id="receiptModal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-3">
-    <div id="receiptCard" class="bg-white rounded-2xl p-4 w-[58mm] shadow-2xl space-y-2">
+  <div id="receiptModal" class="fixed inset-0 bg-black/70 backdrop-blur-xs z-50 hidden flex items-center justify-center p-3">
+    <div id="receiptCard" class="bg-white rounded-3xl p-5 w-[65mm] md:w-[70mm] shadow-2xl space-y-3">
       <div id="receiptSection" class="text-center text-[10px] text-black leading-tight">
         <h2 class="font-bold text-xs uppercase tracking-wider">WARUNG ACIL</h2>
         <p class="text-[9px] font-semibold" id="rBranch">CABANG 1</p>
@@ -257,13 +263,13 @@
         <p class="text-[8px] mt-1.5 italic">*** Terima Kasih ***</p>
       </div>
 
-      <!-- Tombol Cetak Diperbesar -->
-      <div class="flex flex-col gap-2 no-print pt-3">
-        <button onclick="triggerPrint()" class="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black text-sm py-4 rounded-2xl shadow-md cursor-pointer border-b-4 border-emerald-800 flex items-center justify-center gap-1.5">
-          🖨️ Cetak Bluetooth Direct
+      <!-- Tombol Cetak Bluetooth Direct Diperbesar -->
+      <div class="flex flex-col gap-2.5 no-print pt-3">
+        <button onclick="triggerPrint()" class="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black text-base py-4 rounded-2xl shadow-lg cursor-pointer border-b-4 border-emerald-900 flex items-center justify-center gap-2 transition">
+          🖨️ CETAK BLUETOOTH DIRECT
         </button>
-        <button onclick="closeReceiptModal()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs py-2.5 rounded-xl cursor-pointer">
-          Tutup
+        <button onclick="closeReceiptModal()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold text-xs py-3 rounded-xl cursor-pointer">
+          Tutup Window
         </button>
       </div>
     </div>
@@ -310,7 +316,7 @@
       return currentBranch;
     }
 
-    // Navigasi Tab
+    // Navigasi Tab (Mobile View)
     function switchNav(tab) {
       const btnCalc = document.getElementById('tabCalc');
       const btnHist = document.getElementById('tabHistory');
@@ -318,14 +324,15 @@
       const secHistory = document.getElementById('secHistory');
 
       if (tab === 'calc') {
-        btnCalc.className = 'flex-1 py-2.5 font-black text-xs rounded-lg bg-emerald-600 text-white shadow-sm transition';
-        btnHist.className = 'flex-1 py-2.5 font-black text-xs rounded-lg text-slate-500 transition';
+        btnCalc.className = 'flex-1 py-3 font-black text-xs md:text-sm rounded-xl bg-emerald-600 text-white shadow-sm transition';
+        btnHist.className = 'flex-1 py-3 font-black text-xs md:text-sm rounded-xl text-slate-500 transition';
         secCalc.classList.remove('hidden');
         secHistory.classList.add('hidden');
       } else {
-        btnHist.className = 'flex-1 py-2.5 font-black text-xs rounded-lg bg-emerald-600 text-white shadow-sm transition';
-        btnCalc.className = 'flex-1 py-2.5 font-black text-xs rounded-lg text-slate-500 transition';
+        btnHist.className = 'flex-1 py-3 font-black text-xs md:text-sm rounded-xl bg-emerald-600 text-white shadow-sm transition';
+        btnCalc.className = 'flex-1 py-3 font-black text-xs md:text-sm rounded-xl text-slate-500 transition';
         secHistory.classList.remove('hidden');
+        secHistory.classList.remove('lg:block');
         secCalc.classList.add('hidden');
         loadDashboardData();
       }
@@ -439,10 +446,10 @@
       const badge = document.getElementById('modalTypeBadge');
       if (finalActionType === 'in') {
         badge.innerText = 'UANG MASUK / PENJUALAN';
-        badge.className = 'inline-block text-xs font-black uppercase px-3 py-1 rounded-full bg-emerald-100 text-emerald-800';
+        badge.className = 'inline-block text-xs md:text-sm font-black uppercase px-4 py-1.5 rounded-full bg-emerald-100 text-emerald-800 tracking-wider';
       } else {
         badge.innerText = 'UANG KELUAR / PENGELUARAN';
-        badge.className = 'inline-block text-xs font-black uppercase px-3 py-1 rounded-full bg-rose-100 text-rose-800';
+        badge.className = 'inline-block text-xs md:text-sm font-black uppercase px-4 py-1.5 rounded-full bg-rose-100 text-rose-800 tracking-wider';
       }
 
       document.getElementById('modalNominal').innerText = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(finalCalculatedNominal);
@@ -633,8 +640,8 @@
       ['today', 'week', 'month'].forEach(p => {
         const btn = document.getElementById('btn' + p.charAt(0).toUpperCase() + p.slice(1));
         btn.className = (p === period) 
-          ? 'flex-1 py-1 rounded-lg bg-white text-emerald-700 shadow-xs' 
-          : 'flex-1 py-1 rounded-lg';
+          ? 'flex-1 py-1.5 rounded-xl bg-white text-emerald-700 shadow-xs' 
+          : 'flex-1 py-1.5 rounded-xl';
       });
       calculateLaciTotals();
     }
@@ -707,18 +714,18 @@
         const timeStr = dateObj.toLocaleTimeString('id-ID', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit' });
 
         return `
-          <div class="flex justify-between items-center p-2.5 bg-slate-50 rounded-xl border border-slate-100">
-            <div class="flex items-center gap-2">
-              <span class="text-[9px] font-black px-1.5 py-0.5 rounded ${badgeColor}">${item.type}</span>
+          <div class="flex justify-between items-center p-3 bg-slate-50 rounded-2xl border border-slate-100 shadow-xs">
+            <div class="flex items-center gap-2.5">
+              <span class="text-[10px] font-black px-2 py-1 rounded-lg ${badgeColor}">${item.type}</span>
               <div>
-                <p class="text-xs font-bold text-slate-800">${formattedNominal}</p>
-                <p class="text-[9px] text-slate-400 uppercase font-medium">${item.TRANSAKSI || '-'} • ${item.KASIR || '-'}</p>
+                <p class="text-sm font-extrabold text-slate-800">${formattedNominal}</p>
+                <p class="text-[10px] text-slate-400 uppercase font-bold">${item.TRANSAKSI || '-'} • ${item.KASIR || '-'}</p>
               </div>
             </div>
-            <div class="flex items-center gap-1.5">
-              <span class="text-[9px] text-slate-400 font-semibold">${timeStr} WIB</span>
+            <div class="flex items-center gap-2">
+              <span class="text-[10px] text-slate-400 font-bold">${timeStr} WIB</span>
               <button onclick="reprintReceipt('${item.NOMINAL}', '${item.TRANSAKSI}', ${isIn}, '${item.KASIR}', '${item.CABANG}', '${item.createdAt}')" 
-                class="bg-white border border-slate-200 text-slate-700 text-[10px] font-bold px-2.5 py-1 rounded-lg hover:bg-slate-100">
+                class="bg-white border border-slate-200 text-slate-800 text-xs font-bold px-3 py-1.5 rounded-xl hover:bg-slate-100 shadow-xs active:scale-95 transition">
                 🖨️ Struk
               </button>
             </div>
@@ -736,6 +743,9 @@
       localStorage.removeItem('warung_acil_session');
       window.location.href = 'index.html';
     }
+
+    // Otomatis muat data awal
+    loadDashboardData();
   </script>
 </body>
 </html>
