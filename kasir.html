@@ -102,10 +102,10 @@
 
     <!-- Tab Navigasi Ringkas: Kalkulator & Riwayat -->
     <div class="bg-white rounded-xl shadow-sm p-1 flex mb-3 border border-slate-200">
-      <button id="tabCalc" onclick="switchNav('calc')" class="flex-1 py-2 font-bold text-xs rounded-lg bg-emerald-600 text-white shadow-sm transition">
+      <button id="tabCalc" onclick="switchNav('calc')" class="flex-1 py-2.5 font-black text-xs rounded-lg bg-emerald-600 text-white shadow-sm transition">
         🧮 KALKULATOR
       </button>
-      <button id="tabHistory" onclick="switchNav('history')" class="flex-1 py-2 font-bold text-xs rounded-lg text-slate-500 transition">
+      <button id="tabHistory" onclick="switchNav('history')" class="flex-1 py-2.5 font-black text-xs rounded-lg text-slate-500 transition">
         📜 RIWAYAT
       </button>
     </div>
@@ -122,10 +122,10 @@
 
     <!-- SEKSI 1: KALKULATOR KASIR -->
     <div id="secCalc" class="flex-1 flex flex-col gap-2">
-      <!-- Layar Display Kalkulator -->
-      <div class="bg-slate-200 rounded-2xl p-4 border border-slate-300 shadow-inner text-right flex flex-col justify-end min-h-[100px]">
-        <div id="calcFormula" class="text-xs font-bold text-slate-500 min-h-[16px] overflow-x-auto tracking-wide">0</div>
-        <div id="calcDisplay" class="text-3xl md:text-4xl font-black text-slate-800 overflow-x-auto whitespace-nowrap tracking-tight">0</div>
+      <!-- Layar Display Kalkulator (Diperbesar agar jelas saat transaksi cepat) -->
+      <div class="bg-slate-200 rounded-2xl p-4 md:p-5 border-2 border-slate-300 shadow-inner text-right flex flex-col justify-end min-h-[120px]">
+        <div id="calcFormula" class="text-sm md:text-base font-extrabold text-slate-600 min-h-[22px] overflow-x-auto tracking-wider mb-1">0</div>
+        <div id="calcDisplay" class="text-4xl md:text-5xl font-black text-slate-900 overflow-x-auto whitespace-nowrap tracking-tight">0</div>
       </div>
 
       <!-- Keypad Grid Kalkulator Responsive -->
@@ -157,7 +157,7 @@
         <!-- Baris 5 -->
         <button onclick="clearCalc()" class="bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white text-xl font-extrabold rounded-2xl p-4 shadow-sm">C</button>
         <button onclick="press000()" class="bg-slate-200 hover:bg-slate-300 active:bg-slate-400 text-slate-800 text-lg font-extrabold rounded-2xl p-4 shadow-sm">000</button>
-        <button onclick="openPaymentModal()" class="col-span-2 bg-emerald-700 hover:bg-emerald-800 active:bg-emerald-900 text-white text-base font-black rounded-2xl p-4 shadow-md uppercase tracking-wider">
+        <button onclick="openPaymentModal()" class="col-span-2 bg-emerald-700 hover:bg-emerald-800 active:bg-emerald-900 text-white text-lg font-black rounded-2xl p-4 shadow-md uppercase tracking-wider">
           PROSES ➔
         </button>
       </div>
@@ -206,30 +206,30 @@
     </div>
   </main>
 
-  <!-- MODAL PILIH METODE PEMBAYARAN -->
+  <!-- MODAL PILIH METODE PEMBAYARAN (Button Diperbesar untuk Akses Cepat) -->
   <div id="paymentModal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4 no-print">
-    <div class="bg-white rounded-3xl p-5 max-w-xs w-full shadow-2xl space-y-4">
-      <div class="text-center space-y-1">
-        <p id="modalTypeBadge" class="inline-block text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800">UANG MASUK</p>
-        <h3 class="font-bold text-slate-800 text-base">Pilih Pembayaran</h3>
-        <p class="text-xs text-slate-500">Klik metode untuk langsung simpan & cetak</p>
-        <div id="modalNominal" class="text-2xl font-black text-emerald-600 pt-1">Rp 0</div>
+    <div class="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl space-y-5 border border-slate-100">
+      <div class="text-center space-y-1.5">
+        <p id="modalTypeBadge" class="inline-block text-xs font-black uppercase px-3 py-1 rounded-full bg-emerald-100 text-emerald-800">UANG MASUK</p>
+        <h3 class="font-black text-slate-800 text-lg">Pilih Pembayaran</h3>
+        <p class="text-xs text-slate-500 font-medium">Klik metode untuk langsung simpan & cetak</p>
+        <div id="modalNominal" class="text-3xl font-black text-emerald-600 pt-1">Rp 0</div>
       </div>
 
-      <!-- 3 Opsi Pembayaran Satset -->
-      <div class="grid grid-cols-1 gap-2.5 pt-2">
-        <button onclick="submitTransaction('cash')" class="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black py-3.5 rounded-2xl text-sm shadow-md flex items-center justify-center gap-2 cursor-pointer">
+      <!-- Opsi Pembayaran Ekstra Besar & Tegas -->
+      <div class="grid grid-cols-1 gap-3 pt-2">
+        <button onclick="submitTransaction('cash')" class="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black py-5 rounded-2xl text-lg shadow-lg flex items-center justify-center gap-2 cursor-pointer border-b-4 border-emerald-800">
           💵 CASH
         </button>
-        <button onclick="submitTransaction('qris')" class="w-full bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-black py-3.5 rounded-2xl text-sm shadow-md flex items-center justify-center gap-2 cursor-pointer">
+        <button onclick="submitTransaction('qris')" class="w-full bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-black py-5 rounded-2xl text-lg shadow-lg flex items-center justify-center gap-2 cursor-pointer border-b-4 border-blue-800">
           📱 QRIS
         </button>
-        <button onclick="submitTransaction('transfer')" class="w-full bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black py-3.5 rounded-2xl text-sm shadow-md flex items-center justify-center gap-2 cursor-pointer">
+        <button onclick="submitTransaction('transfer')" class="w-full bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black py-5 rounded-2xl text-lg shadow-lg flex items-center justify-center gap-2 cursor-pointer border-b-4 border-purple-800">
           🏦 TRANSFER
         </button>
       </div>
 
-      <button onclick="closePaymentModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-2.5 rounded-2xl text-xs mt-1">
+      <button onclick="closePaymentModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-3 rounded-2xl text-xs mt-1">
         Batal / Kembali
       </button>
     </div>
@@ -257,9 +257,14 @@
         <p class="text-[8px] mt-1.5 italic">*** Terima Kasih ***</p>
       </div>
 
-      <div class="flex flex-col gap-1.5 no-print pt-2">
-        <button onclick="triggerPrint()" class="w-full bg-emerald-600 text-white font-bold text-xs py-2 rounded-xl cursor-pointer">🖨️ Cetak Bluetooth Direct</button>
-        <button onclick="closeReceiptModal()" class="w-full bg-slate-200 text-slate-700 font-bold text-xs py-1.5 rounded-xl cursor-pointer">Tutup</button>
+      <!-- Tombol Cetak Diperbesar -->
+      <div class="flex flex-col gap-2 no-print pt-3">
+        <button onclick="triggerPrint()" class="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black text-sm py-4 rounded-2xl shadow-md cursor-pointer border-b-4 border-emerald-800 flex items-center justify-center gap-1.5">
+          🖨️ Cetak Bluetooth Direct
+        </button>
+        <button onclick="closeReceiptModal()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs py-2.5 rounded-xl cursor-pointer">
+          Tutup
+        </button>
       </div>
     </div>
   </div>
@@ -313,13 +318,13 @@
       const secHistory = document.getElementById('secHistory');
 
       if (tab === 'calc') {
-        btnCalc.className = 'flex-1 py-2 font-bold text-xs rounded-lg bg-emerald-600 text-white shadow-sm transition';
-        btnHist.className = 'flex-1 py-2 font-bold text-xs rounded-lg text-slate-500 transition';
+        btnCalc.className = 'flex-1 py-2.5 font-black text-xs rounded-lg bg-emerald-600 text-white shadow-sm transition';
+        btnHist.className = 'flex-1 py-2.5 font-black text-xs rounded-lg text-slate-500 transition';
         secCalc.classList.remove('hidden');
         secHistory.classList.add('hidden');
       } else {
-        btnHist.className = 'flex-1 py-2 font-bold text-xs rounded-lg bg-emerald-600 text-white shadow-sm transition';
-        btnCalc.className = 'flex-1 py-2 font-bold text-xs rounded-lg text-slate-500 transition';
+        btnHist.className = 'flex-1 py-2.5 font-black text-xs rounded-lg bg-emerald-600 text-white shadow-sm transition';
+        btnCalc.className = 'flex-1 py-2.5 font-black text-xs rounded-lg text-slate-500 transition';
         secHistory.classList.remove('hidden');
         secCalc.classList.add('hidden');
         loadDashboardData();
@@ -434,10 +439,10 @@
       const badge = document.getElementById('modalTypeBadge');
       if (finalActionType === 'in') {
         badge.innerText = 'UANG MASUK / PENJUALAN';
-        badge.className = 'inline-block text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800';
+        badge.className = 'inline-block text-xs font-black uppercase px-3 py-1 rounded-full bg-emerald-100 text-emerald-800';
       } else {
         badge.innerText = 'UANG KELUAR / PENGELUARAN';
-        badge.className = 'inline-block text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800';
+        badge.className = 'inline-block text-xs font-black uppercase px-3 py-1 rounded-full bg-rose-100 text-rose-800';
       }
 
       document.getElementById('modalNominal').innerText = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(finalCalculatedNominal);
@@ -503,7 +508,7 @@
       document.getElementById('receiptModal').classList.remove('hidden');
     }
 
-    // METODE CETAK DIRECT VIA WEB BLUETOOTH API (PERBAIKAN FITUR ANTI PAIRING BERULANG)
+    // METODE CETAK DIRECT VIA WEB BLUETOOTH API
     async function triggerPrint() {
       if (!activeReceiptData) {
         alert('Data struk tidak ditemukan!');
@@ -523,7 +528,7 @@
           '0000ff00-0000-1000-8000-00805f9b34fb'
         ];
 
-        // 1. Cek apakah browser sudah memiliki memori izin perangkat yang pernah terkoneksi
+        // 1. Cek memori izin perangkat yang pernah terkoneksi
         if (!cachedBluetoothDevice && navigator.bluetooth.getDevices) {
           const pairedDevices = await navigator.bluetooth.getDevices();
           if (pairedDevices.length > 0) {
@@ -531,7 +536,7 @@
           }
         }
 
-        // 2. Jika belum ada di memori sama sekali, barulah panggil dialog pemindaian (hanya 1x di awal)
+        // 2. Pemindaian pertama kali jika belum tersimpan
         if (!cachedBluetoothDevice) {
           cachedBluetoothDevice = await navigator.bluetooth.requestDevice({
             acceptAllDevices: true,
@@ -542,7 +547,7 @@
         // 3. Connect ke GATT Server secara otomatis
         const server = await cachedBluetoothDevice.gatt.connect();
 
-        // Ambil Service dan Characteristic yang sesuai
+        // Ambil Service dan Characteristic
         let characteristic = null;
         let primaryServices = await server.getPrimaryServices();
 
@@ -594,7 +599,6 @@
 
       } catch (error) {
         console.error('Error Web Bluetooth:', error);
-        // Jika gagal koneksi, reset cache agar pengguna bisa memilih ulang jika perangkat berubah
         cachedBluetoothDevice = null;
         alert('Batal/Gagal mencetak: ' + error.message);
       }
@@ -703,7 +707,7 @@
         const timeStr = dateObj.toLocaleTimeString('id-ID', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit' });
 
         return `
-          <div class="flex justify-between items-center p-2 bg-slate-50 rounded-xl border border-slate-100">
+          <div class="flex justify-between items-center p-2.5 bg-slate-50 rounded-xl border border-slate-100">
             <div class="flex items-center gap-2">
               <span class="text-[9px] font-black px-1.5 py-0.5 rounded ${badgeColor}">${item.type}</span>
               <div>
@@ -714,7 +718,7 @@
             <div class="flex items-center gap-1.5">
               <span class="text-[9px] text-slate-400 font-semibold">${timeStr} WIB</span>
               <button onclick="reprintReceipt('${item.NOMINAL}', '${item.TRANSAKSI}', ${isIn}, '${item.KASIR}', '${item.CABANG}', '${item.createdAt}')" 
-                class="bg-white border border-slate-200 text-slate-700 text-[10px] font-bold px-2 py-1 rounded-lg">
+                class="bg-white border border-slate-200 text-slate-700 text-[10px] font-bold px-2.5 py-1 rounded-lg hover:bg-slate-100">
                 🖨️ Struk
               </button>
             </div>
