@@ -110,13 +110,11 @@
       </button>
     </div>
 
-    <!-- Dropdown Pilih Cabang (Akses Owner) -->
+    <!-- Dropdown Pilih Cabang (Akses Owner / Khusus Acil & Lulu) -->
     <div id="ownerBranchContainer" class="hidden mb-3">
       <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Pilih Cabang Transaksi</label>
       <select id="selectBranch" class="w-full px-3 py-2 text-xs font-bold rounded-xl border border-slate-300 bg-amber-50 text-slate-800 focus:outline-none">
-        <option value="CABANG 1">CABANG 1</option>
-        <option value="CABANG 2">CABANG 2</option>
-        <option value="CABANG 3">CABANG 3</option>
+        <!-- Opsi cabang diisi secara dinamis sesuai role user (Acil: 1-6, Lulu: 4-6) -->
       </select>
     </div>
 
@@ -240,7 +238,7 @@
     <div id="receiptCard" class="bg-white rounded-2xl p-4 w-[58mm] shadow-2xl space-y-2">
       <div id="receiptSection" class="text-center text-[10px] text-black leading-tight">
         <h2 class="font-bold text-xs uppercase tracking-wider">WARUNG ACIL</h2>
-        <p class="text-[9px] font-semibold" id="rBranch">CABANG 1</p>
+        <p class="text-[9px] font-semibold" id="rBranch">-</p>
         <p class="text-[8px] border-b border-dashed border-black pb-1 mb-1" id="rDate">-</p>
 
         <div class="text-left space-y-0.5 my-1 text-[9px]">
@@ -272,7 +270,7 @@
     let formula = '';
     let isEvaluated = false;
     let finalCalculatedNominal = 0;
-    let finalActionType = 'in'; // 'in' or 'out'
+    let finalActionType = 'in';
 
     // State Active Receipt Data untuk Direct Print
     let activeReceiptData = null;
@@ -287,19 +285,57 @@
       window.location.href = 'index.html';
     }
 
-    if (session.isOwner) {
-      document.getElementById('btnBackToMaster').classList.remove('hidden');
-      document.getElementById('ownerBranchContainer').classList.remove('hidden');
+    // Ambil penamaan cabang resmi via CONFIG
+    function getBranchName(rawCabang) {
+      if (typeof CONFIG !== 'undefined' && CONFIG.getBranchName) {
+        return CONFIG.getBranchName(rawCabang);
+      }
+      return `CABANG ${rawCabang}`;
     }
 
-    const currentBranch = session.isOwner ? 'CABANG ALL' : `CABANG ${session.akses}`;
-    document.getElementById('userInfo').innerText = `${session.user} | ${currentBranch}`;
+    const usernameLower = String(session.user || '').toLowerCase().trim();
+    const isAcil = usernameLower === 'acil';
+    const isLulu = usernameLower === 'lulu';
+    const isOwnerUser = session.isOwner || isAcil || isLulu;
+
+    // Tampilkan tombol navigasi Master Hub jika Owner
+    if (isOwnerUser) {
+      document.getElementById('btnBackToMaster').classList.remove('hidden');
+      document.getElementById('ownerBranchContainer').classList.remove('hidden');
+
+      const selectBranchEl = document.getElementById('selectBranch');
+      selectBranchEl.innerHTML = '';
+
+      // Tentukan daftar kode cabang yang berhak diakses:
+      // - Acil: Cabang 1, 2, 3, 4, 5, 6
+      // - Lulu: Cabang 4, 5, 6
+      let allowedBranches = [];
+      if (isAcil) {
+        allowedBranches = ['1', '2', '3', '4', '5', '6'];
+      } else if (isLulu) {
+        allowedBranches = ['4', '5', '6'];
+      } else {
+        // Fallback untuk Owner lain
+        allowedBranches = Object.keys((typeof CONFIG !== 'undefined' && CONFIG.BRANCHES) ? CONFIG.BRANCHES : {'1': 'CABANG 1'});
+      }
+
+      // Populate dropdown dengan Nama Resmi Cabang dari config.js
+      allowedBranches.forEach(code => {
+        const option = document.createElement('option');
+        option.value = code;
+        option.textContent = getBranchName(code);
+        selectBranchEl.appendChild(option);
+      });
+    }
+
+    const currentBranchName = session.branch_name || getBranchName(session.akses);
+    document.getElementById('userInfo').innerText = `${session.user} | ${isOwnerUser ? 'OWNER MODE' : currentBranchName}`;
 
     function getSelectedTargetBranch() {
-      if (session.isOwner) {
+      if (isOwnerUser) {
         return document.getElementById('selectBranch').value;
       }
-      return currentBranch;
+      return session.akses;
     }
 
     // Navigasi Tab
@@ -447,18 +483,19 @@
 
     async function submitTransaction(method) {
       closePaymentModal();
-      const targetBranch = getSelectedTargetBranch();
+      const targetBranchCode = getSelectedTargetBranch();
+      const targetBranchName = getBranchName(targetBranchCode);
 
       const payload = {
         action: finalActionType,
         nominal: String(finalCalculatedNominal),
         transaksi: method,
         kasir: session.user,
-        cabang: targetBranch
+        cabang: targetBranchCode
       };
 
       // Tampilkan Struk & Panggil Direct Print Web Bluetooth
-      openReceiptModal(finalCalculatedNominal, method, finalActionType === 'in', session.user, targetBranch, new Date());
+      openReceiptModal(finalCalculatedNominal, method, finalActionType === 'in', session.user, targetBranchName, new Date());
       setTimeout(() => { triggerPrint(); }, 200);
 
       try {
@@ -478,9 +515,10 @@
       const formattedNominal = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(nominal);
       const formattedDate = new Date(date || Date.now()).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' }) + ' WIB';
       const typeText = isMoneyIn ? 'Penjualan' : 'Pengeluaran';
+      const displayBranch = getBranchName(cabang);
 
       // Update Tampilan Modal Web UI
-      document.getElementById('rBranch').innerText = cabang || currentBranch;
+      document.getElementById('rBranch').innerText = displayBranch;
       document.getElementById('rDate').innerText = formattedDate;
       document.getElementById('rType').innerText = typeText;
       document.getElementById('rMethod').innerText = method;
@@ -489,7 +527,7 @@
 
       // Simpan data terstruktur untuk dikirim ke Printer
       activeReceiptData = {
-        branch: cabang || currentBranch,
+        branch: displayBranch,
         date: formattedDate,
         type: typeText,
         method: method,
@@ -513,56 +551,45 @@
       }
 
       try {
-        // 1. Minta Izin & Cari Device Bluetooth
         const device = await navigator.bluetooth.requestDevice({
-          acceptAllDevices: true, // Memastikan printer 58mm / RPP02N terdeteksi
-          optionalServices: CONFIG.PRINTER ? CONFIG.PRINTER.OPTIONAL_SERVICES : [
+          acceptAllDevices: true,
+          optionalServices: (typeof CONFIG !== 'undefined' && CONFIG.PRINTER && CONFIG.PRINTER.OPTIONAL_SERVICES) ? CONFIG.PRINTER.OPTIONAL_SERVICES : [
             '000018f0-0000-1000-8000-00805f9b34fb',
             '0000e025-0000-1000-8000-00805f9b34fb',
             '00001101-0000-1000-8000-00805f9b34fb'
           ]
         });
 
-        // 2. Connect ke GATT Server & Service
         const server = await device.gatt.connect();
-        const serviceUuid = (CONFIG.PRINTER && CONFIG.PRINTER.SERVICE_UUID) ? CONFIG.PRINTER.SERVICE_UUID : '000018f0-0000-1000-8000-00805f9b34fb';
-        const charUuid = (CONFIG.PRINTER && CONFIG.PRINTER.CHARACTERISTIC_UUID) ? CONFIG.PRINTER.CHARACTERISTIC_UUID : '00002af1-0000-1000-8000-00805f9b34fb';
+        const serviceUuid = (typeof CONFIG !== 'undefined' && CONFIG.PRINTER && CONFIG.PRINTER.SERVICE_UUID) ? CONFIG.PRINTER.SERVICE_UUID : '000018f0-0000-1000-8000-00805f9b34fb';
+        const charUuid = (typeof CONFIG !== 'undefined' && CONFIG.PRINTER && CONFIG.PRINTER.CHARACTERISTIC_UUID) ? CONFIG.PRINTER.CHARACTERISTIC_UUID : '00002af1-0000-1000-8000-00805f9b34fb';
 
         const service = await server.getPrimaryService(serviceUuid);
         const characteristic = await service.getCharacteristic(charUuid);
 
         const encoder = new TextEncoder();
 
-        // 3. Formating Perintah Struk ESC/POS
         let commands = "";
-        
-        // Reset Printer & Align Center
         commands += "\x1B\x40"; 
         commands += "\x1B\x61\x01"; 
         
-        // Header
         commands += "\x1B\x45\x01WARUNG ACIL\x1B\x45\x00\n";
         commands += activeReceiptData.branch + "\n";
         commands += activeReceiptData.date + "\n";
         commands += "--------------------------------\n";
         
-        // Align Left - Transaksi Detail
         commands += "\x1B\x61\x00"; 
         commands += "Jenis   : " + activeReceiptData.type.toUpperCase() + "\n";
         commands += "Metode  : " + activeReceiptData.method.toUpperCase() + "\n";
         commands += "Kasir   : " + activeReceiptData.kasir + "\n";
         
-        // Align Center - Total
         commands += "\x1B\x61\x01"; 
         commands += "--------------------------------\n";
         commands += "TOTAL   : \x1B\x45\x01" + activeReceiptData.nominal + "\x1B\x45\x00\n";
         commands += "--------------------------------\n";
         commands += "*** Terima Kasih ***\n\n\n\n";
 
-        // 4. Kirim Data Byte ke Printer
         await characteristic.writeValue(encoder.encode(commands));
-        
-        // Disconnect
         device.gatt.disconnect();
 
       } catch (error) {
@@ -611,9 +638,9 @@
       let listIn = (globalRawData.money_in || []);
       let listOut = (globalRawData.money_out || []);
 
-      if (!session.isOwner) {
-        listIn = listIn.filter(i => String(i.CABANG).toUpperCase() === currentBranch.toUpperCase());
-        listOut = listOut.filter(o => String(o.CABANG).toUpperCase() === currentBranch.toUpperCase());
+      if (!isOwnerUser) {
+        listIn = listIn.filter(i => String(i.CABANG).toUpperCase() === String(session.akses).toUpperCase());
+        listOut = listOut.filter(o => String(o.CABANG).toUpperCase() === String(session.akses).toUpperCase());
       }
 
       const filterByDate = (item) => {
@@ -655,8 +682,8 @@
       let listOut = (globalRawData.money_out || []).map(o => ({ ...o, type: 'OUT' }));
       let all = [...listIn, ...listOut];
 
-      if (!session.isOwner) {
-        all = all.filter(item => String(item.CABANG).toUpperCase() === currentBranch.toUpperCase());
+      if (!isOwnerUser) {
+        all = all.filter(item => String(item.CABANG).toUpperCase() === String(session.akses).toUpperCase());
       }
 
       all.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
@@ -672,6 +699,7 @@
         const formattedNominal = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(item.NOMINAL || 0);
         const dateObj = item.createdAt ? new Date(item.createdAt) : new Date();
         const timeStr = dateObj.toLocaleTimeString('id-ID', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit' });
+        const branchName = getBranchName(item.CABANG);
 
         return `
           <div class="flex justify-between items-center p-2 bg-slate-50 rounded-xl border border-slate-100">
@@ -679,7 +707,7 @@
               <span class="text-[9px] font-black px-1.5 py-0.5 rounded ${badgeColor}">${item.type}</span>
               <div>
                 <p class="text-xs font-bold text-slate-800">${formattedNominal}</p>
-                <p class="text-[9px] text-slate-400 uppercase font-medium">${item.TRANSAKSI || '-'} • ${item.KASIR || '-'}</p>
+                <p class="text-[9px] text-slate-400 uppercase font-medium">${item.TRANSAKSI || '-'} • ${item.KASIR || '-'} (${branchName})</p>
               </div>
             </div>
             <div class="flex items-center gap-1.5">
