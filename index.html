@@ -76,11 +76,29 @@
         const result = Array.isArray(resData) ? resData[0] : resData;
 
         if (result && result.success) {
+          // Ambil data user dari server n8n
+          const userData = result.data || {};
+          
+          // Konversi kode AKSES menjadi nama cabang lengkap via config.js
+          const aksesCode = userData.AKSES || userData.akses || userData.aksesCode;
+          const branchName = typeof CONFIG !== 'undefined' && CONFIG.getBranchName 
+            ? CONFIG.getBranchName(aksesCode) 
+            : `CABANG ${aksesCode}`;
+
+          // Format objek session dengan data cabang yang sudah di-mapping
+          const sessionData = {
+            ...userData,
+            user: userData.USER || userData.user || username,
+            akses: aksesCode,
+            branch_name: branchName,
+            isOwner: (String(aksesCode).toUpperCase() === 'ALL' || userData.isOwner)
+          };
+
           // Simpan sesi login ke LocalStorage
-          localStorage.setItem('warung_acil_session', JSON.stringify(result.data));
+          localStorage.setItem('warung_acil_session', JSON.stringify(sessionData));
           
           // Redirect sesuai role / akses
-          window.location.href = result.data.redirectUrl || (result.data.isOwner ? 'master.html' : 'kasir.html');
+          window.location.href = sessionData.isOwner ? 'master.html' : 'kasir.html';
         } else {
           errorMsg.innerText = result.message || 'Username atau password salah.';
           errorMsg.classList.remove('hidden');
