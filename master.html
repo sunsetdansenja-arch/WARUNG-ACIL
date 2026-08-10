@@ -163,9 +163,18 @@
     const WEBHOOK_URL = 'https://n8n-mzbmiib3etk4.kangkung.sumopod.my.id/webhook/0c2f335e-543b-4f3e-968e-f70d412f194b';
     const session = JSON.parse(localStorage.getItem('warung_acil_session'));
 
-    if (!session || !session.isOwner) {
+    // Pengecekan Akses: Berlaku untuk ID "acil" atau "lulu" atau flag isOwner
+    const allowedOwners = ['acil', 'lulu'];
+    const currentUserId = session?.username ? String(session.username).toLowerCase().trim() : '';
+
+    const isOwnerUser = session && (session.isOwner || allowedOwners.includes(currentUserId));
+
+    if (!isOwnerUser) {
       alert('Akses khusus Owner!');
       window.location.href = 'kasir.html';
+    } else {
+      // Tampilkan info user pada header
+      document.getElementById('userInfo').innerText = `Owner Panel (${currentUserId.toUpperCase()})`;
     }
 
     async function loadMasterData() {
@@ -190,7 +199,6 @@
       if (!rawCabang) return "Cabang Tidak Terdaftar";
       let cleaned = String(rawCabang).trim();
       
-      // Jika bernilai angka (1..6) atau tertera "CABANG X", sesuaikan via CONFIG
       if (cleaned.toUpperCase().startsWith("CABANG ")) {
         cleaned = cleaned.replace(/CABANG\s+/i, "");
       }
