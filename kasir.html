@@ -30,7 +30,7 @@
       border-radius: 8px;
     }
 
-    /* Thermal Printer 58mm Rules */
+    /* Thermal Printer 58mm Preview Rules */
     @media print {
       @page {
         margin: 0;
@@ -87,7 +87,7 @@
           ⬅️ Master
         </a>
         <div>
-          <h1 class="font-bold text-base leading-tight" id="appHeaderTitle">Kasir Warung Acil</h1>
+          <h1 class="font-bold text-base leading-tight">Kasir Warung Acil</h1>
           <p class="text-xs text-emerald-100" id="userInfo">Loading...</p>
         </div>
       </div>
@@ -114,12 +114,9 @@
     <div id="ownerBranchContainer" class="hidden mb-3">
       <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Pilih Cabang Transaksi</label>
       <select id="selectBranch" class="w-full px-3 py-2 text-xs font-bold rounded-xl border border-slate-300 bg-amber-50 text-slate-800 focus:outline-none">
-        <option value="1">Warung Acil 2</option>
-        <option value="2">Warung Acil 3</option>
-        <option value="3">Warung Acil 4</option>
-        <option value="4">Warung Lulu dan Acil 1</option>
-        <option value="5">Warung Lulu dan Acil 2</option>
-        <option value="6">Warung Lulu dan Acil 3</option>
+        <option value="CABANG 1">CABANG 1</option>
+        <option value="CABANG 2">CABANG 2</option>
+        <option value="CABANG 3">CABANG 3</option>
       </select>
     </div>
 
@@ -242,8 +239,8 @@
   <div id="receiptModal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-3">
     <div id="receiptCard" class="bg-white rounded-2xl p-4 w-[58mm] shadow-2xl space-y-2">
       <div id="receiptSection" class="text-center text-[10px] text-black leading-tight">
-        <h2 class="font-bold text-xs uppercase tracking-wider" id="rTitle">WARUNG ACIL</h2>
-        <p class="text-[9px] font-semibold uppercase" id="rBranch">WARUNG ACIL 2</p>
+        <h2 class="font-bold text-xs uppercase tracking-wider">WARUNG ACIL</h2>
+        <p class="text-[9px] font-semibold" id="rBranch">CABANG 1</p>
         <p class="text-[8px] border-b border-dashed border-black pb-1 mb-1" id="rDate">-</p>
 
         <div class="text-left space-y-0.5 my-1 text-[9px]">
@@ -261,7 +258,7 @@
       </div>
 
       <div class="flex flex-col gap-1.5 no-print pt-2">
-        <button onclick="triggerPrint()" class="w-full bg-emerald-600 text-white font-bold text-xs py-2 rounded-xl cursor-pointer">🖨️ Cetak Ulang</button>
+        <button onclick="triggerPrint()" class="w-full bg-emerald-600 text-white font-bold text-xs py-2 rounded-xl cursor-pointer">🖨️ Cetak Struk (RawBT)</button>
         <button onclick="closeReceiptModal()" class="w-full bg-slate-200 text-slate-700 font-bold text-xs py-1.5 rounded-xl cursor-pointer">Tutup</button>
       </div>
     </div>
@@ -275,7 +272,10 @@
     let formula = '';
     let isEvaluated = false;
     let finalCalculatedNominal = 0;
-    let finalActionType = 'in';
+    let finalActionType = 'in'; // 'in' or 'out'
+
+    // State Active Receipt Data untuk Direct Print
+    let activeReceiptData = null;
 
     // State Laci & Session
     let activePeriod = 'today';
@@ -292,25 +292,14 @@
       document.getElementById('ownerBranchContainer').classList.remove('hidden');
     }
 
-    // Mengambil Nama Cabang Dinamis dari CONFIG atau LocalStorage
-    const userAksesCode = session.akses || session.AKSES;
-    const currentBranchName = session.branch_name || (typeof CONFIG !== 'undefined' ? CONFIG.getBranchName(userAksesCode) : `CABANG ${userAksesCode}`);
-    
-    document.getElementById('userInfo').innerText = `${session.user} | ${currentBranchName.toUpperCase()}`;
+    const currentBranch = session.isOwner ? 'CABANG ALL' : `CABANG ${session.akses}`;
+    document.getElementById('userInfo').innerText = `${session.user} | ${currentBranch}`;
 
     function getSelectedTargetBranch() {
       if (session.isOwner) {
-        const selectedVal = document.getElementById('selectBranch').value;
-        return typeof CONFIG !== 'undefined' ? CONFIG.getBranchName(selectedVal) : selectedVal;
-      }
-      return currentBranchName;
-    }
-
-    function getSelectedBranchCode() {
-      if (session.isOwner) {
         return document.getElementById('selectBranch').value;
       }
-      return String(userAksesCode);
+      return currentBranch;
     }
 
     // Navigasi Tab
@@ -422,7 +411,7 @@
       }
     }
 
-    // ALUR TRANSAKSI
+    // ALUR TRANSAKSI SATSET
     function openPaymentModal() {
       let finalVal = calculateResult();
       
@@ -458,20 +447,18 @@
 
     async function submitTransaction(method) {
       closePaymentModal();
-      const targetBranchName = getSelectedTargetBranch();
-      const targetBranchCode = getSelectedBranchCode();
+      const targetBranch = getSelectedTargetBranch();
 
       const payload = {
         action: finalActionType,
         nominal: String(finalCalculatedNominal),
         transaksi: method,
         kasir: session.user,
-        cabang: targetBranchCode,
-        branch_name: targetBranchName
+        cabang: targetBranch
       };
 
-      // Tampilkan Struk Cetak Langsung
-      openReceiptModal(finalCalculatedNominal, method, finalActionType === 'in', session.user, targetBranchName, new Date());
+      // Tampilkan Struk & Panggil Direct Print RawBT
+      openReceiptModal(finalCalculatedNominal, method, finalActionType === 'in', session.user, targetBranch, new Date());
       setTimeout(() => { triggerPrint(); }, 200);
 
       try {
@@ -482,24 +469,63 @@
         });
         clearCalc();
       } catch (err) {
-        alert('Gagal sinkronisasi data ke server, namun struk telah dicetak.');
+        alert('Gagal sinkronisasi data ke server, namun perintah cetak telah dikirim.');
       }
     }
 
-    // LOGIKA STRUK & RIWAYAT
+    // LOGIKA STRUK & DIRECT PRINT RAWBT INTENT
     function openReceiptModal(nominal, method, isMoneyIn, kasir, cabang, date) {
-      document.getElementById('rBranch').innerText = (cabang || currentBranchName).toUpperCase();
-      document.getElementById('rDate').innerText = new Date(date || Date.now()).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' }) + ' WIB';
-      document.getElementById('rType').innerText = isMoneyIn ? 'Penjualan' : 'Pengeluaran';
+      const formattedNominal = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(nominal);
+      const formattedDate = new Date(date || Date.now()).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' }) + ' WIB';
+      const typeText = isMoneyIn ? 'Penjualan' : 'Pengeluaran';
+
+      // Update Tampilan Modal Web UI
+      document.getElementById('rBranch').innerText = cabang || currentBranch;
+      document.getElementById('rDate').innerText = formattedDate;
+      document.getElementById('rType').innerText = typeText;
       document.getElementById('rMethod').innerText = method;
       document.getElementById('rKasir').innerText = kasir || session.user;
-      document.getElementById('rNominal').innerText = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(nominal);
+      document.getElementById('rNominal').innerText = formattedNominal;
+
+      // Simpan data terstruktur untuk dikirim ke RawBT
+      activeReceiptData = {
+        branch: cabang || currentBranch,
+        date: formattedDate,
+        type: typeText,
+        method: method,
+        kasir: kasir || session.user,
+        nominal: formattedNominal
+      };
 
       document.getElementById('receiptModal').classList.remove('hidden');
     }
 
+    // METODE PEMANGGILAN LANGSUNG APLIKASI RAWBT VIA INTENT
     function triggerPrint() {
-      window.print();
+      if (!activeReceiptData) {
+        alert('Data struk tidak ditemukan!');
+        return;
+      }
+
+      // Susun Teks Struk Khusus Kertas 58mm (Max 32 Karakter per baris)
+      let printText = "";
+      printText += "[C]<b>WARUNG ACIL</b>\n";
+      printText += "[C]" + activeReceiptData.branch + "\n";
+      printText += "[C]" + activeReceiptData.date + "\n";
+      printText += "[C]--------------------------------\n";
+      printText += "[L]Jenis   : " + activeReceiptData.type.toUpperCase() + "\n";
+      printText += "[L]Metode  : " + activeReceiptData.method.toUpperCase() + "\n";
+      printText += "[L]Kasir   : " + activeReceiptData.kasir + "\n";
+      printText += "[C]--------------------------------\n";
+      printText += "[L]TOTAL   : [R]<b>" + activeReceiptData.nominal + "</b>\n";
+      printText += "[C]--------------------------------\n";
+      printText += "[C]*** Terima Kasih ***\n\n\n";
+
+      // Intent Protocol melempar langsung data teks ke aplikasi RawBT
+      const intentUrl = "intent:" + encodeURIComponent(printText) + "#Intent;scheme=rawbt;package=ru.a404m.rawbt;end;";
+      
+      // Buka Intent
+      window.location.href = intentUrl;
     }
 
     function closeReceiptModal() {
@@ -537,23 +563,14 @@
       calculateLaciTotals();
     }
 
-    function matchBranch(itemBranch) {
-      if (session.isOwner) return true;
-      const branchStr = String(itemBranch).toUpperCase();
-      const userCodeStr = String(userAksesCode).toUpperCase();
-      const currentNameStr = String(currentBranchName).toUpperCase();
-      
-      return branchStr === userCodeStr || branchStr === currentNameStr || branchStr === `CABANG ${userCodeStr}`;
-    }
-
     function calculateLaciTotals() {
       const now = new Date();
       let listIn = (globalRawData.money_in || []);
       let listOut = (globalRawData.money_out || []);
 
       if (!session.isOwner) {
-        listIn = listIn.filter(i => matchBranch(i.CABANG || i.branch_name));
-        listOut = listOut.filter(o => matchBranch(o.CABANG || o.branch_name));
+        listIn = listIn.filter(i => String(i.CABANG).toUpperCase() === currentBranch.toUpperCase());
+        listOut = listOut.filter(o => String(o.CABANG).toUpperCase() === currentBranch.toUpperCase());
       }
 
       const filterByDate = (item) => {
@@ -596,7 +613,7 @@
       let all = [...listIn, ...listOut];
 
       if (!session.isOwner) {
-        all = all.filter(item => matchBranch(item.CABANG || item.branch_name));
+        all = all.filter(item => String(item.CABANG).toUpperCase() === currentBranch.toUpperCase());
       }
 
       all.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
@@ -612,10 +629,6 @@
         const formattedNominal = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(item.NOMINAL || 0);
         const dateObj = item.createdAt ? new Date(item.createdAt) : new Date();
         const timeStr = dateObj.toLocaleTimeString('id-ID', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit' });
-        
-        // Tentukan nama cabang untuk re-print struk
-        const rawBranch = item.branch_name || item.CABANG;
-        const mappedBranchName = typeof CONFIG !== 'undefined' ? CONFIG.getBranchName(rawBranch) : rawBranch;
 
         return `
           <div class="flex justify-between items-center p-2 bg-slate-50 rounded-xl border border-slate-100">
@@ -628,7 +641,7 @@
             </div>
             <div class="flex items-center gap-1.5">
               <span class="text-[9px] text-slate-400 font-semibold">${timeStr} WIB</span>
-              <button onclick="reprintReceipt('${item.NOMINAL}', '${item.TRANSAKSI}', ${isIn}, '${item.KASIR}', '${mappedBranchName}', '${item.createdAt}')" 
+              <button onclick="reprintReceipt('${item.NOMINAL}', '${item.TRANSAKSI}', ${isIn}, '${item.KASIR}', '${item.CABANG}', '${item.createdAt}')" 
                 class="bg-white border border-slate-200 text-slate-700 text-[10px] font-bold px-2 py-1 rounded-lg">
                 🖨️ Struk
               </button>
