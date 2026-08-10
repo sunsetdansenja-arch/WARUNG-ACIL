@@ -87,7 +87,7 @@
           ⬅️ Master
         </a>
         <div>
-          <h1 class="font-bold text-base leading-tight">Kasir Warung Acil</h1>
+          <h1 class="font-bold text-base leading-tight" id="appHeaderTitle">Kasir Warung Acil</h1>
           <p class="text-xs text-emerald-100" id="userInfo">Loading...</p>
         </div>
       </div>
@@ -114,9 +114,12 @@
     <div id="ownerBranchContainer" class="hidden mb-3">
       <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Pilih Cabang Transaksi</label>
       <select id="selectBranch" class="w-full px-3 py-2 text-xs font-bold rounded-xl border border-slate-300 bg-amber-50 text-slate-800 focus:outline-none">
-        <option value="CABANG 1">CABANG 1</option>
-        <option value="CABANG 2">CABANG 2</option>
-        <option value="CABANG 3">CABANG 3</option>
+        <option value="1">Warung Acil 2</option>
+        <option value="2">Warung Acil 3</option>
+        <option value="3">Warung Acil 4</option>
+        <option value="4">Warung Lulu dan Acil 1</option>
+        <option value="5">Warung Lulu dan Acil 2</option>
+        <option value="6">Warung Lulu dan Acil 3</option>
       </select>
     </div>
 
@@ -206,7 +209,7 @@
     </div>
   </main>
 
-  <!-- MODAL PILIH METODE PEMBAYARAN (LANGSUNG SATSET CETAK) -->
+  <!-- MODAL PILIH METODE PEMBAYARAN -->
   <div id="paymentModal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4 no-print">
     <div class="bg-white rounded-3xl p-5 max-w-xs w-full shadow-2xl space-y-4">
       <div class="text-center space-y-1">
@@ -239,8 +242,8 @@
   <div id="receiptModal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-3">
     <div id="receiptCard" class="bg-white rounded-2xl p-4 w-[58mm] shadow-2xl space-y-2">
       <div id="receiptSection" class="text-center text-[10px] text-black leading-tight">
-        <h2 class="font-bold text-xs uppercase tracking-wider">WARUNG ACIL</h2>
-        <p class="text-[9px] font-semibold" id="rBranch">CABANG 1</p>
+        <h2 class="font-bold text-xs uppercase tracking-wider" id="rTitle">WARUNG ACIL</h2>
+        <p class="text-[9px] font-semibold uppercase" id="rBranch">WARUNG ACIL 2</p>
         <p class="text-[8px] border-b border-dashed border-black pb-1 mb-1" id="rDate">-</p>
 
         <div class="text-left space-y-0.5 my-1 text-[9px]">
@@ -272,7 +275,7 @@
     let formula = '';
     let isEvaluated = false;
     let finalCalculatedNominal = 0;
-    let finalActionType = 'in'; // 'in' or 'out'
+    let finalActionType = 'in';
 
     // State Laci & Session
     let activePeriod = 'today';
@@ -289,14 +292,25 @@
       document.getElementById('ownerBranchContainer').classList.remove('hidden');
     }
 
-    const currentBranch = session.isOwner ? 'CABANG ALL' : `CABANG ${session.akses}`;
-    document.getElementById('userInfo').innerText = `${session.user} | ${currentBranch}`;
+    // Mengambil Nama Cabang Dinamis dari CONFIG atau LocalStorage
+    const userAksesCode = session.akses || session.AKSES;
+    const currentBranchName = session.branch_name || (typeof CONFIG !== 'undefined' ? CONFIG.getBranchName(userAksesCode) : `CABANG ${userAksesCode}`);
+    
+    document.getElementById('userInfo').innerText = `${session.user} | ${currentBranchName.toUpperCase()}`;
 
     function getSelectedTargetBranch() {
       if (session.isOwner) {
+        const selectedVal = document.getElementById('selectBranch').value;
+        return typeof CONFIG !== 'undefined' ? CONFIG.getBranchName(selectedVal) : selectedVal;
+      }
+      return currentBranchName;
+    }
+
+    function getSelectedBranchCode() {
+      if (session.isOwner) {
         return document.getElementById('selectBranch').value;
       }
-      return currentBranch;
+      return String(userAksesCode);
     }
 
     // Navigasi Tab
@@ -391,7 +405,6 @@
     function calculateResult() {
       if (!formula) return 0;
       try {
-        // Evaluasi matematika sederhana
         let sanitized = formula.replace(/[^0-9+\-*/.]/g, '');
         let res = eval(sanitized);
         
@@ -409,7 +422,7 @@
       }
     }
 
-    // ALUR TRANSAKSI SATSET
+    // ALUR TRANSAKSI
     function openPaymentModal() {
       let finalVal = calculateResult();
       
@@ -445,18 +458,20 @@
 
     async function submitTransaction(method) {
       closePaymentModal();
-      const targetBranch = getSelectedTargetBranch();
+      const targetBranchName = getSelectedTargetBranch();
+      const targetBranchCode = getSelectedBranchCode();
 
       const payload = {
         action: finalActionType,
         nominal: String(finalCalculatedNominal),
         transaksi: method,
         kasir: session.user,
-        cabang: targetBranch
+        cabang: targetBranchCode,
+        branch_name: targetBranchName
       };
 
       // Tampilkan Struk Cetak Langsung
-      openReceiptModal(finalCalculatedNominal, method, finalActionType === 'in', session.user, targetBranch, new Date());
+      openReceiptModal(finalCalculatedNominal, method, finalActionType === 'in', session.user, targetBranchName, new Date());
       setTimeout(() => { triggerPrint(); }, 200);
 
       try {
@@ -473,7 +488,7 @@
 
     // LOGIKA STRUK & RIWAYAT
     function openReceiptModal(nominal, method, isMoneyIn, kasir, cabang, date) {
-      document.getElementById('rBranch').innerText = cabang || currentBranch;
+      document.getElementById('rBranch').innerText = (cabang || currentBranchName).toUpperCase();
       document.getElementById('rDate').innerText = new Date(date || Date.now()).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' }) + ' WIB';
       document.getElementById('rType').innerText = isMoneyIn ? 'Penjualan' : 'Pengeluaran';
       document.getElementById('rMethod').innerText = method;
@@ -522,14 +537,23 @@
       calculateLaciTotals();
     }
 
+    function matchBranch(itemBranch) {
+      if (session.isOwner) return true;
+      const branchStr = String(itemBranch).toUpperCase();
+      const userCodeStr = String(userAksesCode).toUpperCase();
+      const currentNameStr = String(currentBranchName).toUpperCase();
+      
+      return branchStr === userCodeStr || branchStr === currentNameStr || branchStr === `CABANG ${userCodeStr}`;
+    }
+
     function calculateLaciTotals() {
       const now = new Date();
       let listIn = (globalRawData.money_in || []);
       let listOut = (globalRawData.money_out || []);
 
       if (!session.isOwner) {
-        listIn = listIn.filter(i => String(i.CABANG).toUpperCase() === currentBranch.toUpperCase());
-        listOut = listOut.filter(o => String(o.CABANG).toUpperCase() === currentBranch.toUpperCase());
+        listIn = listIn.filter(i => matchBranch(i.CABANG || i.branch_name));
+        listOut = listOut.filter(o => matchBranch(o.CABANG || o.branch_name));
       }
 
       const filterByDate = (item) => {
@@ -572,7 +596,7 @@
       let all = [...listIn, ...listOut];
 
       if (!session.isOwner) {
-        all = all.filter(item => String(item.CABANG).toUpperCase() === currentBranch.toUpperCase());
+        all = all.filter(item => matchBranch(item.CABANG || item.branch_name));
       }
 
       all.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
@@ -588,6 +612,10 @@
         const formattedNominal = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(item.NOMINAL || 0);
         const dateObj = item.createdAt ? new Date(item.createdAt) : new Date();
         const timeStr = dateObj.toLocaleTimeString('id-ID', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit' });
+        
+        // Tentukan nama cabang untuk re-print struk
+        const rawBranch = item.branch_name || item.CABANG;
+        const mappedBranchName = typeof CONFIG !== 'undefined' ? CONFIG.getBranchName(rawBranch) : rawBranch;
 
         return `
           <div class="flex justify-between items-center p-2 bg-slate-50 rounded-xl border border-slate-100">
@@ -600,7 +628,7 @@
             </div>
             <div class="flex items-center gap-1.5">
               <span class="text-[9px] text-slate-400 font-semibold">${timeStr} WIB</span>
-              <button onclick="reprintReceipt('${item.NOMINAL}', '${item.TRANSAKSI}', ${isIn}, '${item.KASIR}', '${item.CABANG}', '${item.createdAt}')" 
+              <button onclick="reprintReceipt('${item.NOMINAL}', '${item.TRANSAKSI}', ${isIn}, '${item.KASIR}', '${mappedBranchName}', '${item.createdAt}')" 
                 class="bg-white border border-slate-200 text-slate-700 text-[10px] font-bold px-2 py-1 rounded-lg">
                 🖨️ Struk
               </button>
