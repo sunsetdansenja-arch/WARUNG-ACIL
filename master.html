@@ -4,6 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Master Hub - Kasir Warung Acil</title>
+
+  <!-- Panggil config.js paling atas -->
+  <script src="config.js"></script>
+  
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-100 min-h-screen pb-10">
@@ -45,32 +49,94 @@
       </div>
     </div>
 
-    <!-- Total Omset & Jumlah Transaksi -->
+    <!-- Ringkasan Omset Terbagi Menjadi Beberapa Bagian Pembayaran -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-        <p class="text-xs font-bold text-slate-400 uppercase">Hari Ini</p>
-        <h3 class="text-xl font-extrabold text-emerald-600 mt-1" id="omsetHariIni">Rp 0</h3>
-        <p class="text-[11px] text-slate-500 font-semibold mt-1" id="trxHariIni">0 Transaksi</p>
+      
+      <!-- HARI INI -->
+      <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+        <div>
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-xs font-black text-slate-400 uppercase tracking-wider">HARI INI</span>
+            <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-bold" id="trxHariIni">0 Trx</span>
+          </div>
+          <h3 class="text-2xl font-black text-emerald-600 mb-3" id="omsetHariIni">Rp 0</h3>
+          
+          <div class="space-y-1.5 text-xs border-t border-slate-100 pt-2.5">
+            <div class="flex justify-between text-slate-600">
+              <span>💵 Cash:</span>
+              <span class="font-bold text-slate-800" id="cashHariIni">Rp 0</span>
+            </div>
+            <div class="flex justify-between text-slate-600">
+              <span>📱 QRIS:</span>
+              <span class="font-bold text-slate-800" id="qrisHariIni">Rp 0</span>
+            </div>
+            <div class="flex justify-between text-slate-600">
+              <span>🏦 Transfer:</span>
+              <span class="font-bold text-slate-800" id="transferHariIni">Rp 0</span>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-        <p class="text-xs font-bold text-slate-400 uppercase">Minggu Ini</p>
-        <h3 class="text-xl font-extrabold text-emerald-600 mt-1" id="omsetMingguIni">Rp 0</h3>
-        <p class="text-[11px] text-slate-500 font-semibold mt-1" id="trxMingguIni">0 Transaksi</p>
+      <!-- MINGGU INI -->
+      <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+        <div>
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-xs font-black text-slate-400 uppercase tracking-wider">MINGGU INI</span>
+            <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-bold" id="trxMingguIni">0 Trx</span>
+          </div>
+          <h3 class="text-2xl font-black text-emerald-600 mb-3" id="omsetMingguIni">Rp 0</h3>
+
+          <div class="space-y-1.5 text-xs border-t border-slate-100 pt-2.5">
+            <div class="flex justify-between text-slate-600">
+              <span>💵 Cash:</span>
+              <span class="font-bold text-slate-800" id="cashMingguIni">Rp 0</span>
+            </div>
+            <div class="flex justify-between text-slate-600">
+              <span>📱 QRIS:</span>
+              <span class="font-bold text-slate-800" id="qrisMingguIni">Rp 0</span>
+            </div>
+            <div class="flex justify-between text-slate-600">
+              <span>🏦 Transfer:</span>
+              <span class="font-bold text-slate-800" id="transferMingguIni">Rp 0</span>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-        <p class="text-xs font-bold text-slate-400 uppercase">Bulan Ini</p>
-        <h3 class="text-xl font-extrabold text-emerald-600 mt-1" id="omsetBulanIni">Rp 0</h3>
-        <p class="text-[11px] text-slate-500 font-semibold mt-1" id="trxBulanIni">0 Transaksi</p>
+      <!-- BULAN INI -->
+      <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+        <div>
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-xs font-black text-slate-400 uppercase tracking-wider">BULAN INI</span>
+            <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-bold" id="trxBulanIni">0 Trx</span>
+          </div>
+          <h3 class="text-2xl font-black text-emerald-600 mb-3" id="omsetBulanIni">Rp 0</h3>
+
+          <div class="space-y-1.5 text-xs border-t border-slate-100 pt-2.5">
+            <div class="flex justify-between text-slate-600">
+              <span>💵 Cash:</span>
+              <span class="font-bold text-slate-800" id="cashBulanIni">Rp 0</span>
+            </div>
+            <div class="flex justify-between text-slate-600">
+              <span>📱 QRIS:</span>
+              <span class="font-bold text-slate-800" id="qrisBulanIni">Rp 0</span>
+            </div>
+            <div class="flex justify-between text-slate-600">
+              <span>🏦 Transfer:</span>
+              <span class="font-bold text-slate-800" id="transferBulanIni">Rp 0</span>
+            </div>
+          </div>
+        </div>
       </div>
+
     </div>
 
     <!-- Peringkat Cabang (Auto Ranking Pemasukan Terbanyak) -->
     <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 space-y-3">
       <div class="flex justify-between items-center">
         <h3 class="font-bold text-sm text-slate-800">🏆 Performa Cabang (Urut Pemasukan Terbanyak)</h3>
-        <button onclick="loadMasterData()" class="text-xs text-emerald-600 font-semibold hover:underline">🔄 Refresh</button>
+        <button onclick="loadMasterData()" class="text-xs text-emerald-600 font-semibold hover:underline cursor-pointer">🔄 Refresh</button>
       </div>
 
       <div class="overflow-x-auto">
@@ -116,8 +182,23 @@
           processOmsetAndBranch(raw.data);
         }
       } catch (err) {
-        console.error(err);
+        console.error('Gagal mengambil data:', err);
       }
+    }
+
+    function parseBranchName(rawCabang) {
+      if (!rawCabang) return "Cabang Tidak Terdaftar";
+      let cleaned = String(rawCabang).trim();
+      
+      // Jika bernilai angka (1..6) atau tertera "CABANG X", sesuaikan via CONFIG
+      if (cleaned.toUpperCase().startsWith("CABANG ")) {
+        cleaned = cleaned.replace(/CABANG\s+/i, "");
+      }
+      
+      if (typeof CONFIG !== 'undefined' && CONFIG.getBranchName) {
+        return CONFIG.getBranchName(cleaned);
+      }
+      return rawCabang;
     }
 
     function processOmsetAndBranch(data) {
@@ -125,49 +206,77 @@
       const listIn = data.money_in || [];
       const listOut = data.money_out || [];
 
-      // Perhitungan Omset Periode
-      let hNom = 0, hTrx = 0;
-      let mNom = 0, mTrx = 0;
-      let bNom = 0, bTrx = 0;
+      // Struktur data penampung omset terbagi
+      const stats = {
+        hariIni: { total: 0, trx: 0, cash: 0, qris: 0, transfer: 0 },
+        mingguIni: { total: 0, trx: 0, cash: 0, qris: 0, transfer: 0 },
+        bulanIni: { total: 0, trx: 0, cash: 0, qris: 0, transfer: 0 }
+      };
 
       listIn.forEach(i => {
         if (!i.createdAt) return;
         const d = new Date(i.createdAt);
         const nom = Number(i.NOMINAL || 0);
+        const method = String(i.TRANSAKSI || '').toLowerCase();
 
+        // Hari Ini
         if (d.toDateString() === now.toDateString()) {
-          hNom += nom; hTrx++;
+          stats.hariIni.total += nom;
+          stats.hariIni.trx++;
+          if (stats.hariIni[method] !== undefined) stats.hariIni[method] += nom;
         }
+
+        // Minggu Ini (7 Hari Terakhir)
         if (Math.floor((now - d) / (1000 * 60 * 60 * 24)) < 7) {
-          mNom += nom; mTrx++;
+          stats.mingguIni.total += nom;
+          stats.mingguIni.trx++;
+          if (stats.mingguIni[method] !== undefined) stats.mingguIni[method] += nom;
         }
+
+        // Bulan Ini
         if (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) {
-          bNom += nom; bTrx++;
+          stats.bulanIni.total += nom;
+          stats.bulanIni.trx++;
+          if (stats.bulanIni[method] !== undefined) stats.bulanIni[method] += nom;
         }
       });
 
       const fmt = (v) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(v);
 
-      document.getElementById('omsetHariIni').innerText = fmt(hNom);
-      document.getElementById('trxHariIni').innerText = `${hTrx} Transaksi`;
-      document.getElementById('omsetMingguIni').innerText = fmt(mNom);
-      document.getElementById('trxMingguIni').innerText = `${mTrx} Transaksi`;
-      document.getElementById('omsetBulanIni').innerText = fmt(bNom);
-      document.getElementById('trxBulanIni').innerText = `${bTrx} Transaksi`;
+      // Render Omset Hari Ini
+      document.getElementById('omsetHariIni').innerText = fmt(stats.hariIni.total);
+      document.getElementById('trxHariIni').innerText = `${stats.hariIni.trx} Trx`;
+      document.getElementById('cashHariIni').innerText = fmt(stats.hariIni.cash);
+      document.getElementById('qrisHariIni').innerText = fmt(stats.hariIni.qris);
+      document.getElementById('transferHariIni').innerText = fmt(stats.hariIni.transfer);
 
-      // Perhitungan Rekap Cabang
+      // Render Omset Minggu Ini
+      document.getElementById('omsetMingguIni').innerText = fmt(stats.mingguIni.total);
+      document.getElementById('trxMingguIni').innerText = `${stats.mingguIni.trx} Trx`;
+      document.getElementById('cashMingguIni').innerText = fmt(stats.mingguIni.cash);
+      document.getElementById('qrisMingguIni').innerText = fmt(stats.mingguIni.qris);
+      document.getElementById('transferMingguIni').innerText = fmt(stats.mingguIni.transfer);
+
+      // Render Omset Bulan Ini
+      document.getElementById('omsetBulanIni').innerText = fmt(stats.bulanIni.total);
+      document.getElementById('trxBulanIni').innerText = `${stats.bulanIni.trx} Trx`;
+      document.getElementById('cashBulanIni').innerText = fmt(stats.bulanIni.cash);
+      document.getElementById('qrisBulanIni').innerText = fmt(stats.bulanIni.qris);
+      document.getElementById('transferBulanIni').innerText = fmt(stats.bulanIni.transfer);
+
+      // Perhitungan Rekap Performa Cabang (Mapping Nama Cabang via CONFIG)
       const branchStats = {};
 
       listIn.forEach(i => {
-        const c = (i.CABANG || 'CABANG UNKNOWN').toUpperCase();
-        if (!branchStats[c]) branchStats[c] = { masuk: 0, keluar: 0 };
-        branchStats[c].masuk += Number(i.NOMINAL || 0);
+        const branchName = parseBranchName(i.CABANG);
+        if (!branchStats[branchName]) branchStats[branchName] = { masuk: 0, keluar: 0 };
+        branchStats[branchName].masuk += Number(i.NOMINAL || 0);
       });
 
       listOut.forEach(o => {
-        const c = (o.CABANG || 'CABANG UNKNOWN').toUpperCase();
-        if (!branchStats[c]) branchStats[c] = { masuk: 0, keluar: 0 };
-        branchStats[c].keluar += Number(o.NOMINAL || 0);
+        const branchName = parseBranchName(o.CABANG);
+        if (!branchStats[branchName]) branchStats[branchName] = { masuk: 0, keluar: 0 };
+        branchStats[branchName].keluar += Number(o.NOMINAL || 0);
       });
 
       // Urutkan Pemasukan Terbanyak ke Tersedikit
@@ -179,7 +288,7 @@
       })).sort((a, b) => b.masuk - a.masuk);
 
       const tableBody = document.getElementById('branchRankTable');
-      if(sortedBranches.length === 0) {
+      if (sortedBranches.length === 0) {
         tableBody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-slate-400">Belum ada data transaksi cabang.</td></tr>`;
         return;
       }
