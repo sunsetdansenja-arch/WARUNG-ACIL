@@ -42,7 +42,7 @@
   <script>
     const WEBHOOK_URL = 'https://n8n-mzbmiib3etk4.kangkung.sumopod.my.id/webhook/0c2f335e-543b-4f3e-968e-f70d412f194b';
 
-    // Cek jika sudah login
+    // Cek jika sudah ada sesi login aktif
     const session = JSON.parse(localStorage.getItem('warung_acil_session'));
     if (session) {
       window.location.href = session.isOwner ? 'master.html' : 'kasir.html';
