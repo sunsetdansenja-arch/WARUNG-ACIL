@@ -4,6 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Warung Acil - Admin Control</title>
+  
+  <!-- Panggil config.js paling atas -->
+  <script src="config.js"></script>
+  
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -13,13 +17,13 @@
   <header class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center shadow-md">
     <div>
       <h1 class="text-xl font-bold">Warung Acil - Admin Control</h1>
-      <p class="text-xs text-slate-400">Edit, Log Audit & Data Hapus</p>
+      <p class="text-xs text-slate-400">Edit, Log Audit & Data Hapus Transaksi</p>
     </div>
     <div class="flex items-center space-x-3">
       <button onclick="fetchData()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs px-3 py-2 rounded-lg border border-slate-700 transition cursor-pointer">
         <i class="fa-solid fa-rotate mr-1"></i> Muat Ulang
       </button>
-      <a href="index.html" class="bg-slate-700 hover:bg-slate-600 text-white text-sm px-4 py-2 rounded-lg transition duration-200">
+      <a href="master.html" class="bg-slate-700 hover:bg-slate-600 text-white text-sm px-4 py-2 rounded-lg transition duration-200">
         <i class="fa-solid fa-arrow-left mr-2"></i>Kembali
       </a>
     </div>
@@ -34,16 +38,18 @@
       </h2>
       <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
         <input type="text" id="searchInput" placeholder="Cari Kasir / Nominal / Transaksi..." class="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-800">
+        
+        <!-- Filter Cabang Dinamis dari CONFIG.BRANCHES -->
         <select id="branchFilter" class="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-800">
           <option value="">Semua Cabang</option>
-          <option value="CABANG 1">Cabang 1</option>
-          <option value="CABANG 2">Cabang 2</option>
         </select>
+
         <select id="typeFilter" class="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-800">
           <option value="">Semua Tipe</option>
           <option value="in">Uang Masuk (IN)</option>
           <option value="out">Uang Keluar (OUT)</option>
         </select>
+        
         <button onclick="applyFilter()" class="bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold rounded-lg px-4 py-2 transition cursor-pointer">
           Terapkan Filter
         </button>
@@ -93,7 +99,7 @@
 
   </main>
 
-  <!-- Modal Edit Transaksi (Hanya Edit Nominal & Metode Pembayaran) -->
+  <!-- Modal Edit Transaksi -->
   <div id="editModal" class="fixed inset-0 bg-slate-900/50 hidden flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4">
       <div class="flex justify-between items-center border-b pb-3">
@@ -105,11 +111,10 @@
         <input type="hidden" id="editId">
         <input type="hidden" id="editType">
         <input type="hidden" id="editKasir">
-        <input type="hidden" id="editCabang">
         
         <div>
           <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Nominal (Rp)</label>
-          <input type="number" id="editNominal" min="1" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-slate-800 outline-none">
+          <input type="number" id="editNominal" min="1" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-slate-800 outline-none font-semibold">
         </div>
 
         <div>
@@ -118,6 +123,13 @@
             <option value="cash">💵 CASH</option>
             <option value="qris">📱 QRIS</option>
             <option value="transfer">🏦 TRANSFER</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Cabang</label>
+          <select id="editCabang" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-slate-800 outline-none font-semibold text-slate-700">
+            <!-- Pilihan Cabang diisi via JS dari CONFIG -->
           </select>
         </div>
 
@@ -130,22 +142,58 @@
   </div>
 
   <script>
-    const API_URL = "https://n8n-mzbmiib3etk4.kangkung.sumopod.my.id/webhook/0c2f335e-543b-4f3e-968e-f70d412f194b";
+    const API_URL = (typeof CONFIG !== 'undefined' && CONFIG.WEBHOOK_URL) 
+      ? CONFIG.WEBHOOK_URL 
+      : "https://n8n-mzbmiib3etk4.kangkung.sumopod.my.id/webhook/0c2f335e-543b-4f3e-968e-f70d412f194b";
+
     let rawData = [];
     let logChanges = [];
     let deletedData = [];
     let currentTab = 'active';
 
+    // Helper Penamaan Cabang
+    function getBranchName(code) {
+      if (typeof CONFIG !== 'undefined' && CONFIG.getBranchName) {
+        return CONFIG.getBranchName(code);
+      }
+      return `CABANG ${code}`;
+    }
+
     document.addEventListener("DOMContentLoaded", () => {
+      initBranchOptions();
       fetchData();
     });
 
+    // Inisialisasi Opsi Cabang dari CONFIG
+    function initBranchOptions() {
+      const filterSelect = document.getElementById("branchFilter");
+      const editSelect = document.getElementById("editCabang");
+
+      filterSelect.innerHTML = '<option value="">Semua Cabang</option>';
+      editSelect.innerHTML = '';
+
+      const branches = (typeof CONFIG !== 'undefined' && CONFIG.BRANCHES) 
+        ? CONFIG.BRANCHES 
+        : {'1': 'WARUNG ACIL - BJM 1', '2': 'WARUNG ACIL - BJM 2', '3': 'WARUNG ACIL - BJM 3', '4': 'WARUNG ACIL - BJB 1', '5': 'WARUNG ACIL - BJB 2', '6': 'WARUNG ACIL - MTP 1'};
+
+      Object.keys(branches).forEach(code => {
+        const branchName = branches[code];
+
+        const optFilter = document.createElement('option');
+        optFilter.value = code;
+        optFilter.textContent = branchName;
+        filterSelect.appendChild(optFilter);
+
+        const optEdit = document.createElement('option');
+        optEdit.value = code;
+        optEdit.textContent = branchName;
+        editSelect.appendChild(optEdit);
+      });
+    }
+
     function parseN8nResponse(res) {
       let root = res;
-
-      if (Array.isArray(root) && root.length > 0) {
-        root = root[0];
-      }
+      if (Array.isArray(root) && root.length > 0) root = root[0];
 
       let moneyIn = [];
       let moneyOut = [];
@@ -165,10 +213,11 @@
         let waktu = "-";
         if (waktuRaw) {
           const d = new Date(waktuRaw);
-          waktu = isNaN(d.getTime()) ? waktuRaw : d.toLocaleString("id-ID", { timeZone: "Asia/Jakarta" });
+          waktu = isNaN(d.getTime()) ? waktuRaw : d.toLocaleString("id-ID", { timeZone: "Asia/Jakarta" }) + " WIB";
         }
 
-        const cabang = data.CABANG || data.cabang || "CABANG 1";
+        const rawCabang = data.CABANG || data.cabang || "1";
+        const cabangCode = String(rawCabang).trim();
 
         const rawNominal = data.NOMINAL ?? data["NOMINAL UANG KELUAR"] ?? data.nominal ?? 0;
         const nominal = typeof rawNominal === "string" 
@@ -179,16 +228,11 @@
         const kasir = data.KASIR || data["NAMA KASIR"] || data.kasir || "-";
         const id = data.id || data.ID || data.row_id || `TRX-${defaultType}-${idx + 1}`;
 
-        return { id, waktu, cabang, tipe: defaultType, nominal, transaksi, kasir };
+        return { id, waktu, cabang: cabangCode, tipe: defaultType, nominal, transaksi, kasir };
       };
 
-      const validIn = moneyIn
-        .map((item, idx) => normalizeItem(item, 'in', idx))
-        .filter(item => item.nominal > 0 || item.kasir !== "-");
-
-      const validOut = moneyOut
-        .map((item, idx) => normalizeItem(item, 'out', idx))
-        .filter(item => item.nominal > 0 || item.kasir !== "-");
+      const validIn = moneyIn.map((item, idx) => normalizeItem(item, 'in', idx)).filter(item => item.nominal > 0 || item.kasir !== "-");
+      const validOut = moneyOut.map((item, idx) => normalizeItem(item, 'out', idx)).filter(item => item.nominal > 0 || item.kasir !== "-");
 
       return { moneyIn: validIn, moneyOut: validOut };
     }
@@ -217,6 +261,7 @@
         const { moneyIn, moneyOut } = parseN8nResponse(rawJson);
 
         rawData = [...moneyIn, ...moneyOut];
+        rawData.sort((a, b) => new Date(b.waktu) - new Date(a.waktu));
         
         if (currentTab === 'active') renderTable(rawData);
         else switchTab(currentTab);
@@ -246,7 +291,7 @@
       tbody.innerHTML = data.map(item => `
         <tr class="border-b border-slate-100 hover:bg-slate-50 transition">
           <td class="py-3 px-4 text-xs text-slate-500">${item.waktu}</td>
-          <td class="py-3 px-4 font-medium text-slate-700">${item.cabang}</td>
+          <td class="py-3 px-4 font-bold text-slate-700">${getBranchName(item.cabang)}</td>
           <td class="py-3 px-4">
             <span class="px-2 py-1 rounded text-xs font-bold ${item.tipe === 'in' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}">
               ${item.tipe.toUpperCase()}
@@ -256,7 +301,7 @@
             ${formatRupiah(item.nominal)}
           </td>
           <td class="py-3 px-4 text-slate-600 uppercase font-bold text-xs">${item.transaksi}</td>
-          <td class="py-3 px-4 text-slate-600">${item.kasir}</td>
+          <td class="py-3 px-4 text-slate-600 font-medium">${item.kasir}</td>
           <td class="py-3 px-4 text-center space-x-1">
             <button onclick="openEditModal('${item.id}', '${item.tipe}', ${item.nominal}, '${item.transaksi}', '${item.kasir}', '${item.cabang}')" class="bg-amber-50 text-amber-600 hover:bg-amber-100 px-3 py-1 rounded-lg text-xs font-semibold transition border border-amber-200 cursor-pointer">
               <i class="fa-solid fa-pen-to-square mr-1"></i>Edit
@@ -277,8 +322,9 @@
       const filtered = rawData.filter(item => {
         const matchSearch = item.kasir.toLowerCase().includes(search) || 
                             item.nominal.toString().includes(search) || 
-                            item.transaksi.toLowerCase().includes(search);
-        const matchBranch = branch === "" || item.cabang === branch;
+                            item.transaksi.toLowerCase().includes(search) ||
+                            getBranchName(item.cabang).toLowerCase().includes(search);
+        const matchBranch = branch === "" || String(item.cabang) === String(branch);
         const matchType = type === "" || item.tipe === type;
         return matchSearch && matchBranch && matchType;
       });
@@ -317,12 +363,11 @@
       document.getElementById("editType").value = tipe;
       document.getElementById("editNominal").value = nominal;
       
-      // Pilih otomatis metode pembayaran yang sesuai saat ini
       const method = (transaksi || 'cash').toLowerCase();
       document.getElementById("editTransaksi").value = ['cash', 'qris', 'transfer'].includes(method) ? method : 'cash';
 
       document.getElementById("editKasir").value = kasir;
-      document.getElementById("editCabang").value = cabang;
+      document.getElementById("editCabang").value = String(cabang);
       document.getElementById("editModal").classList.remove("hidden");
     }
 
@@ -364,7 +409,7 @@
           alert("Data transaksi berhasil diperbarui!");
           
           logChanges.unshift({
-            waktu: new Date().toLocaleString("id-ID"),
+            waktu: new Date().toLocaleString("id-ID", { timeZone: "Asia/Jakarta" }) + " WIB",
             cabang,
             tipe: type,
             nominal: parseFloat(nominal),
@@ -403,7 +448,7 @@
             nominal: 0, 
             transaksi: itemTarget ? itemTarget.transaksi : "cash",
             kasir: itemTarget ? itemTarget.kasir : "-", 
-            cabang: itemTarget ? itemTarget.cabang : "CABANG 1" 
+            cabang: itemTarget ? itemTarget.cabang : "1" 
           })
         });
 
