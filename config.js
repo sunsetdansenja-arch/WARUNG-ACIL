@@ -12,6 +12,20 @@ const CONFIG = {
     "ALL": "Master Owner / All Branches"
   },
 
+  // Konfigurasi Printer Thermal Bluetooth (RPP02N / 58mm Generic)
+  PRINTER: {
+    // Service UUID standar untuk printer Bluetooth ESC/POS
+    SERVICE_UUID: '000018f0-0000-1000-8000-00805f9b34fb',
+    CHARACTERISTIC_UUID: '00002af1-0000-1000-8000-00805f9b34fb',
+    
+    // Daftar Service cadangan yang sering digunakan printer 58mm
+    OPTIONAL_SERVICES: [
+      '000018f0-0000-1000-8000-00805f9b34fb',
+      '0000e025-0000-1000-8000-00805f9b34fb',
+      '00001101-0000-1000-8000-00805f9b34fb'
+    ]
+  },
+
   // Helper untuk mendapatkan nama cabang berdasarkan kode akses
   getBranchName: function(aksesCode) {
     return this.BRANCH_MAP[String(aksesCode)] || "Cabang Tidak Terdaftar";
