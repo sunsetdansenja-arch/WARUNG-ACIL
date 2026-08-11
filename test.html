@@ -79,24 +79,26 @@
 </head>
 <body class="bg-slate-100 min-h-screen flex flex-col no-select">
 
-  <!-- Header Navbar -->
+  <!-- Header Navbar Rapi & Proporsional -->
   <nav class="bg-emerald-600 text-white shadow-md sticky top-0 z-30 no-print flex-none">
-    <div class="max-w-5xl mx-auto px-4 py-3 flex justify-between items-center">
-      <div class="flex items-center gap-2">
-        <a id="btnBackToMaster" href="master.html" class="hidden bg-emerald-700 hover:bg-emerald-800 text-sm px-3 py-1.5 rounded-xl border border-emerald-500 font-bold cursor-pointer flex items-center gap-1">
+    <div class="max-w-5xl mx-auto px-3 md:px-4 py-2.5 md:py-3 flex items-center justify-between gap-2">
+      <!-- Kiri: Logo & Info User -->
+      <div class="flex items-center gap-2 overflow-hidden">
+        <a id="btnBackToMaster" href="master.html" class="hidden shrink-0 bg-emerald-700 hover:bg-emerald-800 text-xs md:text-sm px-2.5 py-1.5 rounded-xl border border-emerald-500 font-bold cursor-pointer flex items-center gap-1">
           ⬅️ Master
         </a>
-        <div>
-          <h1 class="font-extrabold text-lg leading-tight">Kasir Warung Acil</h1>
-          <p class="text-xs text-emerald-100 font-medium" id="userInfo">Loading...</p>
+        <div class="truncate">
+          <h1 class="font-extrabold text-base md:text-lg leading-tight truncate">Warung Acil</h1>
+          <p class="text-[11px] md:text-xs text-emerald-100 font-medium truncate" id="userInfo">Loading...</p>
         </div>
       </div>
-      <div class="flex items-center gap-2">
-        <!-- Tombol Mode Capek (Layout Tetap Sama, Mengubah Status & Warna Visual) -->
-        <button id="btnModeCapek" onclick="toggleModeCapek()" class="bg-amber-500 hover:bg-amber-600 text-xs md:text-sm px-3.5 py-2 rounded-xl border border-amber-400 font-bold cursor-pointer transition">
-          ⚡ mode capek
+
+      <!-- Kanan: Tombol Mode Capek & Logout -->
+      <div class="flex items-center gap-2 shrink-0">
+        <button id="btnModeCapek" onclick="toggleModeCapek()" class="bg-amber-500 hover:bg-amber-600 text-white text-xs md:text-sm px-3 py-1.5 md:py-2 rounded-xl border border-amber-400 font-bold cursor-pointer transition flex items-center gap-1 shadow-sm">
+          <span>⚡</span> <span class="hidden sm:inline">mode capek</span><span class="sm:hidden">capek</span>
         </button>
-        <button onclick="logout()" class="bg-emerald-700 hover:bg-emerald-800 text-xs md:text-sm px-3.5 py-2 rounded-xl border border-emerald-500 font-bold cursor-pointer">
+        <button onclick="logout()" class="bg-emerald-700 hover:bg-emerald-800 text-xs md:text-sm px-3 py-1.5 md:py-2 rounded-xl border border-emerald-500 font-bold cursor-pointer">
           Logout
         </button>
       </div>
@@ -119,7 +121,7 @@
     <!-- Dropdown Pilih Cabang (Akses Owner - Diisi Otomatis dari CONFIG.BRANCH_MAP) -->
     <div id="ownerBranchContainer" class="hidden mb-3">
       <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Pilih Cabang Transaksi</label>
-      <select id="selectBranch" class="w-full px-4 py-2.5 text-sm font-bold rounded-2xl border border-slate-300 bg-amber-50 text-slate-800 focus:outline-none shadow-xs">
+      <select id="selectBranch" onchange="onOwnerBranchChange()" class="w-full px-4 py-2.5 text-sm font-bold rounded-2xl border border-slate-300 bg-amber-50 text-slate-800 focus:outline-none shadow-xs">
         <!-- Opsi diisi via JS dari config.js -->
       </select>
     </div>
@@ -130,9 +132,9 @@
       <!-- SEKSI 1: KALKULATOR KASIR (Kolom Kiri Tablet: col-span-7) -->
       <div id="secCalc" class="lg:col-span-7 flex-1 flex flex-col gap-3">
         
-        <!-- Display Kalkulator Ekstra Gede & Jelas -->
-        <div class="bg-slate-900 text-white rounded-3xl p-4 md:p-6 border-4 border-slate-700 shadow-2xl text-right flex flex-col justify-end min-h-[140px] md:min-h-[160px]">
-          <div id="calcFormula" class="text-xl md:text-2xl font-black text-emerald-400 min-h-[32px] overflow-x-auto tracking-wider mb-1">0</div>
+        <!-- Display Kalkulator Ekstra Gede (Warna Berubah Saat Mode Capek Aktif) -->
+        <div id="calcDisplayBox" class="bg-slate-900 text-white rounded-3xl p-4 md:p-6 border-4 border-slate-700 shadow-2xl text-right flex flex-col justify-end min-h-[140px] md:min-h-[160px] transition-colors duration-300">
+          <div id="calcFormula" class="text-xl md:text-2xl font-black text-emerald-400 min-h-[32px] overflow-x-auto tracking-wider mb-1 transition-colors duration-300">0</div>
           <div id="calcDisplay" class="text-5xl md:text-6xl font-black text-white overflow-x-auto whitespace-nowrap tracking-tight">0</div>
         </div>
 
@@ -283,14 +285,15 @@
   <script>
     const WEBHOOK_URL = 'https://n8n-mzbmiib3etk4.kangkung.sumopod.my.id/webhook/0c2f335e-543b-4f3e-968e-f70d412f194b';
     
-    // State Kalkulator
+    // State Kalkulator & Expression Tracking
+    let rawExpression = '0'; // Menyimpan input mentah (misal: '15 + 10')
     let currentInput = '0';
     let formula = '';
     let isEvaluated = false;
     let finalCalculatedNominal = 0;
     let finalActionType = 'in';
 
-    // State Mode Capek
+    // State Mode Capek (Mode Cepat x1000)
     let isModeCapek = false;
 
     // State Active Receipt Data untuk Direct Print
@@ -346,21 +349,35 @@
       return currentBranchName;
     }
 
-    // Fungsi Pengatur Mode Capek
+    // Event Handler saat Owner mengubah dropdown cabang
+    function onOwnerBranchChange() {
+      calculateLaciTotals();
+      renderHistoryList();
+    }
+
+    // Toggle Mode Capek (Atur Tema Visual & Status)
     function toggleModeCapek() {
       isModeCapek = !isModeCapek;
       const btnCapek = document.getElementById('btnModeCapek');
-      const btnProses = document.getElementById('btnProses');
+      const boxDisplay = document.getElementById('calcDisplayBox');
+      const formulaDisplay = document.getElementById('calcFormula');
 
       if (isModeCapek) {
-        btnCapek.className = 'bg-rose-600 hover:bg-rose-700 text-xs md:text-sm px-3.5 py-2 rounded-xl border border-rose-500 font-bold cursor-pointer transition text-white shadow-md';
-        btnCapek.innerText = '⚡ mode capek (aktif)';
-        btnProses.className = 'bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-white text-xl md:text-2xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-lg uppercase tracking-wider border-b-4 border-amber-800 active:scale-95 transition';
+        btnCapek.className = 'bg-rose-600 hover:bg-rose-700 text-white text-xs md:text-sm px-3 py-1.5 md:py-2 rounded-xl border border-rose-500 font-bold cursor-pointer transition flex items-center gap-1 shadow-md';
+        btnCapek.innerHTML = '<span>⚡</span> <span class="hidden sm:inline">mode capek (ON)</span><span class="sm:hidden">capek ON</span>';
+        
+        boxDisplay.className = 'bg-amber-950 text-white rounded-3xl p-4 md:p-6 border-4 border-amber-600 shadow-2xl text-right flex flex-col justify-end min-h-[140px] md:min-h-[160px] transition-colors duration-300';
+        formulaDisplay.className = 'text-xl md:text-2xl font-black text-amber-400 min-h-[32px] overflow-x-auto tracking-wider mb-1 transition-colors duration-300';
       } else {
-        btnCapek.className = 'bg-amber-500 hover:bg-amber-600 text-xs md:text-sm px-3.5 py-2 rounded-xl border border-amber-400 font-bold cursor-pointer transition text-white';
-        btnCapek.innerText = '⚡ mode capek';
-        btnProses.className = 'bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xl md:text-2xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-lg uppercase tracking-wider border-b-4 border-emerald-900 active:scale-95 transition';
+        btnCapek.className = 'bg-amber-500 hover:bg-amber-600 text-white text-xs md:text-sm px-3 py-1.5 md:py-2 rounded-xl border border-amber-400 font-bold cursor-pointer transition flex items-center gap-1 shadow-sm';
+        btnCapek.innerHTML = '<span>⚡</span> <span class="hidden sm:inline">mode capek</span><span class="sm:hidden">capek</span>';
+        
+        boxDisplay.className = 'bg-slate-900 text-white rounded-3xl p-4 md:p-6 border-4 border-slate-700 shadow-2xl text-right flex flex-col justify-end min-h-[140px] md:min-h-[160px] transition-colors duration-300';
+        formulaDisplay.className = 'text-xl md:text-2xl font-black text-emerald-400 min-h-[32px] overflow-x-auto tracking-wider mb-1 transition-colors duration-300';
       }
+
+      // Re-evaluasi atau reset display saat mode berubah
+      clearCalc();
     }
 
     // Navigasi Tab (Mobile View)
@@ -387,8 +404,30 @@
 
     // LOGIKA KALKULATOR
     function updateDisplay() {
-      document.getElementById('calcDisplay').innerText = formatDisplayNumber(currentInput);
-      document.getElementById('calcFormula').innerText = formula || '0';
+      // Hitung formula riil berdasarkan input mentah & mode capek
+      const realFormula = getRealFormula();
+      
+      document.getElementById('calcFormula').innerText = realFormula || '0';
+      document.getElementById('calcDisplay').innerText = formatDisplayNumber(getRealCurrentDisplay());
+    }
+
+    // Helper untuk mengolah formula nyata (mengalikan 1000 setiap token angka jika mode capek aktif)
+    function getRealFormula() {
+      if (!formula) return '0';
+      if (!isModeCapek) return formula;
+
+      return formula.replace(/(\d+(\.\d+)?)/g, (match) => {
+        return String(Number(match) * 1000);
+      });
+    }
+
+    function getRealCurrentDisplay() {
+      if (currentInput === '-' || currentInput === '' || currentInput === 'Error') return currentInput;
+      if (!isModeCapek) return currentInput;
+      
+      const num = Number(currentInput);
+      if (isNaN(num)) return currentInput;
+      return String(num * 1000);
     }
 
     function formatDisplayNumber(str) {
@@ -462,7 +501,6 @@
         return;
       }
 
-      // Hapus 1 karakter dari ekspresi formula
       if (formula.length > 0) {
         formula = formula.trimEnd();
         if (['+', '-', '*', '/'].includes(formula.slice(-1))) {
@@ -472,12 +510,10 @@
         }
       }
 
-      // Hapus 1 karakter dari input angka saat ini
       if (currentInput.length > 0) {
         currentInput = currentInput.slice(0, -1);
       }
 
-      // Penyesuaian jika input/formula menjadi kosong
       if (formula === '' || formula === '-') {
         formula = '';
         currentInput = '0';
@@ -490,17 +526,28 @@
     }
 
     function calculateResult() {
-      if (!formula) return 0;
+      const targetFormula = getRealFormula();
+      if (!targetFormula || targetFormula === '0') return 0;
+
       try {
-        let sanitized = formula.replace(/[^0-9+\-*/.]/g, '');
+        let sanitized = targetFormula.replace(/[^0-9+\-*/.]/g, '');
         let res = eval(sanitized);
         
         if (res === undefined || isNaN(res)) res = 0;
         
+        // Simpan hasil riil
         currentInput = String(res);
         formula = String(res);
         isEvaluated = true;
-        updateDisplay();
+        
+        // Saat mode capek aktif, reset ke mode tampilan normal hasil akhir
+        if (isModeCapek) {
+          document.getElementById('calcDisplay').innerText = formatDisplayNumber(res);
+          document.getElementById('calcFormula').innerText = String(res);
+        } else {
+          updateDisplay();
+        }
+
         return res;
       } catch (e) {
         currentInput = 'Error';
@@ -524,12 +571,6 @@
       } else {
         finalActionType = 'in';
         finalCalculatedNominal = finalVal;
-      }
-
-      if (isModeCapek) {
-        // Mode Capek: Langsung submit transaksi cash tanpa pop-up modal
-        submitTransaction('cash');
-        return;
       }
 
       const badge = document.getElementById('modalTypeBadge');
@@ -720,15 +761,20 @@
       calculateLaciTotals();
     }
 
+    // Perhitungan Laci Kasir dengan Penyaringan Cabang Presisi (Owner / User Kasir)
     function calculateLaciTotals() {
       const now = new Date();
       let listIn = (globalRawData.money_in || []);
       let listOut = (globalRawData.money_out || []);
 
-      if (!session.isOwner) {
-        listIn = listIn.filter(i => String(i.CABANG).toUpperCase() === currentBranchName.toUpperCase());
-        listOut = listOut.filter(o => String(o.CABANG).toUpperCase() === currentBranchName.toUpperCase());
-      }
+      // Tentukan cabang aktif yang menjadi acuan filter
+      const activeFilterBranch = session.isOwner 
+        ? document.getElementById('selectBranch').value 
+        : currentBranchName;
+
+      // Filter presisi berdasarkan nama cabang
+      listIn = listIn.filter(i => String(i.CABANG || '').trim().toUpperCase() === String(activeFilterBranch || '').trim().toUpperCase());
+      listOut = listOut.filter(o => String(o.CABANG || '').trim().toUpperCase() === String(activeFilterBranch || '').trim().toUpperCase());
 
       const filterByDate = (item) => {
         if (!item.createdAt) return true;
@@ -763,20 +809,24 @@
       document.getElementById('valTotalNet').innerText = formatCurrency(totalNet);
     }
 
+    // Render Riwayat dengan Penyaringan Cabang Presisi (Owner / User Kasir)
     function renderHistoryList() {
       const container = document.getElementById('historyList');
       let listIn = (globalRawData.money_in || []).map(i => ({ ...i, type: 'IN' }));
       let listOut = (globalRawData.money_out || []).map(o => ({ ...o, type: 'OUT' }));
       let all = [...listIn, ...listOut];
 
-      if (!session.isOwner) {
-        all = all.filter(item => String(item.CABANG).toUpperCase() === currentBranchName.toUpperCase());
-      }
+      // Tentukan cabang aktif yang menjadi acuan filter
+      const activeFilterBranch = session.isOwner 
+        ? document.getElementById('selectBranch').value 
+        : currentBranchName;
+
+      all = all.filter(item => String(item.CABANG || '').trim().toUpperCase() === String(activeFilterBranch || '').trim().toUpperCase());
 
       all.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
 
       if (all.length === 0) {
-        container.innerHTML = `<p class="text-xs text-center text-slate-400 py-6">Belum ada riwayat transaksi.</p>`;
+        container.innerHTML = `<p class="text-xs text-center text-slate-400 py-6">Belum ada riwayat transaksi di cabang ini.</p>`;
         return;
       }
 
