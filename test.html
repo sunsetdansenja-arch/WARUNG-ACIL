@@ -105,10 +105,10 @@
     </div>
   </nav>
 
-  <!-- Container Utama (Optimasi Tablet: max-w-5xl & layout 2-kolom jika di Tablet) -->
+  <!-- Container Utama -->
   <main class="max-w-5xl w-full mx-auto p-3 md:p-5 flex-1 flex flex-col no-print">
 
-    <!-- Tab Navigasi HP/Mobile (Otomatis tersembunyi di layar Tablet/Desktop) -->
+    <!-- Tab Navigasi HP/Mobile -->
     <div class="lg:hidden bg-white rounded-2xl shadow-sm p-1.5 flex mb-3 border border-slate-200">
       <button id="tabCalc" onclick="switchNav('calc')" class="flex-1 py-3 font-black text-xs md:text-sm rounded-xl bg-emerald-600 text-white shadow-sm transition">
         🧮 KALKULATOR
@@ -118,7 +118,7 @@
       </button>
     </div>
 
-    <!-- Dropdown Pilih Cabang (Akses Owner - Diisi Otomatis dari CONFIG.BRANCH_MAP) -->
+    <!-- Dropdown Pilih Cabang (Akses Owner) -->
     <div id="ownerBranchContainer" class="hidden mb-3">
       <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Pilih Cabang Transaksi</label>
       <select id="selectBranch" onchange="onOwnerBranchChange()" class="w-full px-4 py-2.5 text-sm font-bold rounded-2xl border border-slate-300 bg-amber-50 text-slate-800 focus:outline-none shadow-xs">
@@ -126,55 +126,62 @@
       </select>
     </div>
 
-    <!-- WRAPPER UTAMA: Grid 1 Kolom (HP) / Grid 2 Kolom (Tablet Landscape) -->
+    <!-- WRAPPER UTAMA -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 flex-1">
       
-      <!-- SEKSI 1: KALKULATOR KASIR (Kolom Kiri Tablet: col-span-7) -->
+      <!-- SEKSI 1: KALKULATOR KASIR -->
       <div id="secCalc" class="lg:col-span-7 flex-1 flex flex-col gap-3">
         
-        <!-- Display Kalkulator Ekstra Gede (Warna Berubah Saat Mode Capek Aktif) -->
-        <div id="calcDisplayBox" class="bg-slate-900 text-white rounded-3xl p-4 md:p-6 border-4 border-slate-700 shadow-2xl text-right flex flex-col justify-end min-h-[140px] md:min-h-[160px] transition-colors duration-300">
-          <div id="calcFormula" class="text-xl md:text-2xl font-black text-emerald-400 min-h-[32px] overflow-x-auto tracking-wider mb-1 transition-colors duration-300">0</div>
-          <div id="calcDisplay" class="text-5xl md:text-6xl font-black text-white overflow-x-auto whitespace-nowrap tracking-tight">0</div>
+        <!-- Wrapper Kalkulator yang dapat berganti warna ke Dark Mode -->
+        <div id="calcWrapper" class="bg-white rounded-3xl p-3 md:p-4 border border-slate-200 shadow-sm flex flex-col gap-3 transition-colors duration-300">
+          
+          <!-- Display Kalkulator Ekstra Gede -->
+          <div id="calcDisplayBox" class="bg-slate-900 text-white rounded-2xl p-4 md:p-5 border-4 border-slate-700 shadow-inner text-right flex flex-col justify-end min-h-[130px] md:min-h-[150px] transition-colors duration-300">
+            <div id="calcFormula" class="text-lg md:text-xl font-black text-emerald-400 min-h-[28px] overflow-x-auto tracking-wider mb-1 transition-colors duration-300">0</div>
+            <div id="calcDisplay" class="text-4xl md:text-5xl font-black text-white overflow-x-auto whitespace-nowrap tracking-tight">0</div>
+          </div>
+
+          <!-- Keypad Grid Kalkulator -->
+          <div class="grid grid-cols-4 gap-2 md:gap-3 flex-1 my-auto">
+            <!-- Baris 1 -->
+            <button onclick="pressNum('7')" class="btn-num bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-2xl md:text-3xl font-black rounded-2xl p-3.5 md:p-5 shadow-sm border-2 border-slate-200 active:scale-95 transition">7</button>
+            <button onclick="pressNum('8')" class="btn-num bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-2xl md:text-3xl font-black rounded-2xl p-3.5 md:p-5 shadow-sm border-2 border-slate-200 active:scale-95 transition">8</button>
+            <button onclick="pressNum('9')" class="btn-num bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-2xl md:text-3xl font-black rounded-2xl p-3.5 md:p-5 shadow-sm border-2 border-slate-200 active:scale-95 transition">9</button>
+            <button onclick="pressOp('/')" class="btn-op bg-amber-100 hover:bg-amber-200 active:bg-amber-300 text-amber-900 text-2xl md:text-3xl font-black rounded-2xl p-3.5 md:p-5 shadow-sm border-2 border-amber-200 active:scale-95 transition">÷</button>
+
+            <!-- Baris 2 -->
+            <button onclick="pressNum('4')" class="btn-num bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-2xl md:text-3xl font-black rounded-2xl p-3.5 md:p-5 shadow-sm border-2 border-slate-200 active:scale-95 transition">4</button>
+            <button onclick="pressNum('5')" class="btn-num bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-2xl md:text-3xl font-black rounded-2xl p-3.5 md:p-5 shadow-sm border-2 border-slate-200 active:scale-95 transition">5</button>
+            <button onclick="pressNum('6')" class="btn-num bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-2xl md:text-3xl font-black rounded-2xl p-3.5 md:p-5 shadow-sm border-2 border-slate-200 active:scale-95 transition">6</button>
+            <button onclick="pressOp('*')" class="btn-op bg-amber-100 hover:bg-amber-200 active:bg-amber-300 text-amber-900 text-2xl md:text-3xl font-black rounded-2xl p-3.5 md:p-5 shadow-sm border-2 border-amber-200 active:scale-95 transition">×</button>
+
+            <!-- Baris 3 -->
+            <button onclick="pressNum('1')" class="btn-num bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-2xl md:text-3xl font-black rounded-2xl p-3.5 md:p-5 shadow-sm border-2 border-slate-200 active:scale-95 transition">1</button>
+            <button onclick="pressNum('2')" class="btn-num bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-2xl md:text-3xl font-black rounded-2xl p-3.5 md:p-5 shadow-sm border-2 border-slate-200 active:scale-95 transition">2</button>
+            <button onclick="pressNum('3')" class="btn-num bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-2xl md:text-3xl font-black rounded-2xl p-3.5 md:p-5 shadow-sm border-2 border-slate-200 active:scale-95 transition">3</button>
+            <button onclick="pressOp('-')" class="btn-op bg-amber-100 hover:bg-amber-200 active:bg-amber-300 text-amber-900 text-2xl md:text-3xl font-black rounded-2xl p-3.5 md:p-5 shadow-sm border-2 border-amber-200 active:scale-95 transition">-</button>
+
+            <!-- Baris 4 -->
+            <button onclick="pressNum('0')" class="btn-num bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-2xl md:text-3xl font-black rounded-2xl p-3.5 md:p-5 shadow-sm border-2 border-slate-200 active:scale-95 transition">0</button>
+            <button onclick="press000()" class="btn-num-special bg-slate-200 hover:bg-slate-300 active:bg-slate-400 text-slate-900 text-lg md:text-xl font-black rounded-2xl p-3.5 md:p-5 shadow-sm border-2 border-slate-300 active:scale-95 transition">000</button>
+            <button onclick="pressDot()" class="btn-num bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-2xl md:text-3xl font-black rounded-2xl p-3.5 md:p-5 shadow-sm border-2 border-slate-200 active:scale-95 transition">.</button>
+            <button onclick="pressOp('+')" class="btn-op bg-amber-100 hover:bg-amber-200 active:bg-amber-300 text-amber-900 text-2xl md:text-3xl font-black rounded-2xl p-3.5 md:p-5 shadow-sm border-2 border-amber-200 active:scale-95 transition">+</button>
+
+            <!-- Baris 5 (Aksi: Clear, Backspace, Equals, Proses) -->
+            <button onclick="clearCalc()" class="bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white text-xl md:text-2xl font-black rounded-2xl p-3 md:p-4 shadow-md active:scale-95 transition" title="Clear All">C</button>
+            <button onclick="backspace()" class="bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white text-xl md:text-2xl font-black rounded-2xl p-3 md:p-4 shadow-md active:scale-95 transition" title="Hapus 1 Karakter">⌫</button>
+            <button onclick="calculateResult()" class="btn-eq bg-slate-300 hover:bg-slate-400 active:bg-slate-500 text-slate-900 text-2xl md:text-3xl font-black rounded-2xl p-3 md:p-4 shadow-sm border-2 border-slate-300 active:scale-95 transition">=</button>
+            
+            <!-- Tombol PROSES Rapih & Tidak Meluap -->
+            <button id="btnProses" onclick="openPaymentModal()" class="bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs sm:text-sm md:text-base font-black rounded-2xl p-2 md:p-3 shadow-lg uppercase tracking-tight border-b-4 border-emerald-900 active:scale-95 transition flex items-center justify-center text-center">
+              PROSES ➔
+            </button>
+          </div>
         </div>
 
-        <!-- Keypad Grid Kalkulator Touch-Friendly Tablet -->
-        <div class="grid grid-cols-4 gap-2.5 md:gap-3 flex-1 my-auto">
-          <!-- Baris 1 -->
-          <button onclick="pressNum('7')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition">7</button>
-          <button onclick="pressNum('8')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition">8</button>
-          <button onclick="pressNum('9')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition">9</button>
-          <button onclick="pressOp('/')" class="bg-amber-100 hover:bg-amber-200 active:bg-amber-300 text-amber-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-amber-200 active:scale-95 transition">÷</button>
-
-          <!-- Baris 2 -->
-          <button onclick="pressNum('4')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition">4</button>
-          <button onclick="pressNum('5')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition">5</button>
-          <button onclick="pressNum('6')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition">6</button>
-          <button onclick="pressOp('*')" class="bg-amber-100 hover:bg-amber-200 active:bg-amber-300 text-amber-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-amber-200 active:scale-95 transition">×</button>
-
-          <!-- Baris 3 -->
-          <button onclick="pressNum('1')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition">1</button>
-          <button onclick="pressNum('2')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition">2</button>
-          <button onclick="pressNum('3')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition">3</button>
-          <button onclick="pressOp('-')" class="bg-amber-100 hover:bg-amber-200 active:bg-amber-300 text-amber-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-amber-200 active:scale-95 transition">-</button>
-
-          <!-- Baris 4 -->
-          <button onclick="pressNum('0')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition">0</button>
-          <button onclick="press000()" class="bg-slate-200 hover:bg-slate-300 active:bg-slate-400 text-slate-900 text-xl md:text-2xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-300 active:scale-95 transition">000</button>
-          <button onclick="pressDot()" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition">.</button>
-          <button onclick="pressOp('+')" class="bg-amber-100 hover:bg-amber-200 active:bg-amber-300 text-amber-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-amber-200 active:scale-95 transition">+</button>
-
-          <!-- Baris 5 (Aksi: Clear, Backspace, Equals, Proses) -->
-          <button onclick="clearCalc()" class="bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white text-2xl md:text-3xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-md active:scale-95 transition" title="Clear All">C</button>
-          <button onclick="backspace()" class="bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white text-2xl md:text-3xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-md active:scale-95 transition" title="Hapus 1 Karakter">⌫</button>
-          <button onclick="calculateResult()" class="bg-slate-300 hover:bg-slate-400 active:bg-slate-500 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-300 active:scale-95 transition">=</button>
-          <button id="btnProses" onclick="openPaymentModal()" class="bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xl md:text-2xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-lg uppercase tracking-wider border-b-4 border-emerald-900 active:scale-95 transition">
-            PROSES ➔
-          </button>
-        </div>
       </div>
 
-      <!-- SEKSI 2: RIWAYAT TRANSAKSI (Kolom Kanan Tablet: col-span-5) -->
+      <!-- SEKSI 2: RIWAYAT TRANSAKSI -->
       <div id="secHistory" class="hidden lg:block lg:col-span-5 flex-1 flex flex-col gap-3">
         <!-- Summary Laci -->
         <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-4 md:p-5">
@@ -229,7 +236,6 @@
         <div id="modalNominal" class="text-4xl md:text-5xl font-black text-emerald-600 pt-2 tracking-tight">Rp 0</div>
       </div>
 
-      <!-- Opsi Pembayaran Ekstra Besar -->
       <div class="grid grid-cols-1 gap-3.5 pt-2">
         <button onclick="submitTransaction('cash')" class="w-full h-20 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black rounded-2xl md:rounded-3xl text-2xl shadow-xl flex items-center justify-center gap-3 cursor-pointer border-b-8 border-emerald-900 transition">
           💵 CASH
@@ -270,7 +276,6 @@
         <p class="text-[8px] mt-1.5 italic">*** Terima Kasih ***</p>
       </div>
 
-      <!-- Tombol Cetak Bluetooth Direct -->
       <div class="flex flex-col gap-2.5 no-print pt-3">
         <button onclick="triggerPrint()" class="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black text-base py-4 rounded-2xl shadow-lg cursor-pointer border-b-4 border-emerald-900 flex items-center justify-center gap-2 transition">
           🖨️ CETAK BLUETOOTH DIRECT
@@ -285,21 +290,18 @@
   <script>
     const WEBHOOK_URL = 'https://n8n-mzbmiib3etk4.kangkung.sumopod.my.id/webhook/0c2f335e-543b-4f3e-968e-f70d412f194b';
     
-    // State Kalkulator & Expression Tracking
-    let rawExpression = '0'; // Menyimpan input mentah (misal: '15 + 10')
+    // State Kalkulator
     let currentInput = '0';
     let formula = '';
     let isEvaluated = false;
     let finalCalculatedNominal = 0;
     let finalActionType = 'in';
 
-    // State Mode Capek (Mode Cepat x1000)
+    // State Mode Capek
     let isModeCapek = false;
 
-    // State Active Receipt Data untuk Direct Print
+    // State Receipt & Bluetooth
     let activeReceiptData = null;
-
-    // Cache Perangkat Bluetooth Printer
     let cachedBluetoothDevice = null;
 
     // State Laci & Session
@@ -335,7 +337,7 @@
       initBranchOptions();
     }
 
-    // Tentukan Nama Cabang Pengguna Berdasarkan config.js
+    // Tentukan Nama Cabang Pengguna Berdasarkan config.js[cite: 4]
     const currentBranchName = session.isOwner 
       ? 'Master Owner / All Branches' 
       : (typeof CONFIG !== 'undefined' ? CONFIG.getBranchName(session.akses) : `CABANG ${session.akses}`);
@@ -349,34 +351,69 @@
       return currentBranchName;
     }
 
-    // Event Handler saat Owner mengubah dropdown cabang
     function onOwnerBranchChange() {
       calculateLaciTotals();
       renderHistoryList();
     }
 
-    // Toggle Mode Capek (Atur Tema Visual & Status)
+    // Toggle Mode Capek (Ubah Warna Kalkulator jadi Gelap / Dark Mode)
     function toggleModeCapek() {
       isModeCapek = !isModeCapek;
       const btnCapek = document.getElementById('btnModeCapek');
+      const calcWrapper = document.getElementById('calcWrapper');
       const boxDisplay = document.getElementById('calcDisplayBox');
       const formulaDisplay = document.getElementById('calcFormula');
+      const numBtns = document.querySelectorAll('.btn-num');
+      const numSpecialBtns = document.querySelectorAll('.btn-num-special');
+      const opBtns = document.querySelectorAll('.btn-op');
+      const eqBtns = document.querySelectorAll('.btn-eq');
 
       if (isModeCapek) {
         btnCapek.className = 'bg-rose-600 hover:bg-rose-700 text-white text-xs md:text-sm px-3 py-1.5 md:py-2 rounded-xl border border-rose-500 font-bold cursor-pointer transition flex items-center gap-1 shadow-md';
         btnCapek.innerHTML = '<span>⚡</span> <span class="hidden sm:inline">mode capek (ON)</span><span class="sm:hidden">capek ON</span>';
         
-        boxDisplay.className = 'bg-amber-950 text-white rounded-3xl p-4 md:p-6 border-4 border-amber-600 shadow-2xl text-right flex flex-col justify-end min-h-[140px] md:min-h-[160px] transition-colors duration-300';
-        formulaDisplay.className = 'text-xl md:text-2xl font-black text-amber-400 min-h-[32px] overflow-x-auto tracking-wider mb-1 transition-colors duration-300';
+        // Mode Capek: Ubah Container Kalkulator Jadi GELAP (Slate-950)
+        calcWrapper.className = 'bg-slate-950 rounded-3xl p-3 md:p-4 border-2 border-amber-500 shadow-xl flex flex-col gap-3 transition-colors duration-300';
+        boxDisplay.className = 'bg-slate-900 text-white rounded-2xl p-4 md:p-5 border-2 border-amber-500/50 shadow-inner text-right flex flex-col justify-end min-h-[130px] md:min-h-[150px] transition-colors duration-300';
+        formulaDisplay.className = 'text-lg md:text-xl font-black text-amber-400 min-h-[28px] overflow-x-auto tracking-wider mb-1 transition-colors duration-300';
+
+        // Ubah warna tombol angka ke Gelap Kontras
+        numBtns.forEach(btn => {
+          btn.className = 'btn-num bg-slate-800 hover:bg-slate-700 active:bg-slate-600 text-white text-2xl md:text-3xl font-black rounded-2xl p-3.5 md:p-5 shadow-sm border border-slate-700 active:scale-95 transition';
+        });
+        numSpecialBtns.forEach(btn => {
+          btn.className = 'btn-num-special bg-slate-700 hover:bg-slate-600 active:bg-slate-500 text-amber-300 text-lg md:text-xl font-black rounded-2xl p-3.5 md:p-5 shadow-sm border border-slate-600 active:scale-95 transition';
+        });
+        opBtns.forEach(btn => {
+          btn.className = 'btn-op bg-amber-600 hover:bg-amber-500 active:bg-amber-700 text-white text-2xl md:text-3xl font-black rounded-2xl p-3.5 md:p-5 shadow-sm border border-amber-500 active:scale-95 transition';
+        });
+        eqBtns.forEach(btn => {
+          btn.className = 'btn-eq bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-slate-950 text-2xl md:text-3xl font-black rounded-2xl p-3 md:p-4 shadow-sm border border-amber-400 active:scale-95 transition';
+        });
+
       } else {
         btnCapek.className = 'bg-amber-500 hover:bg-amber-600 text-white text-xs md:text-sm px-3 py-1.5 md:py-2 rounded-xl border border-amber-400 font-bold cursor-pointer transition flex items-center gap-1 shadow-sm';
         btnCapek.innerHTML = '<span>⚡</span> <span class="hidden sm:inline">mode capek</span><span class="sm:hidden">capek</span>';
         
-        boxDisplay.className = 'bg-slate-900 text-white rounded-3xl p-4 md:p-6 border-4 border-slate-700 shadow-2xl text-right flex flex-col justify-end min-h-[140px] md:min-h-[160px] transition-colors duration-300';
-        formulaDisplay.className = 'text-xl md:text-2xl font-black text-emerald-400 min-h-[32px] overflow-x-auto tracking-wider mb-1 transition-colors duration-300';
+        // Mode Normal: Kembalikan Tampilan Terang
+        calcWrapper.className = 'bg-white rounded-3xl p-3 md:p-4 border border-slate-200 shadow-sm flex flex-col gap-3 transition-colors duration-300';
+        boxDisplay.className = 'bg-slate-900 text-white rounded-2xl p-4 md:p-5 border-4 border-slate-700 shadow-inner text-right flex flex-col justify-end min-h-[130px] md:min-h-[150px] transition-colors duration-300';
+        formulaDisplay.className = 'text-lg md:text-xl font-black text-emerald-400 min-h-[28px] overflow-x-auto tracking-wider mb-1 transition-colors duration-300';
+
+        numBtns.forEach(btn => {
+          btn.className = 'btn-num bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-2xl md:text-3xl font-black rounded-2xl p-3.5 md:p-5 shadow-sm border-2 border-slate-200 active:scale-95 transition';
+        });
+        numSpecialBtns.forEach(btn => {
+          btn.className = 'btn-num-special bg-slate-200 hover:bg-slate-300 active:bg-slate-400 text-slate-900 text-lg md:text-xl font-black rounded-2xl p-3.5 md:p-5 shadow-sm border-2 border-slate-300 active:scale-95 transition';
+        });
+        opBtns.forEach(btn => {
+          btn.className = 'btn-op bg-amber-100 hover:bg-amber-200 active:bg-amber-300 text-amber-900 text-2xl md:text-3xl font-black rounded-2xl p-3.5 md:p-5 shadow-sm border-2 border-amber-200 active:scale-95 transition';
+        });
+        eqBtns.forEach(btn => {
+          btn.className = 'btn-eq bg-slate-300 hover:bg-slate-400 active:bg-slate-500 text-slate-900 text-2xl md:text-3xl font-black rounded-2xl p-3 md:p-4 shadow-sm border-2 border-slate-300 active:scale-95 transition';
+        });
       }
 
-      // Re-evaluasi atau reset display saat mode berubah
       clearCalc();
     }
 
@@ -404,30 +441,8 @@
 
     // LOGIKA KALKULATOR
     function updateDisplay() {
-      // Hitung formula riil berdasarkan input mentah & mode capek
-      const realFormula = getRealFormula();
-      
-      document.getElementById('calcFormula').innerText = realFormula || '0';
-      document.getElementById('calcDisplay').innerText = formatDisplayNumber(getRealCurrentDisplay());
-    }
-
-    // Helper untuk mengolah formula nyata (mengalikan 1000 setiap token angka jika mode capek aktif)
-    function getRealFormula() {
-      if (!formula) return '0';
-      if (!isModeCapek) return formula;
-
-      return formula.replace(/(\d+(\.\d+)?)/g, (match) => {
-        return String(Number(match) * 1000);
-      });
-    }
-
-    function getRealCurrentDisplay() {
-      if (currentInput === '-' || currentInput === '' || currentInput === 'Error') return currentInput;
-      if (!isModeCapek) return currentInput;
-      
-      const num = Number(currentInput);
-      if (isNaN(num)) return currentInput;
-      return String(num * 1000);
+      document.getElementById('calcFormula').innerText = formula || '0';
+      document.getElementById('calcDisplay').innerText = formatDisplayNumber(currentInput);
     }
 
     function formatDisplayNumber(str) {
@@ -438,14 +453,24 @@
     }
 
     function pressNum(num) {
+      let appendVal = num;
+      // Pada mode capek: input angka pertama langsung dikali 1000 (tambah '000')
+      if (isModeCapek && (currentInput === '0' || isEvaluated)) {
+        appendVal = num + '000';
+      }
+
       if (isEvaluated) {
-        currentInput = num;
-        formula = num;
+        currentInput = appendVal;
+        formula = appendVal;
         isEvaluated = false;
       } else {
-        if (currentInput === '0') currentInput = num;
-        else currentInput += num;
-        formula += num;
+        if (currentInput === '0') {
+          currentInput = appendVal;
+          formula = appendVal;
+        } else {
+          currentInput += num;
+          formula += num;
+        }
       }
       updateDisplay();
     }
@@ -472,6 +497,7 @@
       }
     }
 
+    // Operasi Matematika Standar (x1000 dimatikan saat operasi matematika agar nilainya riil)
     function pressOp(op) {
       if (isEvaluated) isEvaluated = false;
       
@@ -483,7 +509,7 @@
       } else if (formula !== '') {
         formula += ' ' + op + ' ';
       }
-      currentInput = '';
+      currentInput = '0';
       updateDisplay();
     }
 
@@ -494,7 +520,6 @@
       updateDisplay();
     }
 
-    // FUNGSI BACKSPACE: Hapus 1 Karakter per Tap
     function backspace() {
       if (isEvaluated) {
         clearCalc();
@@ -526,28 +551,19 @@
     }
 
     function calculateResult() {
-      const targetFormula = getRealFormula();
-      if (!targetFormula || targetFormula === '0') return 0;
+      if (!formula || formula === '0') return 0;
 
       try {
-        let sanitized = targetFormula.replace(/[^0-9+\-*/.]/g, '');
+        let sanitized = formula.replace(/[^0-9+\-*/.]/g, '');
         let res = eval(sanitized);
         
         if (res === undefined || isNaN(res)) res = 0;
         
-        // Simpan hasil riil
         currentInput = String(res);
         formula = String(res);
         isEvaluated = true;
         
-        // Saat mode capek aktif, reset ke mode tampilan normal hasil akhir
-        if (isModeCapek) {
-          document.getElementById('calcDisplay').innerText = formatDisplayNumber(res);
-          document.getElementById('calcFormula').innerText = String(res);
-        } else {
-          updateDisplay();
-        }
-
+        updateDisplay();
         return res;
       } catch (e) {
         currentInput = 'Error';
@@ -602,7 +618,6 @@
         cabang: targetBranch
       };
 
-      // Tampilkan Struk & Panggil Direct Print Web Bluetooth
       openReceiptModal(finalCalculatedNominal, method, finalActionType === 'in', session.user, targetBranch, new Date());
       setTimeout(() => { triggerPrint(); }, 200);
 
@@ -618,7 +633,7 @@
       }
     }
 
-    // LOGIKA STRUK & DIRECT PRINT WEB BLUETOOTH
+    // STRUK & DIRECT PRINT WEB BLUETOOTH
     function openReceiptModal(nominal, method, isMoneyIn, kasir, cabang, date) {
       const formattedNominal = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(nominal);
       const formattedDate = new Date(date || Date.now()).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' }) + ' WIB';
@@ -761,18 +776,16 @@
       calculateLaciTotals();
     }
 
-    // Perhitungan Laci Kasir dengan Penyaringan Cabang Presisi (Owner / User Kasir)
+    // Perhitungan Laci Kasir Presisi
     function calculateLaciTotals() {
       const now = new Date();
       let listIn = (globalRawData.money_in || []);
       let listOut = (globalRawData.money_out || []);
 
-      // Tentukan cabang aktif yang menjadi acuan filter
       const activeFilterBranch = session.isOwner 
         ? document.getElementById('selectBranch').value 
         : currentBranchName;
 
-      // Filter presisi berdasarkan nama cabang
       listIn = listIn.filter(i => String(i.CABANG || '').trim().toUpperCase() === String(activeFilterBranch || '').trim().toUpperCase());
       listOut = listOut.filter(o => String(o.CABANG || '').trim().toUpperCase() === String(activeFilterBranch || '').trim().toUpperCase());
 
@@ -809,14 +822,13 @@
       document.getElementById('valTotalNet').innerText = formatCurrency(totalNet);
     }
 
-    // Render Riwayat dengan Penyaringan Cabang Presisi (Owner / User Kasir)
+    // Render Riwayat Presisi
     function renderHistoryList() {
       const container = document.getElementById('historyList');
       let listIn = (globalRawData.money_in || []).map(i => ({ ...i, type: 'IN' }));
       let listOut = (globalRawData.money_out || []).map(o => ({ ...o, type: 'OUT' }));
       let all = [...listIn, ...listOut];
 
-      // Tentukan cabang aktif yang menjadi acuan filter
       const activeFilterBranch = session.isOwner 
         ? document.getElementById('selectBranch').value 
         : currentBranchName;
@@ -868,7 +880,6 @@
       window.location.href = 'index.html';
     }
 
-    // Otomatis muat data awal
     loadDashboardData();
   </script>
 </body>
