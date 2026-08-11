@@ -12,6 +12,23 @@
 </head>
 <body class="bg-slate-100 min-h-screen pb-10">
 
+  <!-- TRAY NOTIFIKASI PALING ATAS -->
+  <div id="notificationTray" class="fixed top-0 left-0 right-0 z-50 p-4 transition-all duration-500 transform -translate-y-full opacity-0 pointer-events-none">
+    <div class="max-w-4xl mx-auto bg-slate-900 text-white p-4 rounded-2xl shadow-2xl border border-slate-700 flex items-start justify-between space-x-3 pointer-events-auto">
+      <div class="flex items-start space-x-3">
+        <span class="text-2xl animate-bounce" id="trayIcon">🔔</span>
+        <div>
+          <h4 class="font-bold text-sm text-emerald-400" id="trayTitle">Notifikasi Transaksi Baru</h4>
+          <p class="text-xs text-slate-200 mt-0.5" id="trayMessage">Ada transaksi masuk dari kasir.</p>
+          <p class="text-[10px] text-slate-400 mt-1" id="trayTime">-</p>
+        </div>
+      </div>
+      <button onclick="hideTray()" class="text-slate-400 hover:text-white text-sm font-bold px-2 py-1 bg-slate-800 rounded-lg border border-slate-700">
+        ✕
+      </button>
+    </div>
+  </div>
+
   <nav class="bg-emerald-700 text-white shadow-md sticky top-0 z-30">
     <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
       <div>
@@ -173,27 +190,15 @@
       alert('Akses khusus Owner!');
       window.location.href = 'kasir.html';
     } else {
-      // Tampilkan info user pada header
       document.getElementById('userInfo').innerText = `Owner Panel (${currentUserId.toUpperCase()})`;
     }
 
-    async function loadMasterData() {
-      try {
-        const res = await fetch(WEBHOOK_URL, {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({ action: 'get_data' })
-        });
-        const resData = await res.json();
-        const raw = Array.isArray(resData) ? resData[0] : resData;
+    // Variabel penampung state transaksi terbaru
+    let lastKnownInId = null;
+    let lastKnownOutId = null;
+    let trayTimeout = null;
 
-        if (raw && raw.success) {
-          processOmsetAndBranch(raw.data);
-        }
-      } catch (err) {
-        console.error('Gagal mengambil data:', err);
-      }
-    }
+    const fmt = (v) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(v);
 
     function parseBranchName(rawCabang) {
       if (!rawCabang) return "Cabang Tidak Terdaftar";
@@ -209,12 +214,114 @@
       return rawCabang;
     }
 
+    // Load Keseluruhan Data Pertama Kali (Inisialisasi)
+    async function loadMasterData() {
+      try {
+        const res = await fetch(WEBHOOK_URL, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ action: 'get_data' })
+        });
+        const resData = await res.json();
+        const raw = Array.isArray(resData) ? resData[0] : resData;
+
+        if (raw && raw.success) {
+          processOmsetAndBranch(raw.data);
+          
+          // Simpan state transaksi terakhir
+          if (raw.data.money_in && raw.data.money_in.length > 0) {
+            lastKnownInId = raw.data.money_in[raw.data.money_in.length - 1].id || raw.data.money_in[raw.data.money_in.length - 1].createdAt;
+          }
+          if (raw.data.money_out && raw.data.money_out.length > 0) {
+            lastKnownOutId = raw.data.money_out[raw.data.money_out.length - 1].id || raw.data.money_out[raw.data.money_out.length - 1].createdAt;
+          }
+        }
+      } catch (err) {
+        console.error('Gagal mengambil data:', err);
+      }
+    }
+
+    // Auto Polling 15 Detik (Hanya 10 Data Terbaru IN & OUT)
+    async function checkRecentTransactions() {
+      try {
+        const res = await fetch(WEBHOOK_URL, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ action: 'get_recent_data' })
+        });
+        const resData = await res.json();
+        const raw = Array.isArray(resData) ? resData[0] : resData;
+
+        if (raw && raw.success && raw.data) {
+          const recentIn = raw.data.recent_in || [];
+          const recentOut = raw.data.recent_out || [];
+
+          // Cek Uang Masuk Baru
+          if (recentIn.length > 0) {
+            const latestIn = recentIn[0]; // Data paling atas/terbaru
+            const currentInId = latestIn.id || latestIn.createdAt;
+            
+            if (lastKnownInId && currentInId !== lastKnownInId) {
+              const branchFormatted = parseBranchName(latestIn.CABANG);
+              const nominalFmt = fmt(latestIn.NOMINAL || 0);
+              const kasir = latestIn.KASIR || 'Kasir';
+              const metode = latestIn.TRANSAKSI || 'Cash';
+              
+              showTray('🟢 Uang Masuk Baru!', `${kasir} di ${branchFormatted} mencatat transaksi ${metode} sebesar ${nominalFmt}`, '💵');
+              loadMasterData(); // Update tampilan omset & performa
+            }
+            lastKnownInId = currentInId;
+          }
+
+          // Cek Uang Keluar Baru
+          if (recentOut.length > 0) {
+            const latestOut = recentOut[0];
+            const currentOutId = latestOut.id || latestOut.createdAt;
+
+            if (lastKnownOutId && currentOutId !== lastKnownOutId) {
+              const branchFormatted = parseBranchName(latestOut.CABANG);
+              const nominalFmt = fmt(latestOut.NOMINAL || 0);
+              const kasir = latestOut.KASIR || 'Kasir';
+
+              showTray('🔴 Uang Keluar Baru!', `${kasir} di ${branchFormatted} mencatat pengeluaran sebesar ${nominalFmt}`, '💸');
+              loadMasterData(); // Update tampilan omset & performa
+            }
+            lastKnownOutId = currentOutId;
+          }
+        }
+      } catch (err) {
+        console.error('Gagal polling recent data:', err);
+      }
+    }
+
+    // Fungsi Pengendali Tray Notifikasi
+    function showTray(title, message, icon = '🔔') {
+      const tray = document.getElementById('notificationTray');
+      document.getElementById('trayTitle').innerText = title;
+      document.getElementById('trayMessage').innerText = message;
+      document.getElementById('trayIcon').innerText = icon;
+      document.getElementById('trayTime').innerText = `Waktu: ${new Date().toLocaleTimeString('id-ID')} WIB`;
+
+      tray.classList.remove('-translate-y-full', 'opacity-0', 'pointer-events-none');
+      tray.classList.add('translate-y-0', 'opacity-100');
+
+      if (trayTimeout) clearTimeout(trayTimeout);
+      trayTimeout = setTimeout(() => {
+        hideTray();
+      }, 7000); // Otomatis hilang setelah 7 detik
+    }
+
+    function hideTray() {
+      const tray = document.getElementById('notificationTray');
+      tray.classList.remove('translate-y-0', 'opacity-100');
+      tray.classList.add('-translate-y-full', 'opacity-0', 'pointer-events-none');
+    }
+
     function processOmsetAndBranch(data) {
       const now = new Date();
       const listIn = data.money_in || [];
       const listOut = data.money_out || [];
 
-      // Struktur data penampung omset terbagi
       const stats = {
         hariIni: { total: 0, trx: 0, cash: 0, qris: 0, transfer: 0 },
         mingguIni: { total: 0, trx: 0, cash: 0, qris: 0, transfer: 0 },
@@ -249,8 +356,6 @@
         }
       });
 
-      const fmt = (v) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(v);
-
       // Render Omset Hari Ini
       document.getElementById('omsetHariIni').innerText = fmt(stats.hariIni.total);
       document.getElementById('trxHariIni').innerText = `${stats.hariIni.trx} Trx`;
@@ -272,7 +377,7 @@
       document.getElementById('qrisBulanIni').innerText = fmt(stats.bulanIni.qris);
       document.getElementById('transferBulanIni').innerText = fmt(stats.bulanIni.transfer);
 
-      // Perhitungan Rekap Performa Cabang (Mapping Nama Cabang via CONFIG)
+      // Perhitungan Performa Cabang (MENGGUNAKAN NAMA CABANG CONFIG)
       const branchStats = {};
 
       listIn.forEach(i => {
@@ -317,7 +422,11 @@
       window.location.href = 'index.html';
     }
 
+    // Inisialisasi awal
     loadMasterData();
+
+    // Jalankan timer polling 15 detik sekali
+    setInterval(checkRecentTransactions, 15000);
   </script>
 </body>
 </html>
