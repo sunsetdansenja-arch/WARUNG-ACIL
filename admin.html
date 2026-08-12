@@ -211,9 +211,15 @@
 
         let waktuRaw = data.createdAt || data.WAKTU || data.waktu || data.created_at;
         let waktu = "-";
-        if (waktuRaw) {
-          const d = new Date(waktuRaw);
-          waktu = isNaN(d.getTime()) ? waktuRaw : d.toLocaleString("id-ID", { timeZone: "Asia/Jakarta" }) + " WIB";
+        let dateObj = new Date(waktuRaw);
+        
+        if (waktuRaw && !isNaN(dateObj.getTime())) {
+          waktu = dateObj.toLocaleString("id-ID", { timeZone: "Asia/Jakarta" }) + " WIB";
+        } else if (waktuRaw) {
+          waktu = waktuRaw;
+          dateObj = new Date();
+        } else {
+          dateObj = new Date();
         }
 
         const rawCabang = data.CABANG || data.cabang || "1";
@@ -228,7 +234,7 @@
         const kasir = data.KASIR || data["NAMA KASIR"] || data.kasir || "-";
         const id = data.id || data.ID || data.row_id || `TRX-${defaultType}-${idx + 1}`;
 
-        return { id, waktu, cabang: cabangCode, tipe: defaultType, nominal, transaksi, kasir };
+        return { id, rawDate: dateObj, waktu, cabang: cabangCode, tipe: defaultType, nominal, transaksi, kasir };
       };
 
       const validIn = moneyIn.map((item, idx) => normalizeItem(item, 'in', idx)).filter(item => item.nominal > 0 || item.kasir !== "-");
@@ -261,7 +267,8 @@
         const { moneyIn, moneyOut } = parseN8nResponse(rawJson);
 
         rawData = [...moneyIn, ...moneyOut];
-        rawData.sort((a, b) => new Date(b.waktu) - new Date(a.waktu));
+        // Pengurutan akurat menggunakan ISO/Object Date asli
+        rawData.sort((a, b) => new Date(b.rawDate) - new Date(a.rawDate));
         
         if (currentTab === 'active') renderTable(rawData);
         else switchTab(currentTab);
