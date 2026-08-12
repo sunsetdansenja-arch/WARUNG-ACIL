@@ -519,57 +519,12 @@
       return num;
     }
 
+    // Menghitung total keseluruhan matematis, menghapus riwayat ekspresi, 
+    // dan menyisakan total akhir agar dapat langsung dioperasikan matematika kembali
     function calculateResult() {
       if (inputTokens.length === 0) return 0;
 
-      let tokens = [...inputTokens];
-
-      // Step 1: Normalisasi Token Angka
-      let evaluatedTokens = [];
-      let lastOp = null;
-
-      for (let i = 0; i < tokens.length; i++) {
-        let t = tokens[i];
-        if (['+', '-', '*', '/'].includes(t)) {
-          lastOp = t;
-          evaluatedTokens.push(t);
-        } else {
-          evaluatedTokens.push(processTokenValue(t, lastOp));
-        }
-      }
-
-      // Step 2: Operasi Perkalian & Pembagian
-      let pass1 = [];
-      let i = 0;
-      while (i < evaluatedTokens.length) {
-        let item = evaluatedTokens[i];
-        if (item === '*' || item === '/') {
-          let prevNum = pass1.pop();
-          let nextNum = evaluatedTokens[i + 1];
-          if (nextNum !== undefined && typeof nextNum === 'number') {
-            let res = item === '*' ? prevNum * nextNum : (nextNum !== 0 ? prevNum / nextNum : 0);
-            pass1.push(res);
-            i += 2;
-          } else {
-            pass1.push(prevNum);
-            i++;
-          }
-        } else {
-          pass1.push(item);
-          i++;
-        }
-      }
-
-      // Step 3: Operasi Penjumlahan & Pengurangan
-      let total = typeof pass1[0] === 'number' ? pass1[0] : 0;
-      for (let j = 1; j < pass1.length; j += 2) {
-        let op = pass1[j];
-        let val = pass1[j + 1];
-        if (typeof val === 'number') {
-          if (op === '+') total += val;
-          if (op === '-') total -= val;
-        }
-      }
+      let total = calculateDisplayVal();
 
       isEvaluated = true;
       inputTokens = [String(total)];
