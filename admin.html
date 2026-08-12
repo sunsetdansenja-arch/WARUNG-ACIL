@@ -14,12 +14,10 @@
 <body class="bg-slate-100 min-h-screen text-slate-800 font-sans pb-10">
 
   <!-- Header -->
-  <header class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center shadow-md sticky top-0 z-30">
+  <header class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center shadow-md">
     <div>
-      <h1 class="text-xl font-bold flex items-center gap-2">
-        <i class="fa-solid fa-user-shield text-amber-400"></i> Warung Acil - Admin Control
-      </h1>
-      <p class="text-xs text-slate-400">Edit, Log Audit & Control Data Transaksi Multi-Cabang</p>
+      <h1 class="text-xl font-bold">Warung Acil - Admin Control</h1>
+      <p class="text-xs text-slate-400">Edit, Log Audit & Data Hapus Transaksi</p>
     </div>
     <div class="flex items-center space-x-3">
       <button onclick="fetchData()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs px-3 py-2 rounded-lg border border-slate-700 transition cursor-pointer">
@@ -33,133 +31,57 @@
 
   <main class="max-w-7xl mx-auto p-6 space-y-6">
 
-    <!-- Summary Metrics Header -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
-        <div>
-          <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Masuk (Filtered)</p>
-          <h4 class="text-lg font-black text-emerald-600 mt-0.5" id="kpiTotalIn">Rp 0</h4>
-        </div>
-        <div class="p-3 bg-emerald-50 text-emerald-600 rounded-xl text-xl">
-          <i class="fa-solid fa-arrow-down-left"></i>
-        </div>
-      </div>
-
-      <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
-        <div>
-          <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Keluar (Filtered)</p>
-          <h4 class="text-lg font-black text-rose-600 mt-0.5" id="kpiTotalOut">Rp 0</h4>
-        </div>
-        <div class="p-3 bg-rose-50 text-rose-600 rounded-xl text-xl">
-          <i class="fa-solid fa-arrow-up-right"></i>
-        </div>
-      </div>
-
-      <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
-        <div>
-          <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Net Clean (Filtered)</p>
-          <h4 class="text-lg font-black text-indigo-600 mt-0.5" id="kpiNetTotal">Rp 0</h4>
-        </div>
-        <div class="p-3 bg-indigo-50 text-indigo-600 rounded-xl text-xl">
-          <i class="fa-solid fa-scale-balanced"></i>
-        </div>
-      </div>
-    </div>
-
-    <!-- Multi Control Filter Section -->
-    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-3">
-      <div class="flex items-center justify-between border-b pb-2">
-        <h2 class="text-xs font-bold text-slate-500 tracking-wider uppercase flex items-center gap-1.5">
-          <i class="fa-solid fa-filter"></i> Filter & Navigasi Presisi
-        </h2>
-        <span class="text-xs text-slate-400 font-medium" id="recordCountLabel">0 Data Ditemukan</span>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
-        <!-- Search Input -->
-        <input type="text" id="searchInput" oninput="applyFilter()" placeholder="Cari Kasir / Cabang / Nominal..." class="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-800">
+    <!-- Filter Section -->
+    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+      <h2 class="text-xs font-bold text-slate-500 tracking-wider uppercase mb-3">
+        <i class="fa-solid fa-magnifying-glass mr-1"></i> Filter Pencarian Transaksi
+      </h2>
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+        <input type="text" id="searchInput" placeholder="Cari Kasir / Nominal / Transaksi / Cabang..." class="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-800">
         
-        <!-- Filter Periode Tanggal -->
-        <select id="periodFilter" onchange="handlePeriodChange()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-800 font-semibold text-slate-700">
-          <option value="today" selected>📅 Hari Ini</option>
-          <option value="7d">🗓️ 7 Hari Terakhir</option>
-          <option value="this_month">📆 Bulan Ini</option>
-          <option value="all">♾️ Semua Data</option>
-          <option value="custom">⚙️ Custom Tanggal...</option>
-        </select>
-
         <!-- Filter Cabang Dinamis dari CONFIG.BRANCHES -->
-        <select id="branchFilter" onchange="applyFilter()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-800">
+        <select id="branchFilter" class="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-800">
           <option value="">Semua Cabang</option>
         </select>
 
-        <!-- Filter Tipe Transaksi -->
-        <select id="typeFilter" onchange="applyFilter()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-800">
-          <option value="">Semua Tipe (IN & OUT)</option>
+        <select id="typeFilter" class="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-800">
+          <option value="">Semua Tipe</option>
           <option value="in">Uang Masuk (IN)</option>
           <option value="out">Uang Keluar (OUT)</option>
         </select>
-
-        <!-- Dynamic Reset Button -->
-        <button onclick="resetFilters()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold rounded-lg px-4 py-2 transition cursor-pointer border border-slate-300">
-          <i class="fa-solid fa-rotate-left mr-1"></i> Reset Filter
+        
+        <button onclick="applyFilter()" class="bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold rounded-lg px-4 py-2 transition cursor-pointer">
+          Terapkan Filter
         </button>
-      </div>
-
-      <!-- Custom Date Range Inputs (Hidden Default) -->
-      <div id="customDateRange" class="hidden grid-cols-1 md:grid-cols-2 gap-3 pt-2 border-t">
-        <div>
-          <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Dari Tanggal</label>
-          <input type="date" id="startDate" onchange="applyFilter()" class="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-slate-800">
-        </div>
-        <div>
-          <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Sampai Tanggal</label>
-          <input type="date" id="endDate" onchange="applyFilter()" class="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-slate-800">
-        </div>
       </div>
     </div>
 
     <!-- Navigation Tabs -->
     <div class="border-b border-slate-300 flex space-x-6">
       <button onclick="switchTab('active')" id="tabActive" class="pb-2 font-semibold text-slate-900 border-b-2 border-slate-900 text-sm cursor-pointer">
-        Daftar Transaksi Aktif
+        Edit Transaksi
       </button>
       <button onclick="switchTab('logs')" id="tabLogs" class="pb-2 font-semibold text-slate-400 hover:text-slate-600 text-sm cursor-pointer">
-        Log Perubahan (Audit)
+        Log Perubahan
       </button>
       <button onclick="switchTab('deleted')" id="tabDeleted" class="pb-2 font-semibold text-slate-400 hover:text-slate-600 text-sm cursor-pointer">
-        Data Dihapus (Nominal 0)
+        Data Dihapus
       </button>
     </div>
 
-    <!-- Table Container & Pagination -->
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden p-5 space-y-4">
+    <!-- Table Container -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden p-5">
+      <h3 id="tableTitle" class="font-bold text-slate-700 mb-4 text-base">Daftar Transaksi Aktif</h3>
       
-      <!-- Top Table Controls -->
-      <div class="flex flex-wrap justify-between items-center gap-3">
-        <h3 id="tableTitle" class="font-bold text-slate-800 text-base">Daftar Transaksi Aktif</h3>
-        
-        <div class="flex items-center space-x-2 text-xs font-semibold text-slate-600">
-          <span>Tampilkan:</span>
-          <select id="pageSizeSelect" onchange="changePageSize()" class="border border-slate-300 rounded-lg px-2 py-1 outline-none">
-            <option value="10">10 Baris</option>
-            <option value="25" selected>25 Baris</option>
-            <option value="50">50 Baris</option>
-            <option value="100">100 Baris</option>
-          </select>
-        </div>
-      </div>
-      
-      <!-- Table Scrollable Body with Fixed Header -->
-      <div class="overflow-x-auto max-h-[550px] overflow-y-auto border border-slate-200 rounded-xl">
-        <table class="w-full text-left text-sm relative border-collapse">
-          <thead class="bg-slate-100 sticky top-0 z-10 border-b border-slate-200 text-slate-700 font-bold">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm">
+          <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
             <tr>
               <th class="py-3 px-4">Waktu</th>
               <th class="py-3 px-4">Cabang</th>
               <th class="py-3 px-4">Tipe</th>
               <th class="py-3 px-4">Nominal</th>
-              <th class="py-3 px-4">Metode / Catatan</th>
+              <th class="py-3 px-4">Metode Transaksi</th>
               <th class="py-3 px-4">Kasir</th>
               <th class="py-3 px-4 text-center">Aksi</th>
             </tr>
@@ -173,15 +95,6 @@
           </tbody>
         </table>
       </div>
-
-      <!-- Pagination Footer Control -->
-      <div class="flex flex-wrap justify-between items-center pt-2 border-t text-xs font-medium text-slate-500">
-        <span id="paginationInfo">Menampilkan 0 - 0 dari 0 data</span>
-        <div class="flex items-center space-x-1" id="paginationButtons">
-          <!-- Tombol halaman di-render via JS -->
-        </div>
-      </div>
-
     </div>
 
   </main>
@@ -205,7 +118,7 @@
         </div>
 
         <div>
-          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Metode Pembayaran / Keterangan</label>
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Metode Pembayaran</label>
           <select id="editTransaksi" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-slate-800 outline-none uppercase font-semibold text-slate-700">
             <option value="cash">💵 CASH</option>
             <option value="qris">📱 QRIS</option>
@@ -216,7 +129,7 @@
         <div>
           <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Cabang</label>
           <select id="editCabang" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-slate-800 outline-none font-semibold text-slate-700">
-            <!-- Pilihan Cabang diisi dinamis via JS dari CONFIG.BRANCHES -->
+            <!-- Pilihan Cabang diisi via JS dari CONFIG -->
           </select>
         </div>
 
@@ -234,16 +147,11 @@
       : "https://n8n-mzbmiib3etk4.kangkung.sumopod.my.id/webhook/0c2f335e-543b-4f3e-968e-f70d412f194b";
 
     let rawData = [];
-    let filteredData = [];
     let logChanges = [];
     let deletedData = [];
     let currentTab = 'active';
 
-    // Pagination State
-    let currentPage = 1;
-    let pageSize = 25;
-
-    // Helper Penamaan Cabang Konsisten dari CONFIG
+    // Helper Penamaan Cabang Konsisten
     function getBranchName(code) {
       if (typeof CONFIG !== 'undefined' && CONFIG.getBranchName) {
         return CONFIG.getBranchName(code);
@@ -256,7 +164,7 @@
       fetchData();
     });
 
-    // Mengisi Dropdown Cabang di Filter dan Modal Edit dari CONFIG.BRANCHES
+    // Inisialisasi Opsi Cabang dari CONFIG.BRANCHES
     function initBranchOptions() {
       const filterSelect = document.getElementById("branchFilter");
       const editSelect = document.getElementById("editCabang");
@@ -264,7 +172,9 @@
       filterSelect.innerHTML = '<option value="">Semua Cabang</option>';
       editSelect.innerHTML = '';
 
-      const branches = (typeof CONFIG !== 'undefined' && CONFIG.BRANCHES) ? CONFIG.BRANCHES : {};
+      const branches = (typeof CONFIG !== 'undefined' && CONFIG.BRANCHES) 
+        ? CONFIG.BRANCHES 
+        : {'1': 'WARUNG ACIL - BJM 1', '2': 'WARUNG ACIL - BJM 2', '3': 'WARUNG ACIL - BJM 3', '4': 'WARUNG ACIL - BJB 1', '5': 'WARUNG ACIL - BJB 2', '6': 'WARUNG ACIL - MTP 1'};
 
       Object.keys(branches).forEach(code => {
         const branchName = branches[code];
@@ -301,15 +211,9 @@
 
         let waktuRaw = data.createdAt || data.WAKTU || data.waktu || data.created_at;
         let waktu = "-";
-        let dateObj = new Date(waktuRaw);
-        
-        if (waktuRaw && !isNaN(dateObj.getTime())) {
-          waktu = dateObj.toLocaleString("id-ID", { timeZone: "Asia/Jakarta" }) + " WIB";
-        } else if (waktuRaw) {
-          waktu = waktuRaw;
-          dateObj = new Date();
-        } else {
-          dateObj = new Date();
+        if (waktuRaw) {
+          const d = new Date(waktuRaw);
+          waktu = isNaN(d.getTime()) ? waktuRaw : d.toLocaleString("id-ID", { timeZone: "Asia/Jakarta" }) + " WIB";
         }
 
         const rawCabang = data.CABANG || data.cabang || "1";
@@ -324,13 +228,13 @@
         const kasir = data.KASIR || data["NAMA KASIR"] || data.kasir || "-";
         const id = data.id || data.ID || data.row_id || `TRX-${defaultType}-${idx + 1}`;
 
-        return { id, rawDate: dateObj, waktu, cabang: cabangCode, tipe: defaultType, nominal, transaksi, kasir };
+        return { id, waktu, cabang: cabangCode, tipe: defaultType, nominal, transaksi, kasir };
       };
 
-      return { 
-        moneyIn: moneyIn.map((item, idx) => normalizeItem(item, 'in', idx)), 
-        moneyOut: moneyOut.map((item, idx) => normalizeItem(item, 'out', idx)) 
-      };
+      const validIn = moneyIn.map((item, idx) => normalizeItem(item, 'in', idx)).filter(item => item.nominal > 0 || item.kasir !== "-");
+      const validOut = moneyOut.map((item, idx) => normalizeItem(item, 'out', idx)).filter(item => item.nominal > 0 || item.kasir !== "-");
+
+      return { moneyIn: validIn, moneyOut: validOut };
     }
 
     async function fetchData() {
@@ -349,146 +253,56 @@
           body: JSON.stringify({ action: "get_data" })
         });
 
-        if (!response.ok) throw new Error(`HTTP Error ${response.status}`);
+        if (!response.ok) {
+          throw new Error(`HTTP Error ${response.status}: ${response.statusText}`);
+        }
 
         const rawJson = await response.json();
         const { moneyIn, moneyOut } = parseN8nResponse(rawJson);
 
-        const allParsed = [...moneyIn, ...moneyOut];
-        allParsed.sort((a, b) => new Date(b.rawDate) - new Date(a.rawDate));
-
-        // Separasi data aktif dan data terhapus (nominal 0)
-        rawData = allParsed.filter(i => i.nominal > 0 || i.kasir !== "-");
-        deletedData = allParsed.filter(i => i.nominal === 0);
-
-        applyFilter();
+        rawData = [...moneyIn, ...moneyOut];
+        rawData.sort((a, b) => new Date(b.waktu) - new Date(a.waktu));
+        
+        if (currentTab === 'active') renderTable(rawData);
+        else switchTab(currentTab);
 
       } catch (error) {
         console.error("Fetch error:", error);
         tbody.innerHTML = `
           <tr>
             <td colspan="7" class="text-center py-8 text-rose-600">
-              <div class="font-bold text-base mb-1"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Gagal Memuat Data</div>
-              <div class="text-xs text-slate-500 font-mono">${error.message}</div>
+              <div class="font-bold text-base mb-1">
+                <i class="fa-solid fa-triangle-exclamation mr-1"></i> Gagal Memuat Data
+              </div>
+              <div class="text-xs text-slate-500 font-mono mt-1">${error.message}</div>
             </td>
           </tr>`;
       }
     }
 
-    function handlePeriodChange() {
-      const val = document.getElementById("periodFilter").value;
-      const customDiv = document.getElementById("customDateRange");
-
-      if (val === "custom") {
-        customDiv.classList.remove("hidden");
-        customDiv.classList.add("grid");
-      } else {
-        customDiv.classList.add("hidden");
-        customDiv.classList.remove("grid");
-      }
-
-      applyFilter();
-    }
-
-    function applyFilter() {
-      const search = document.getElementById("searchInput").value.toLowerCase();
-      const period = document.getElementById("periodFilter").value;
-      const branch = document.getElementById("branchFilter").value;
-      const type = document.getElementById("typeFilter").value;
-
-      const now = new Date();
-      let targetDataSet = currentTab === 'active' ? rawData : (currentTab === 'logs' ? logChanges : deletedData);
-
-      filteredData = targetDataSet.filter(item => {
-        // Search Filter (mencocokkan nama cabang juga)
-        const branchNameText = getBranchName(item.cabang).toLowerCase();
-        const matchSearch = item.kasir.toLowerCase().includes(search) || 
-                            item.nominal.toString().includes(search) || 
-                            item.transaksi.toLowerCase().includes(search) ||
-                            branchNameText.includes(search);
-        
-        // Branch Filter (berdasarkan kode)
-        const matchBranch = branch === "" || String(item.cabang) === String(branch);
-
-        // Type Filter
-        const matchType = type === "" || item.tipe === type;
-
-        // Period Filter
-        let matchPeriod = true;
-        const itemDate = new Date(item.rawDate);
-
-        if (period === "today") {
-          matchPeriod = itemDate.toDateString() === now.toDateString();
-        } else if (period === "7d") {
-          const sevenDaysAgo = new Date();
-          sevenDaysAgo.setDate(now.getDate() - 7);
-          matchPeriod = itemDate >= sevenDaysAgo;
-        } else if (period === "this_month") {
-          matchPeriod = itemDate.getMonth() === now.getMonth() && itemDate.getFullYear() === now.getFullYear();
-        } else if (period === "custom") {
-          const startDate = document.getElementById("startDate").value ? new Date(document.getElementById("startDate").value) : null;
-          const endDate = document.getElementById("endDate").value ? new Date(document.getElementById("endDate").value) : null;
-          
-          if (startDate) startDate.setHours(0,0,0,0);
-          if (endDate) endDate.setHours(23,59,59,999);
-
-          if (startDate && endDate) matchPeriod = itemDate >= startDate && itemDate <= endDate;
-          else if (startDate) matchPeriod = itemDate >= startDate;
-          else if (endDate) matchPeriod = itemDate <= endDate;
-        }
-
-        return matchSearch && matchBranch && matchType && matchPeriod;
-      });
-
-      currentPage = 1;
-      updateKpis(filteredData);
-      renderPage();
-    }
-
-    function updateKpis(data) {
-      const totalIn = data.filter(i => i.tipe === 'in').reduce((sum, i) => sum + i.nominal, 0);
-      const totalOut = data.filter(i => i.tipe === 'out').reduce((sum, i) => sum + i.nominal, 0);
-      const net = totalIn - totalOut;
-
-      document.getElementById("kpiTotalIn").innerText = formatRupiah(totalIn);
-      document.getElementById("kpiTotalOut").innerText = formatRupiah(totalOut);
-      document.getElementById("kpiNetTotal").innerText = formatRupiah(net);
-      document.getElementById("recordCountLabel").innerText = `${data.length} Data Ditemukan`;
-    }
-
-    function renderPage() {
+    function renderTable(data) {
       const tbody = document.getElementById("transactionTableBody");
-      const totalItems = filteredData.length;
-
-      if (totalItems === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-slate-400">Tidak ada data transaksi yang sesuai filter.</td></tr>`;
-        document.getElementById("paginationInfo").innerText = "Menampilkan 0 dari 0 data";
-        document.getElementById("paginationButtons").innerHTML = "";
+      
+      if (!data || data.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-slate-400">Tidak ada data transaksi.</td></tr>`;
         return;
       }
 
-      const totalPages = Math.ceil(totalItems / pageSize);
-      if (currentPage > totalPages) currentPage = totalPages;
-
-      const startIndex = (currentPage - 1) * pageSize;
-      const endIndex = Math.min(startIndex + pageSize, totalItems);
-      const pageData = filteredData.slice(startIndex, endIndex);
-
-      tbody.innerHTML = pageData.map(item => `
+      tbody.innerHTML = data.map(item => `
         <tr class="border-b border-slate-100 hover:bg-slate-50 transition">
-          <td class="py-3 px-4 text-xs text-slate-500 whitespace-nowrap">${item.waktu}</td>
-          <td class="py-3 px-4 font-bold text-slate-700 whitespace-nowrap">${getBranchName(item.cabang)}</td>
+          <td class="py-3 px-4 text-xs text-slate-500">${item.waktu}</td>
+          <td class="py-3 px-4 font-bold text-slate-700">${getBranchName(item.cabang)}</td>
           <td class="py-3 px-4">
             <span class="px-2 py-1 rounded text-xs font-bold ${item.tipe === 'in' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}">
               ${item.tipe.toUpperCase()}
             </span>
           </td>
-          <td class="py-3 px-4 font-semibold ${item.tipe === 'in' ? 'text-emerald-600' : 'text-rose-600'} whitespace-nowrap">
+          <td class="py-3 px-4 font-semibold ${item.tipe === 'in' ? 'text-emerald-600' : 'text-rose-600'}">
             ${formatRupiah(item.nominal)}
           </td>
           <td class="py-3 px-4 text-slate-600 uppercase font-bold text-xs">${item.transaksi}</td>
-          <td class="py-3 px-4 text-slate-600 font-medium whitespace-nowrap">${item.kasir}</td>
-          <td class="py-3 px-4 text-center space-x-1 whitespace-nowrap">
+          <td class="py-3 px-4 text-slate-600 font-medium">${item.kasir}</td>
+          <td class="py-3 px-4 text-center space-x-1">
             <button onclick="openEditModal('${item.id}', '${item.tipe}', ${item.nominal}, '${item.transaksi}', '${item.kasir}', '${item.cabang}')" class="bg-amber-50 text-amber-600 hover:bg-amber-100 px-3 py-1 rounded-lg text-xs font-semibold transition border border-amber-200 cursor-pointer">
               <i class="fa-solid fa-pen-to-square mr-1"></i>Edit
             </button>
@@ -498,49 +312,24 @@
           </td>
         </tr>
       `).join('');
-
-      document.getElementById("paginationInfo").innerText = `Menampilkan ${startIndex + 1} - ${endIndex} dari ${totalItems} data`;
-      renderPaginationControls(totalPages);
     }
 
-    function renderPaginationControls(totalPages) {
-      const container = document.getElementById("paginationButtons");
-      let html = '';
+    function applyFilter() {
+      const search = document.getElementById("searchInput").value.toLowerCase();
+      const branch = document.getElementById("branchFilter").value;
+      const type = document.getElementById("typeFilter").value;
 
-      html += `<button onclick="goToPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''} class="px-2.5 py-1 rounded border border-slate-300 text-xs font-semibold hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed">←</button>`;
+      const filtered = rawData.filter(item => {
+        const matchSearch = item.kasir.toLowerCase().includes(search) || 
+                            item.nominal.toString().includes(search) || 
+                            item.transaksi.toLowerCase().includes(search) ||
+                            getBranchName(item.cabang).toLowerCase().includes(search);
+        const matchBranch = branch === "" || String(item.cabang) === String(branch);
+        const matchType = type === "" || item.tipe === type;
+        return matchSearch && matchBranch && matchType;
+      });
 
-      for (let i = 1; i <= totalPages; i++) {
-        if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
-          html += `<button onclick="goToPage(${i})" class="px-2.5 py-1 rounded border text-xs font-bold ${currentPage === i ? 'bg-slate-900 text-white border-slate-900' : 'border-slate-300 hover:bg-slate-100'}">${i}</button>`;
-        } else if (i === currentPage - 2 || i === currentPage + 2) {
-          html += `<span class="px-1 text-slate-400">...</span>`;
-        }
-      }
-
-      html += `<button onclick="goToPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''} class="px-2.5 py-1 rounded border border-slate-300 text-xs font-semibold hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed">→</button>`;
-
-      container.innerHTML = html;
-    }
-
-    function goToPage(page) {
-      currentPage = page;
-      renderPage();
-    }
-
-    function changePageSize() {
-      pageSize = parseInt(document.getElementById("pageSizeSelect").value);
-      currentPage = 1;
-      renderPage();
-    }
-
-    function resetFilters() {
-      document.getElementById("searchInput").value = "";
-      document.getElementById("periodFilter").value = "today";
-      document.getElementById("branchFilter").value = "";
-      document.getElementById("typeFilter").value = "";
-      document.getElementById("startDate").value = "";
-      document.getElementById("endDate").value = "";
-      handlePeriodChange();
+      renderTable(filtered);
     }
 
     function switchTab(tab) {
@@ -557,15 +346,16 @@
       if (tab === 'active') {
         btnActive.className = "pb-2 font-semibold text-slate-900 border-b-2 border-slate-900 text-sm cursor-pointer";
         title.innerText = "Daftar Transaksi Aktif";
+        renderTable(rawData);
       } else if (tab === 'logs') {
         btnLogs.className = "pb-2 font-semibold text-slate-900 border-b-2 border-slate-900 text-sm cursor-pointer";
-        title.innerText = "Log Perubahan Transaksi (Audit)";
+        title.innerText = "Log Perubahan Transaksi";
+        renderTable(logChanges);
       } else if (tab === 'deleted') {
         btnDeleted.className = "pb-2 font-semibold text-slate-900 border-b-2 border-slate-900 text-sm cursor-pointer";
-        title.innerText = "Daftar Transaksi Dihapus (Nominal 0)";
+        title.innerText = "Daftar Data Dihapus";
+        renderTable(deletedData);
       }
-
-      applyFilter();
     }
 
     function openEditModal(id, tipe, nominal, transaksi, kasir, cabang) {
@@ -604,7 +394,14 @@
         const response = await fetch(API_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action, id, nominal: String(nominal), transaksi, kasir, cabang })
+          body: JSON.stringify({ 
+            action, 
+            id, 
+            nominal: String(nominal), 
+            transaksi, 
+            kasir, 
+            cabang 
+          })
         });
 
         const res = await response.json();
@@ -613,7 +410,6 @@
           
           logChanges.unshift({
             waktu: new Date().toLocaleString("id-ID", { timeZone: "Asia/Jakarta" }) + " WIB",
-            rawDate: new Date(),
             cabang,
             tipe: type,
             nominal: parseFloat(nominal),
@@ -659,6 +455,9 @@
         const res = await response.json();
         if (res.success || response.ok) {
           alert("Transaksi berhasil dihapus.");
+          if (itemTarget) {
+            deletedData.unshift({ ...itemTarget, nominal: 0, transaksi: "[DELETED]" });
+          }
           fetchData();
         } else {
           alert("Gagal menghapus data.");
