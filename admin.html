@@ -39,7 +39,7 @@
       <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
         <input type="text" id="searchInput" placeholder="Cari Kasir / Nominal / Transaksi / Cabang..." class="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-800">
         
-        <!-- Filter Cabang Dinamis dari CONFIG.BRANCHES -->
+        <!-- Filter Cabang Dinamis dari CONFIG -->
         <select id="branchFilter" class="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-800">
           <option value="">Semua Cabang</option>
         </select>
@@ -151,12 +151,12 @@
     let deletedData = [];
     let currentTab = 'active';
 
-    // Helper Penamaan Cabang Konsisten
+    // Helper Penamaan Cabang
     function getBranchName(code) {
       if (typeof CONFIG !== 'undefined' && CONFIG.getBranchName) {
         return CONFIG.getBranchName(code);
       }
-      return `CABANG ${code}`;
+      return `Cabang ${code}`;
     }
 
     document.addEventListener("DOMContentLoaded", () => {
@@ -164,19 +164,23 @@
       fetchData();
     });
 
-    // Inisialisasi Opsi Cabang dari CONFIG.BRANCHES
+    // Inisialisasi Opsi Cabang dari CONFIG.BRANCH_MAP atau CONFIG.BRANCHES
     function initBranchOptions() {
       const filterSelect = document.getElementById("branchFilter");
       const editSelect = document.getElementById("editCabang");
 
+      if (!filterSelect || !editSelect) return;
+
       filterSelect.innerHTML = '<option value="">Semua Cabang</option>';
       editSelect.innerHTML = '';
 
-      const branches = (typeof CONFIG !== 'undefined' && CONFIG.BRANCHES) 
-        ? CONFIG.BRANCHES 
-        : {'1': 'WARUNG ACIL - BJM 1', '2': 'WARUNG ACIL - BJM 2', '3': 'WARUNG ACIL - BJM 3', '4': 'WARUNG ACIL - BJB 1', '5': 'WARUNG ACIL - BJB 2', '6': 'WARUNG ACIL - MTP 1'};
+      const branches = (typeof CONFIG !== 'undefined' && (CONFIG.BRANCH_MAP || CONFIG.BRANCHES)) 
+        ? (CONFIG.BRANCH_MAP || CONFIG.BRANCHES)
+        : {};
 
       Object.keys(branches).forEach(code => {
+        if (code === 'ALL') return; // Lewati opsi Master/ALL untuk pilihan transaksi spesifik
+
         const branchName = branches[code];
 
         const optFilter = document.createElement('option');
@@ -261,7 +265,6 @@
         const { moneyIn, moneyOut } = parseN8nResponse(rawJson);
 
         rawData = [...moneyIn, ...moneyOut];
-        rawData.sort((a, b) => new Date(b.waktu) - new Date(a.waktu));
         
         if (currentTab === 'active') renderTable(rawData);
         else switchTab(currentTab);
