@@ -32,27 +32,50 @@
   <main class="max-w-7xl mx-auto p-6 space-y-6">
 
     <!-- Filter Section -->
-    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
-      <h2 class="text-xs font-bold text-slate-500 tracking-wider uppercase mb-3">
-        <i class="fa-solid fa-magnifying-glass mr-1"></i> Filter Pencarian Transaksi
+    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+      <h2 class="text-xs font-bold text-slate-500 tracking-wider uppercase">
+        <i class="fa-solid fa-magnifying-glass mr-1"></i> Filter & Pencarian Transaksi
       </h2>
+
+      <!-- Baris 1: Filter Kata Kunci, Cabang, Tipe, & Tombol Reset -->
       <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
-        <input type="text" id="searchInput" placeholder="Cari Kasir / Nominal / Transaksi / Cabang..." class="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-800">
+        <input type="text" id="searchInput" oninput="applyFilter()" placeholder="Cari Kasir / Nominal / Transaksi..." class="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-800">
         
         <!-- Filter Cabang Dinamis dari CONFIG -->
-        <select id="branchFilter" class="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-800">
+        <select id="branchFilter" onchange="applyFilter()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-800">
           <option value="">Semua Cabang</option>
         </select>
 
-        <select id="typeFilter" class="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-800">
+        <select id="typeFilter" onchange="applyFilter()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-800">
           <option value="">Semua Tipe</option>
           <option value="in">Uang Masuk (IN)</option>
           <option value="out">Uang Keluar (OUT)</option>
         </select>
-        
-        <button onclick="applyFilter()" class="bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold rounded-lg px-4 py-2 transition cursor-pointer">
-          Terapkan Filter
+
+        <button onclick="resetFilters()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold rounded-lg px-4 py-2 transition cursor-pointer border border-slate-300">
+          <i class="fa-solid fa-arrows-rotate mr-1"></i> Reset Filter
         </button>
+      </div>
+
+      <!-- Baris 2: Filter Periode Waktu -->
+      <div class="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center space-x-2">
+          <span class="text-xs font-bold text-slate-500 uppercase mr-1">Periode:</span>
+          <select id="datePreset" onchange="handlePresetChange()" class="border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-800 font-semibold bg-slate-50">
+            <option value="today" selected>Hari Ini</option>
+            <option value="7days">7 Hari Terakhir</option>
+            <option value="month">Bulan Ini</option>
+
+            <option value="custom">Custom Tanggal</option>
+          </select>
+        </div>
+
+        <!-- Custom Date Range Picker (Awalnya tersembunyi) -->
+        <div id="customDateContainer" class="hidden flex items-center space-x-2">
+          <input type="date" id="startDate" onchange="applyFilter()" class="border border-slate-300 rounded-lg px-2 py-1 text-sm focus:ring-2 focus:ring-slate-800 outline-none">
+          <span class="text-xs text-slate-400">s/d</span>
+          <input type="date" id="endDate" onchange="applyFilter()" class="border border-slate-300 rounded-lg px-2 py-1 text-sm focus:ring-2 focus:ring-slate-800 outline-none">
+        </div>
       </div>
     </div>
 
@@ -69,21 +92,26 @@
       </button>
     </div>
 
-    <!-- Table Container -->
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden p-5">
-      <h3 id="tableTitle" class="font-bold text-slate-700 mb-4 text-base">Daftar Transaksi Aktif</h3>
+    <!-- Table Container dengan Fixed Header & Scrollable Body -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden p-5 space-y-4">
+      <div class="flex justify-between items-center">
+        <h3 id="tableTitle" class="font-bold text-slate-700 text-base">Daftar Transaksi Aktif</h3>
+        <span id="recordCount" class="text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full font-semibold">0 Data Found</span>
+      </div>
       
-      <div class="overflow-x-auto">
-        <table class="w-full text-left text-sm">
-          <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
+      <!-- Internal Scroll Container dengan Max Height -->
+      <div class="overflow-x-auto max-h-[550px] overflow-y-auto border border-slate-200 rounded-xl">
+        <table class="w-full text-left text-sm relative border-collapse">
+          <!-- Sticky Header -->
+          <thead class="bg-slate-100 text-slate-700 font-semibold sticky top-0 z-10 shadow-sm">
             <tr>
-              <th class="py-3 px-4">Waktu</th>
-              <th class="py-3 px-4">Cabang</th>
-              <th class="py-3 px-4">Tipe</th>
-              <th class="py-3 px-4">Nominal</th>
-              <th class="py-3 px-4">Metode Transaksi</th>
-              <th class="py-3 px-4">Kasir</th>
-              <th class="py-3 px-4 text-center">Aksi</th>
+              <th class="py-3 px-4 bg-slate-100">Waktu</th>
+              <th class="py-3 px-4 bg-slate-100">Cabang</th>
+              <th class="py-3 px-4 bg-slate-100">Tipe</th>
+              <th class="py-3 px-4 bg-slate-100">Nominal</th>
+              <th class="py-3 px-4 bg-slate-100">Metode Transaksi</th>
+              <th class="py-3 px-4 bg-slate-100">Kasir</th>
+              <th class="py-3 px-4 text-center bg-slate-100">Aksi</th>
             </tr>
           </thead>
           <tbody id="transactionTableBody">
@@ -94,6 +122,30 @@
             </tr>
           </tbody>
         </table>
+      </div>
+
+      <!-- Pagination Footer Control -->
+      <div class="flex flex-wrap items-center justify-between gap-4 pt-2 text-xs text-slate-600">
+        <div class="flex items-center space-x-2">
+          <span>Tampilkan:</span>
+          <select id="itemsPerPage" onchange="changeItemsPerPage()" class="border border-slate-300 rounded px-2 py-1 text-xs outline-none bg-white">
+            <option value="10">10</option>
+            <option value="25" selected>25</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+          </select>
+          <span id="paginationInfo">Menampilkan 0 - 0 dari 0 data</span>
+        </div>
+
+        <div class="flex items-center space-x-1">
+          <button id="btnPrevPage" onclick="prevPage()" class="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg border font-semibold disabled:opacity-40 transition">
+            <i class="fa-solid fa-chevron-left mr-1"></i> Prev
+          </button>
+          <span id="currentPageDisplay" class="px-3 py-1 bg-slate-900 text-white rounded-lg font-bold">1</span>
+          <button id="btnNextPage" onclick="nextPage()" class="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg border font-semibold disabled:opacity-40 transition">
+            Next <i class="fa-solid fa-chevron-right ml-1"></i>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -129,7 +181,7 @@
         <div>
           <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Cabang</label>
           <select id="editCabang" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-slate-800 outline-none font-semibold text-slate-700">
-            <!-- Pilihan Cabang diisi via JS dari CONFIG -->
+            <!-- Pilihan Cabang diisi via JS -->
           </select>
         </div>
 
@@ -147,9 +199,14 @@
       : "https://n8n-mzbmiib3etk4.kangkung.sumopod.my.id/webhook/0c2f335e-543b-4f3e-968e-f70d412f194b";
 
     let rawData = [];
+    let filteredData = [];
     let logChanges = [];
     let deletedData = [];
     let currentTab = 'active';
+
+    // State Pagination
+    let currentPage = 1;
+    let itemsPerPage = 25;
 
     // Helper Penamaan Cabang
     function getBranchName(code) {
@@ -164,7 +221,7 @@
       fetchData();
     });
 
-    // Inisialisasi Opsi Cabang dari CONFIG.BRANCH_MAP atau CONFIG.BRANCHES
+    // Inisialisasi Dropdown Cabang dari CONFIG
     function initBranchOptions() {
       const filterSelect = document.getElementById("branchFilter");
       const editSelect = document.getElementById("editCabang");
@@ -179,17 +236,17 @@
         : {};
 
       Object.keys(branches).forEach(code => {
-        if (code === 'ALL') return; // Lewati opsi Master/ALL untuk pilihan transaksi spesifik
+        if (code === 'ALL') return;
 
         const branchName = branches[code];
 
         const optFilter = document.createElement('option');
-        optFilter.value = code;
+        optFilter.value = String(code).trim();
         optFilter.textContent = branchName;
         filterSelect.appendChild(optFilter);
 
         const optEdit = document.createElement('option');
-        optEdit.value = code;
+        optEdit.value = String(code).trim();
         optEdit.textContent = branchName;
         editSelect.appendChild(optEdit);
       });
@@ -213,12 +270,11 @@
       const normalizeItem = (item, defaultType, idx) => {
         const data = item.json || item;
 
-        let waktuRaw = data.createdAt || data.WAKTU || data.waktu || data.created_at;
-        let waktu = "-";
-        if (waktuRaw) {
-          const d = new Date(waktuRaw);
-          waktu = isNaN(d.getTime()) ? waktuRaw : d.toLocaleString("id-ID", { timeZone: "Asia/Jakarta" }) + " WIB";
-        }
+        let rawTimestamp = data.createdAt || data.WAKTU || data.waktu || data.created_at;
+        let dateObj = rawTimestamp ? new Date(rawTimestamp) : new Date();
+        if (isNaN(dateObj.getTime())) dateObj = new Date();
+
+        let waktuFormatted = dateObj.toLocaleString("id-ID", { timeZone: "Asia/Jakarta" }) + " WIB";
 
         const rawCabang = data.CABANG || data.cabang || "1";
         const cabangCode = String(rawCabang).trim();
@@ -232,7 +288,16 @@
         const kasir = data.KASIR || data["NAMA KASIR"] || data.kasir || "-";
         const id = data.id || data.ID || data.row_id || `TRX-${defaultType}-${idx + 1}`;
 
-        return { id, waktu, cabang: cabangCode, tipe: defaultType, nominal, transaksi, kasir };
+        return { 
+          id, 
+          waktu: waktuFormatted, 
+          rawDate: dateObj, 
+          cabang: cabangCode, 
+          tipe: defaultType, 
+          nominal, 
+          transaksi, 
+          kasir 
+        };
       };
 
       const validIn = moneyIn.map((item, idx) => normalizeItem(item, 'in', idx)).filter(item => item.nominal > 0 || item.kasir !== "-");
@@ -265,9 +330,9 @@
         const { moneyIn, moneyOut } = parseN8nResponse(rawJson);
 
         rawData = [...moneyIn, ...moneyOut];
+        rawData.sort((a, b) => b.rawDate - a.rawDate);
         
-        if (currentTab === 'active') renderTable(rawData);
-        else switchTab(currentTab);
+        applyFilter();
 
       } catch (error) {
         console.error("Fetch error:", error);
@@ -283,11 +348,137 @@
       }
     }
 
+    // Penanganan Presets Periode Waktu
+    function handlePresetChange() {
+      const preset = document.getElementById("datePreset").value;
+      const customContainer = document.getElementById("customDateContainer");
+
+      if (preset === "custom") {
+        customContainer.classList.remove("hidden");
+      } else {
+        customContainer.classList.add("hidden");
+      }
+
+      applyFilter();
+    }
+
+    // Fungsi Utama Menyaring / Filtering Data
+    function applyFilter() {
+      const search = document.getElementById("searchInput").value.toLowerCase().trim();
+      const branch = String(document.getElementById("branchFilter").value).trim();
+      const type = document.getElementById("typeFilter").value;
+      const preset = document.getElementById("datePreset").value;
+
+      let source = (currentTab === 'active') ? rawData : (currentTab === 'logs' ? logChanges : deletedData);
+
+      const now = new Date();
+      let startRange = null;
+      let endRange = null;
+
+      if (preset === "today") {
+        startRange = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+        endRange = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+      } else if (preset === "7days") {
+        startRange = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7, 0, 0, 0);
+        endRange = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+      } else if (preset === "month") {
+        startRange = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0);
+        endRange = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+      } else if (preset === "custom") {
+        const startVal = document.getElementById("startDate").value;
+        const endVal = document.getElementById("endDate").value;
+
+        if (startVal) startRange = new Date(startVal + "T00:00:00");
+        if (endVal) endRange = new Date(endVal + "T23:59:59");
+      }
+
+      filteredData = source.filter(item => {
+        // 1. Filter Cabang (Pengecekan String Akses Kode Eksak)
+        const matchBranch = branch === "" || String(item.cabang).trim() === branch;
+
+        // 2. Filter Tipe
+        const matchType = type === "" || item.tipe === type;
+
+        // 3. Filter Pencarian Text
+        const matchSearch = search === "" || 
+                            item.kasir.toLowerCase().includes(search) || 
+                            item.nominal.toString().includes(search) || 
+                            item.transaksi.toLowerCase().includes(search) ||
+                            getBranchName(item.cabang).toLowerCase().includes(search);
+
+        // 4. Filter Tanggal
+        let matchDate = true;
+        if (item.rawDate && (startRange || endRange)) {
+          if (startRange && item.rawDate < startRange) matchDate = false;
+          if (endRange && item.rawDate > endRange) matchDate = false;
+        }
+
+        return matchBranch && matchType && matchSearch && matchDate;
+      });
+
+      currentPage = 1;
+      renderPaginatedTable();
+    }
+
+    function resetFilters() {
+      document.getElementById("searchInput").value = "";
+      document.getElementById("branchFilter").value = "";
+      document.getElementById("typeFilter").value = "";
+      document.getElementById("datePreset").value = "today";
+      document.getElementById("customDateContainer").classList.add("hidden");
+      document.getElementById("startDate").value = "";
+      document.getElementById("endDate").value = "";
+      
+      applyFilter();
+    }
+
+    // Pagination Rendering
+    function renderPaginatedTable() {
+      const total = filteredData.length;
+      document.getElementById("recordCount").innerText = `${total} Data Found`;
+
+      const startIdx = (currentPage - 1) * itemsPerPage;
+      const endIdx = startIdx + parseInt(itemsPerPage);
+      const pageData = filteredData.slice(startIdx, endIdx);
+
+      renderTable(pageData);
+
+      // Render info pagination
+      const displayStart = total === 0 ? 0 : startIdx + 1;
+      const displayEnd = Math.min(endIdx, total);
+      document.getElementById("paginationInfo").innerText = `Menampilkan ${displayStart} - ${displayEnd} dari ${total} data`;
+      document.getElementById("currentPageDisplay").innerText = currentPage;
+
+      // Navigasi Button State
+      document.getElementById("btnPrevPage").disabled = currentPage === 1;
+      document.getElementById("btnNextPage").disabled = endIdx >= total;
+    }
+
+    function changeItemsPerPage() {
+      itemsPerPage = parseInt(document.getElementById("itemsPerPage").value);
+      currentPage = 1;
+      renderPaginatedTable();
+    }
+
+    function prevPage() {
+      if (currentPage > 1) {
+        currentPage--;
+        renderPaginatedTable();
+      }
+    }
+
+    function nextPage() {
+      if (currentPage * itemsPerPage < filteredData.length) {
+        currentPage++;
+        renderPaginatedTable();
+      }
+    }
+
     function renderTable(data) {
       const tbody = document.getElementById("transactionTableBody");
       
       if (!data || data.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-slate-400">Tidak ada data transaksi.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-slate-400">Tidak ada data transaksi yang sesuai filter.</td></tr>`;
         return;
       }
 
@@ -317,24 +508,6 @@
       `).join('');
     }
 
-    function applyFilter() {
-      const search = document.getElementById("searchInput").value.toLowerCase();
-      const branch = document.getElementById("branchFilter").value;
-      const type = document.getElementById("typeFilter").value;
-
-      const filtered = rawData.filter(item => {
-        const matchSearch = item.kasir.toLowerCase().includes(search) || 
-                            item.nominal.toString().includes(search) || 
-                            item.transaksi.toLowerCase().includes(search) ||
-                            getBranchName(item.cabang).toLowerCase().includes(search);
-        const matchBranch = branch === "" || String(item.cabang) === String(branch);
-        const matchType = type === "" || item.tipe === type;
-        return matchSearch && matchBranch && matchType;
-      });
-
-      renderTable(filtered);
-    }
-
     function switchTab(tab) {
       currentTab = tab;
       const btnActive = document.getElementById("tabActive");
@@ -349,16 +522,15 @@
       if (tab === 'active') {
         btnActive.className = "pb-2 font-semibold text-slate-900 border-b-2 border-slate-900 text-sm cursor-pointer";
         title.innerText = "Daftar Transaksi Aktif";
-        renderTable(rawData);
       } else if (tab === 'logs') {
         btnLogs.className = "pb-2 font-semibold text-slate-900 border-b-2 border-slate-900 text-sm cursor-pointer";
         title.innerText = "Log Perubahan Transaksi";
-        renderTable(logChanges);
       } else if (tab === 'deleted') {
         btnDeleted.className = "pb-2 font-semibold text-slate-900 border-b-2 border-slate-900 text-sm cursor-pointer";
         title.innerText = "Daftar Data Dihapus";
-        renderTable(deletedData);
       }
+
+      applyFilter();
     }
 
     function openEditModal(id, tipe, nominal, transaksi, kasir, cabang) {
@@ -370,7 +542,7 @@
       document.getElementById("editTransaksi").value = ['cash', 'qris', 'transfer'].includes(method) ? method : 'cash';
 
       document.getElementById("editKasir").value = kasir;
-      document.getElementById("editCabang").value = String(cabang);
+      document.getElementById("editCabang").value = String(cabang).trim();
       document.getElementById("editModal").classList.remove("hidden");
     }
 
@@ -413,6 +585,7 @@
           
           logChanges.unshift({
             waktu: new Date().toLocaleString("id-ID", { timeZone: "Asia/Jakarta" }) + " WIB",
+            rawDate: new Date(),
             cabang,
             tipe: type,
             nominal: parseFloat(nominal),
