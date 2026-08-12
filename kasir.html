@@ -328,7 +328,7 @@
   <script>
     const WEBHOOK_URL = 'https://n8n-mzbmiib3etk4.kangkung.sumopod.my.id/webhook/0c2f335e-543b-4f3e-968e-f70d412f194b';
     
-    // State Kalkulator (Token-Based untuk mendukung Mode Cepat)
+    // State Kalkulator (Token-Based)
     let inputTokens = []; 
     let isEvaluated = false;
     let finalCalculatedNominal = 0;
@@ -508,25 +508,38 @@
       updateDisplay();
     }
 
-    // Mengolah Nilai Token (x1000 jika Mode Cepat aktif & bukan hasil dari kali/bagi & belum dievaluasi)
+    // Mengolah Nilai Token (x1000 jika Mode Cepat aktif & bukan hasil dari kali/bagi)
     function processTokenValue(token, prevOperator) {
       let num = parseFloat(token);
       if (isNaN(num)) return 0;
 
-      if (isFastMode && prevOperator !== '*' && prevOperator !== '/' && !isEvaluated) {
+      if (isFastMode && prevOperator !== '*' && prevOperator !== '/') {
         num = num * 1000;
       }
       return num;
     }
 
+    // FUNGSI PERBAIKAN TOMBOL '=' SAMA DENGAN
     function calculateResult() {
       if (inputTokens.length === 0) return 0;
 
+      // 1. Hitung total rupiah aktual saat ini
       let total = calculateDisplayVal();
 
       isEvaluated = true;
-      inputTokens = [String(total)];
+
+      // 2. Jika Mode Cepat aktif, simpan nilai dasarnya (/1000) ke inputTokens
+      // Contoh: Total Rp 2.000 diset kembali ke "2" di memori internal
+      if (isFastMode) {
+        let baseValue = total / 1000;
+        inputTokens = [String(baseValue)];
+      } else {
+        inputTokens = [String(total)];
+      }
+
+      // 3. Update tampilan layar (Layar tetap menampilkan nilai penuh Rp 2.000)
       updateDisplay();
+
       return total;
     }
 
