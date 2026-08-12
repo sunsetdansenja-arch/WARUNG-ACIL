@@ -30,6 +30,38 @@
       border-radius: 8px;
     }
 
+    /* Overrides Khusus Mode Cepat (Fast Mode) */
+    body.fast-mode {
+      background-color: #0f172a !important; /* Slate Dark */
+    }
+    body.fast-mode .fast-card {
+      background-color: #1e293b !important;
+      border-color: #334155 !important;
+      color: #f8fafc !important;
+    }
+    body.fast-mode .fast-input {
+      background-color: #020617 !important;
+      border-color: #0284c7 !important;
+    }
+    body.fast-mode .fast-btn-num {
+      background-color: #334155 !important;
+      color: #ffffff !important;
+      border-color: #475569 !important;
+    }
+    body.fast-mode .fast-btn-num:hover {
+      background-color: #475569 !important;
+    }
+    body.fast-mode .fast-btn-op {
+      background-color: #1e3a8a !important;
+      color: #93c5fd !important;
+      border-color: #1d4ed8 !important;
+    }
+    body.fast-mode .fast-btn-process {
+      background-color: #059669 !important;
+      color: #ffffff !important;
+      border-color: #047857 !important;
+    }
+
     /* Thermal Printer 58mm Preview Rules */
     @media print {
       @page {
@@ -77,28 +109,29 @@
     }
   </style>
 </head>
-<body class="bg-slate-100 min-h-screen flex flex-col no-select">
+<body class="bg-slate-100 min-h-screen flex flex-col no-select transition-colors duration-300" id="bodyApp">
 
-  <!-- Header Navbar Rapi & Proporsional -->
-  <nav class="bg-emerald-600 text-white shadow-md sticky top-0 z-30 no-print flex-none">
-    <div class="max-w-5xl mx-auto px-3 md:px-4 py-2.5 md:py-3 flex items-center justify-between gap-2">
-      <!-- Kiri: Logo & Info User -->
-      <div class="flex items-center gap-2 overflow-hidden">
-        <a id="btnBackToMaster" href="master.html" class="hidden shrink-0 bg-emerald-700 hover:bg-emerald-800 text-xs md:text-sm px-2.5 py-1.5 rounded-xl border border-emerald-500 font-bold cursor-pointer flex items-center gap-1">
+  <!-- Header Navbar -->
+  <nav class="bg-emerald-600 text-white shadow-md sticky top-0 z-30 no-print flex-none transition-colors duration-300" id="mainNav">
+    <div class="max-w-5xl mx-auto px-4 py-3 flex justify-between items-center gap-2">
+      <div class="flex items-center gap-2 min-w-0">
+        <a id="btnBackToMaster" href="master.html" class="hidden bg-emerald-700 hover:bg-emerald-800 text-xs md:text-sm px-2.5 py-1.5 rounded-xl border border-emerald-500 font-bold cursor-pointer flex items-center gap-1 shrink-0">
           ⬅️ Master
         </a>
-        <div class="truncate">
-          <h1 class="font-extrabold text-base md:text-lg leading-tight truncate">Warung Acil</h1>
+        <div class="min-w-0">
+          <h1 class="font-extrabold text-base md:text-lg leading-tight truncate">Kasir Warung Acil</h1>
           <p class="text-[11px] md:text-xs text-emerald-100 font-medium truncate" id="userInfo">Loading...</p>
         </div>
       </div>
 
-      <!-- Kanan: Tombol Mode Capek & Logout -->
       <div class="flex items-center gap-2 shrink-0">
-        <button id="btnModeCapek" onclick="toggleModeCapek()" class="bg-amber-500 hover:bg-amber-600 text-white text-xs md:text-sm px-3 py-1.5 md:py-2 rounded-xl border border-amber-400 font-bold cursor-pointer transition flex items-center gap-1 shadow-sm">
-          <span>⚡</span> <span class="hidden sm:inline">mode capek</span><span class="sm:hidden">capek</span>
+        <!-- Tombol Toggle Mode Cepat -->
+        <button onclick="toggleFastMode()" id="fastModeBtn" class="flex items-center gap-1 bg-amber-500 hover:bg-amber-600 text-slate-900 text-xs px-2.5 py-1.5 rounded-xl font-bold shadow-xs transition cursor-pointer">
+          <span>⚡</span>
+          <span id="fastModeText">Mode Cepat</span>
         </button>
-        <button onclick="logout()" class="bg-emerald-700 hover:bg-emerald-800 text-xs md:text-sm px-3 py-1.5 md:py-2 rounded-xl border border-emerald-500 font-bold cursor-pointer">
+
+        <button onclick="logout()" class="bg-emerald-700 hover:bg-emerald-800 text-xs md:text-sm px-3 py-1.5 rounded-xl border border-emerald-500 font-bold cursor-pointer">
           Logout
         </button>
       </div>
@@ -108,8 +141,16 @@
   <!-- Container Utama -->
   <main class="max-w-5xl w-full mx-auto p-3 md:p-5 flex-1 flex flex-col no-print">
 
+    <!-- FAST MODE INDICATOR BANNER -->
+    <div id="fastModeBanner" class="hidden bg-amber-500/10 border border-amber-500/30 text-amber-400 p-2.5 rounded-2xl text-xs mb-3 flex justify-between items-center">
+      <div class="flex items-center gap-2">
+        <span class="animate-pulse">⚡</span>
+        <span><b>MODE CEPAT AKTIF:</b> Angka otomatis x1000 (misal tekan 15 = 15.000), kecuali operasi kali (×) & bagi (÷).</span>
+      </div>
+    </div>
+
     <!-- Tab Navigasi HP/Mobile -->
-    <div class="lg:hidden bg-white rounded-2xl shadow-sm p-1.5 flex mb-3 border border-slate-200">
+    <div class="lg:hidden bg-white rounded-2xl shadow-sm p-1.5 flex mb-3 border border-slate-200 fast-card">
       <button id="tabCalc" onclick="switchNav('calc')" class="flex-1 py-3 font-black text-xs md:text-sm rounded-xl bg-emerald-600 text-white shadow-sm transition">
         🧮 KALKULATOR
       </button>
@@ -121,75 +162,70 @@
     <!-- Dropdown Pilih Cabang (Akses Owner) -->
     <div id="ownerBranchContainer" class="hidden mb-3">
       <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Pilih Cabang Transaksi</label>
-      <select id="selectBranch" onchange="onOwnerBranchChange()" class="w-full px-4 py-2.5 text-sm font-bold rounded-2xl border border-slate-300 bg-amber-50 text-slate-800 focus:outline-none shadow-xs">
-        <!-- Opsi diisi via JS dari config.js -->
+      <select id="selectBranch" class="w-full px-4 py-2.5 text-sm font-bold rounded-2xl border border-slate-300 bg-amber-50 text-slate-800 focus:outline-none shadow-xs">
+        <!-- Opsi diisi via JS -->
       </select>
     </div>
 
-    <!-- WRAPPER UTAMA -->
+    <!-- WRAPPER UTAMA: Grid 1 Kolom (HP) / Grid 2 Kolom (Tablet) -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 flex-1">
       
       <!-- SEKSI 1: KALKULATOR KASIR -->
       <div id="secCalc" class="lg:col-span-7 flex-1 flex flex-col gap-3">
         
-        <!-- Wrapper Kalkulator yang dapat berganti warna ke Dark Mode -->
-        <div id="calcWrapper" class="bg-white rounded-3xl p-3 md:p-4 border border-slate-200 shadow-sm flex flex-col gap-3 transition-colors duration-300">
-          
-          <!-- Display Kalkulator Ekstra Gede -->
-          <div id="calcDisplayBox" class="bg-slate-900 text-white rounded-2xl p-4 md:p-5 border-4 border-slate-700 shadow-inner text-right flex flex-col justify-end min-h-[130px] md:min-h-[150px] transition-colors duration-300">
-            <div id="calcFormula" class="text-lg md:text-xl font-black text-emerald-400 min-h-[28px] overflow-x-auto tracking-wider mb-1 transition-colors duration-300">0</div>
-            <div id="calcDisplay" class="text-4xl md:text-5xl font-black text-white overflow-x-auto whitespace-nowrap tracking-tight">0</div>
-          </div>
-
-          <!-- Keypad Grid Kalkulator -->
-          <div class="grid grid-cols-4 gap-2 md:gap-3 flex-1 my-auto">
-            <!-- Baris 1 -->
-            <button onclick="pressNum('7')" class="btn-num bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-2xl md:text-3xl font-black rounded-2xl p-3.5 md:p-5 shadow-sm border-2 border-slate-200 active:scale-95 transition">7</button>
-            <button onclick="pressNum('8')" class="btn-num bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-2xl md:text-3xl font-black rounded-2xl p-3.5 md:p-5 shadow-sm border-2 border-slate-200 active:scale-95 transition">8</button>
-            <button onclick="pressNum('9')" class="btn-num bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-2xl md:text-3xl font-black rounded-2xl p-3.5 md:p-5 shadow-sm border-2 border-slate-200 active:scale-95 transition">9</button>
-            <button onclick="pressOp('/')" class="btn-op bg-amber-100 hover:bg-amber-200 active:bg-amber-300 text-amber-900 text-2xl md:text-3xl font-black rounded-2xl p-3.5 md:p-5 shadow-sm border-2 border-amber-200 active:scale-95 transition">÷</button>
-
-            <!-- Baris 2 -->
-            <button onclick="pressNum('4')" class="btn-num bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-2xl md:text-3xl font-black rounded-2xl p-3.5 md:p-5 shadow-sm border-2 border-slate-200 active:scale-95 transition">4</button>
-            <button onclick="pressNum('5')" class="btn-num bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-2xl md:text-3xl font-black rounded-2xl p-3.5 md:p-5 shadow-sm border-2 border-slate-200 active:scale-95 transition">5</button>
-            <button onclick="pressNum('6')" class="btn-num bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-2xl md:text-3xl font-black rounded-2xl p-3.5 md:p-5 shadow-sm border-2 border-slate-200 active:scale-95 transition">6</button>
-            <button onclick="pressOp('*')" class="btn-op bg-amber-100 hover:bg-amber-200 active:bg-amber-300 text-amber-900 text-2xl md:text-3xl font-black rounded-2xl p-3.5 md:p-5 shadow-sm border-2 border-amber-200 active:scale-95 transition">×</button>
-
-            <!-- Baris 3 -->
-            <button onclick="pressNum('1')" class="btn-num bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-2xl md:text-3xl font-black rounded-2xl p-3.5 md:p-5 shadow-sm border-2 border-slate-200 active:scale-95 transition">1</button>
-            <button onclick="pressNum('2')" class="btn-num bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-2xl md:text-3xl font-black rounded-2xl p-3.5 md:p-5 shadow-sm border-2 border-slate-200 active:scale-95 transition">2</button>
-            <button onclick="pressNum('3')" class="btn-num bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-2xl md:text-3xl font-black rounded-2xl p-3.5 md:p-5 shadow-sm border-2 border-slate-200 active:scale-95 transition">3</button>
-            <button onclick="pressOp('-')" class="btn-op bg-amber-100 hover:bg-amber-200 active:bg-amber-300 text-amber-900 text-2xl md:text-3xl font-black rounded-2xl p-3.5 md:p-5 shadow-sm border-2 border-amber-200 active:scale-95 transition">-</button>
-
-            <!-- Baris 4 -->
-            <button onclick="pressNum('0')" class="btn-num bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-2xl md:text-3xl font-black rounded-2xl p-3.5 md:p-5 shadow-sm border-2 border-slate-200 active:scale-95 transition">0</button>
-            <button onclick="press000()" class="btn-num-special bg-slate-200 hover:bg-slate-300 active:bg-slate-400 text-slate-900 text-lg md:text-xl font-black rounded-2xl p-3.5 md:p-5 shadow-sm border-2 border-slate-300 active:scale-95 transition">000</button>
-            <button onclick="pressDot()" class="btn-num bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-2xl md:text-3xl font-black rounded-2xl p-3.5 md:p-5 shadow-sm border-2 border-slate-200 active:scale-95 transition">.</button>
-            <button onclick="pressOp('+')" class="btn-op bg-amber-100 hover:bg-amber-200 active:bg-amber-300 text-amber-900 text-2xl md:text-3xl font-black rounded-2xl p-3.5 md:p-5 shadow-sm border-2 border-amber-200 active:scale-95 transition">+</button>
-
-            <!-- Baris 5 (Aksi: Clear, Backspace, Equals, Proses) -->
-            <button onclick="clearCalc()" class="bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white text-xl md:text-2xl font-black rounded-2xl p-3 md:p-4 shadow-md active:scale-95 transition" title="Clear All">C</button>
-            <button onclick="backspace()" class="bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white text-xl md:text-2xl font-black rounded-2xl p-3 md:p-4 shadow-md active:scale-95 transition" title="Hapus 1 Karakter">⌫</button>
-            <button onclick="calculateResult()" class="btn-eq bg-slate-300 hover:bg-slate-400 active:bg-slate-500 text-slate-900 text-2xl md:text-3xl font-black rounded-2xl p-3 md:p-4 shadow-sm border-2 border-slate-300 active:scale-95 transition">=</button>
-            
-            <!-- Tombol PROSES Rapih & Tidak Meluap -->
-            <button id="btnProses" onclick="openPaymentModal()" class="bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs sm:text-sm md:text-base font-black rounded-2xl p-2 md:p-3 shadow-lg uppercase tracking-tight border-b-4 border-emerald-900 active:scale-95 transition flex items-center justify-center text-center">
-              PROSES ➔
-            </button>
-          </div>
+        <!-- Display Kalkulator Ekstra Gede & Jelas -->
+        <div class="bg-slate-900 text-white rounded-3xl p-4 md:p-6 border-4 border-slate-700 shadow-2xl text-right flex flex-col justify-end min-h-[140px] md:min-h-[160px] fast-input">
+          <div id="calcFormula" class="text-xl md:text-2xl font-black text-emerald-400 min-h-[32px] overflow-x-auto tracking-wider mb-1">0</div>
+          <div id="calcDisplay" class="text-5xl md:text-6xl font-black text-white overflow-x-auto whitespace-nowrap tracking-tight">0</div>
         </div>
 
+        <!-- Keypad Grid Kalkulator -->
+        <div class="grid grid-cols-4 gap-2.5 md:gap-3 flex-1 my-auto">
+          <!-- Baris 1 -->
+          <button onclick="pressNum('7')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition fast-btn-num">7</button>
+          <button onclick="pressNum('8')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition fast-btn-num">8</button>
+          <button onclick="pressNum('9')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition fast-btn-num">9</button>
+          <button onclick="pressOp('/')" class="bg-amber-100 hover:bg-amber-200 active:bg-amber-300 text-amber-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-amber-200 active:scale-95 transition fast-btn-op">÷</button>
+
+          <!-- Baris 2 -->
+          <button onclick="pressNum('4')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition fast-btn-num">4</button>
+          <button onclick="pressNum('5')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition fast-btn-num">5</button>
+          <button onclick="pressNum('6')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition fast-btn-num">6</button>
+          <button onclick="pressOp('*')" class="bg-amber-100 hover:bg-amber-200 active:bg-amber-300 text-amber-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-amber-200 active:scale-95 transition fast-btn-op">×</button>
+
+          <!-- Baris 3 -->
+          <button onclick="pressNum('1')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition fast-btn-num">1</button>
+          <button onclick="pressNum('2')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition fast-btn-num">2</button>
+          <button onclick="pressNum('3')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition fast-btn-num">3</button>
+          <button onclick="pressOp('-')" class="bg-amber-100 hover:bg-amber-200 active:bg-amber-300 text-amber-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-amber-200 active:scale-95 transition fast-btn-op">-</button>
+
+          <!-- Baris 4 -->
+          <button onclick="pressNum('0')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition fast-btn-num">0</button>
+          <button onclick="press000()" class="bg-slate-200 hover:bg-slate-300 active:bg-slate-400 text-slate-900 text-xl md:text-2xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-300 active:scale-95 transition fast-btn-num">000</button>
+          <button onclick="pressDot()" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition fast-btn-num">.</button>
+          <button onclick="pressOp('+')" class="bg-amber-100 hover:bg-amber-200 active:bg-amber-300 text-amber-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-amber-200 active:scale-95 transition fast-btn-op">+</button>
+
+          <!-- Baris 5 -->
+          <button onclick="clearCalc()" class="bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white text-2xl md:text-3xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-md active:scale-95 transition" title="Clear All">C</button>
+          <button onclick="backspace()" class="bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white text-2xl md:text-3xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-md active:scale-95 transition" title="Hapus 1 Karakter">⌫</button>
+          <button onclick="calculateResult()" class="bg-slate-300 hover:bg-slate-400 active:bg-slate-500 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-300 active:scale-95 transition fast-btn-num">=</button>
+          
+          <!-- Tombol Proses Rapi & Bebas Overflow -->
+          <button onclick="openPaymentModal()" class="bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-lg md:text-2xl font-black rounded-2xl md:rounded-3xl p-3 md:p-6 shadow-lg uppercase tracking-wider border-b-4 border-emerald-900 active:scale-95 transition flex items-center justify-center fast-btn-process">
+            <span class="truncate">PROSES ➔</span>
+          </button>
+        </div>
       </div>
 
       <!-- SEKSI 2: RIWAYAT TRANSAKSI -->
       <div id="secHistory" class="hidden lg:block lg:col-span-5 flex-1 flex flex-col gap-3">
         <!-- Summary Laci -->
-        <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-4 md:p-5">
+        <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-4 md:p-5 fast-card">
           <div class="flex justify-between items-center mb-3">
             <h2 class="font-extrabold text-slate-800 text-sm flex items-center gap-1">💵 Ringkasan Laci Kasir</h2>
-            <button onclick="loadDashboardData()" class="text-xs text-emerald-600 font-extrabold bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">🔄 Refresh</button>
+            <button onclick="loadDashboardData()" class="text-xs text-emerald-600 font-extrabold bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 cursor-pointer">🔄 Refresh</button>
           </div>
-          <div class="flex bg-slate-100 p-1.5 rounded-2xl mb-3 text-xs font-bold text-slate-500">
+          <div class="flex bg-slate-100 p-1.5 rounded-2xl mb-3 text-xs font-bold text-slate-500 fast-input">
             <button id="btnToday" onclick="switchPeriod('today')" class="flex-1 py-1.5 rounded-xl bg-white text-emerald-700 shadow-xs">Hari Ini</button>
             <button id="btnWeek" onclick="switchPeriod('week')" class="flex-1 py-1.5 rounded-xl">7 Hari</button>
             <button id="btnMonth" onclick="switchPeriod('month')" class="flex-1 py-1.5 rounded-xl">Bulan Ini</button>
@@ -215,8 +251,8 @@
         </div>
 
         <!-- Tray List Riwayat -->
-        <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-4 md:p-5 flex-1 flex flex-col">
-          <h3 class="font-extrabold text-slate-800 text-xs uppercase tracking-wider mb-3">Daftar Transaksi Terakhir</h3>
+        <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-4 md:p-5 flex-1 flex flex-col fast-card">
+          <h3 class="font-extrabold text-xs uppercase tracking-wider mb-3">Daftar Transaksi Terakhir</h3>
           <div class="max-h-[380px] lg:max-h-[460px] overflow-y-auto pr-1 space-y-2.5 custom-scroll" id="historyList">
             <p class="text-xs text-center text-slate-400 py-6">Memuat riwayat...</p>
           </div>
@@ -236,6 +272,7 @@
         <div id="modalNominal" class="text-4xl md:text-5xl font-black text-emerald-600 pt-2 tracking-tight">Rp 0</div>
       </div>
 
+      <!-- Opsi Pembayaran -->
       <div class="grid grid-cols-1 gap-3.5 pt-2">
         <button onclick="submitTransaction('cash')" class="w-full h-20 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black rounded-2xl md:rounded-3xl text-2xl shadow-xl flex items-center justify-center gap-3 cursor-pointer border-b-8 border-emerald-900 transition">
           💵 CASH
@@ -248,7 +285,7 @@
         </button>
       </div>
 
-      <button onclick="closePaymentModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-extrabold py-3.5 rounded-2xl text-sm">
+      <button onclick="closePaymentModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-extrabold py-3.5 rounded-2xl text-sm cursor-pointer">
         Batal / Kembali
       </button>
     </div>
@@ -276,6 +313,7 @@
         <p class="text-[8px] mt-1.5 italic">*** Terima Kasih ***</p>
       </div>
 
+      <!-- Tombol Cetak Bluetooth Direct -->
       <div class="flex flex-col gap-2.5 no-print pt-3">
         <button onclick="triggerPrint()" class="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black text-base py-4 rounded-2xl shadow-lg cursor-pointer border-b-4 border-emerald-900 flex items-center justify-center gap-2 transition">
           🖨️ CETAK BLUETOOTH DIRECT
@@ -290,17 +328,16 @@
   <script>
     const WEBHOOK_URL = 'https://n8n-mzbmiib3etk4.kangkung.sumopod.my.id/webhook/0c2f335e-543b-4f3e-968e-f70d412f194b';
     
-    // State Kalkulator
-    let currentInput = '0';
-    let formula = '';
+    // State Kalkulator (Token-Based untuk mendukung Mode Cepat)
+    let inputTokens = []; 
     let isEvaluated = false;
     let finalCalculatedNominal = 0;
     let finalActionType = 'in';
 
-    // State Mode Capek
-    let isModeCapek = false;
+    // State Mode Cepat
+    let isFastMode = localStorage.getItem('warung_acil_fastmode') === 'true';
 
-    // State Receipt & Bluetooth
+    // State Receipt Data
     let activeReceiptData = null;
     let cachedBluetoothDevice = null;
 
@@ -317,6 +354,7 @@
     // Inisialisasi Opsi Cabang dari CONFIG.BRANCH_MAP
     function initBranchOptions() {
       const selectBranch = document.getElementById('selectBranch');
+      if (!selectBranch) return;
       selectBranch.innerHTML = '';
 
       if (typeof CONFIG !== 'undefined' && CONFIG.BRANCH_MAP) {
@@ -337,12 +375,15 @@
       initBranchOptions();
     }
 
-    // Tentukan Nama Cabang Pengguna Berdasarkan config.js[cite: 4]
     const currentBranchName = session.isOwner 
       ? 'Master Owner / All Branches' 
       : (typeof CONFIG !== 'undefined' ? CONFIG.getBranchName(session.akses) : `CABANG ${session.akses}`);
 
     document.getElementById('userInfo').innerText = `${session.user} | ${currentBranchName}`;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      applyFastModeUI();
+    });
 
     function getSelectedTargetBranch() {
       if (session.isOwner) {
@@ -351,125 +392,49 @@
       return currentBranchName;
     }
 
-    function onOwnerBranchChange() {
-      calculateLaciTotals();
-      renderHistoryList();
+    // --- LOGIKA TOGGLE & UI MODE CEPAT ---
+    function toggleFastMode() {
+      isFastMode = !isFastMode;
+      localStorage.setItem('warung_acil_fastmode', isFastMode);
+      applyFastModeUI();
     }
 
-    // Toggle Mode Capek (Ubah Warna Kalkulator jadi Gelap / Dark Mode)
-    function toggleModeCapek() {
-      isModeCapek = !isModeCapek;
-      const btnCapek = document.getElementById('btnModeCapek');
-      const calcWrapper = document.getElementById('calcWrapper');
-      const boxDisplay = document.getElementById('calcDisplayBox');
-      const formulaDisplay = document.getElementById('calcFormula');
-      const numBtns = document.querySelectorAll('.btn-num');
-      const numSpecialBtns = document.querySelectorAll('.btn-num-special');
-      const opBtns = document.querySelectorAll('.btn-op');
-      const eqBtns = document.querySelectorAll('.btn-eq');
+    function applyFastModeUI() {
+      const body = document.getElementById('bodyApp');
+      const nav = document.getElementById('mainNav');
+      const btn = document.getElementById('fastModeBtn');
+      const banner = document.getElementById('fastModeBanner');
 
-      if (isModeCapek) {
-        btnCapek.className = 'bg-rose-600 hover:bg-rose-700 text-white text-xs md:text-sm px-3 py-1.5 md:py-2 rounded-xl border border-rose-500 font-bold cursor-pointer transition flex items-center gap-1 shadow-md';
-        btnCapek.innerHTML = '<span>⚡</span> <span class="hidden sm:inline">mode capek (ON)</span><span class="sm:hidden">capek ON</span>';
-        
-        // Mode Capek: Ubah Container Kalkulator Jadi GELAP (Slate-950)
-        calcWrapper.className = 'bg-slate-950 rounded-3xl p-3 md:p-4 border-2 border-amber-500 shadow-xl flex flex-col gap-3 transition-colors duration-300';
-        boxDisplay.className = 'bg-slate-900 text-white rounded-2xl p-4 md:p-5 border-2 border-amber-500/50 shadow-inner text-right flex flex-col justify-end min-h-[130px] md:min-h-[150px] transition-colors duration-300';
-        formulaDisplay.className = 'text-lg md:text-xl font-black text-amber-400 min-h-[28px] overflow-x-auto tracking-wider mb-1 transition-colors duration-300';
-
-        // Ubah warna tombol angka ke Gelap Kontras
-        numBtns.forEach(btn => {
-          btn.className = 'btn-num bg-slate-800 hover:bg-slate-700 active:bg-slate-600 text-white text-2xl md:text-3xl font-black rounded-2xl p-3.5 md:p-5 shadow-sm border border-slate-700 active:scale-95 transition';
-        });
-        numSpecialBtns.forEach(btn => {
-          btn.className = 'btn-num-special bg-slate-700 hover:bg-slate-600 active:bg-slate-500 text-amber-300 text-lg md:text-xl font-black rounded-2xl p-3.5 md:p-5 shadow-sm border border-slate-600 active:scale-95 transition';
-        });
-        opBtns.forEach(btn => {
-          btn.className = 'btn-op bg-amber-600 hover:bg-amber-500 active:bg-amber-700 text-white text-2xl md:text-3xl font-black rounded-2xl p-3.5 md:p-5 shadow-sm border border-amber-500 active:scale-95 transition';
-        });
-        eqBtns.forEach(btn => {
-          btn.className = 'btn-eq bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-slate-950 text-2xl md:text-3xl font-black rounded-2xl p-3 md:p-4 shadow-sm border border-amber-400 active:scale-95 transition';
-        });
-
+      if (isFastMode) {
+        body.classList.add('fast-mode');
+        nav.classList.remove('bg-emerald-600');
+        nav.classList.add('bg-slate-900', 'border-b', 'border-slate-800');
+        btn.classList.remove('bg-amber-500', 'text-slate-900');
+        btn.classList.add('bg-amber-400', 'text-slate-950', 'ring-2', 'ring-amber-300');
+        document.getElementById('fastModeText').innerText = 'Mode Cepat ON';
+        banner.classList.remove('hidden');
       } else {
-        btnCapek.className = 'bg-amber-500 hover:bg-amber-600 text-white text-xs md:text-sm px-3 py-1.5 md:py-2 rounded-xl border border-amber-400 font-bold cursor-pointer transition flex items-center gap-1 shadow-sm';
-        btnCapek.innerHTML = '<span>⚡</span> <span class="hidden sm:inline">mode capek</span><span class="sm:hidden">capek</span>';
-        
-        // Mode Normal: Kembalikan Tampilan Terang
-        calcWrapper.className = 'bg-white rounded-3xl p-3 md:p-4 border border-slate-200 shadow-sm flex flex-col gap-3 transition-colors duration-300';
-        boxDisplay.className = 'bg-slate-900 text-white rounded-2xl p-4 md:p-5 border-4 border-slate-700 shadow-inner text-right flex flex-col justify-end min-h-[130px] md:min-h-[150px] transition-colors duration-300';
-        formulaDisplay.className = 'text-lg md:text-xl font-black text-emerald-400 min-h-[28px] overflow-x-auto tracking-wider mb-1 transition-colors duration-300';
-
-        numBtns.forEach(btn => {
-          btn.className = 'btn-num bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-2xl md:text-3xl font-black rounded-2xl p-3.5 md:p-5 shadow-sm border-2 border-slate-200 active:scale-95 transition';
-        });
-        numSpecialBtns.forEach(btn => {
-          btn.className = 'btn-num-special bg-slate-200 hover:bg-slate-300 active:bg-slate-400 text-slate-900 text-lg md:text-xl font-black rounded-2xl p-3.5 md:p-5 shadow-sm border-2 border-slate-300 active:scale-95 transition';
-        });
-        opBtns.forEach(btn => {
-          btn.className = 'btn-op bg-amber-100 hover:bg-amber-200 active:bg-amber-300 text-amber-900 text-2xl md:text-3xl font-black rounded-2xl p-3.5 md:p-5 shadow-sm border-2 border-amber-200 active:scale-95 transition';
-        });
-        eqBtns.forEach(btn => {
-          btn.className = 'btn-eq bg-slate-300 hover:bg-slate-400 active:bg-slate-500 text-slate-900 text-2xl md:text-3xl font-black rounded-2xl p-3 md:p-4 shadow-sm border-2 border-slate-300 active:scale-95 transition';
-        });
+        body.classList.remove('fast-mode');
+        nav.classList.remove('bg-slate-900', 'border-b', 'border-slate-800');
+        nav.classList.add('bg-emerald-600');
+        btn.classList.remove('bg-amber-400', 'text-slate-950', 'ring-2', 'ring-amber-300');
+        btn.classList.add('bg-amber-500', 'text-slate-900');
+        document.getElementById('fastModeText').innerText = 'Mode Cepat';
+        banner.classList.add('hidden');
       }
-
-      clearCalc();
+      updateDisplay();
     }
 
-    // Navigasi Tab (Mobile View)
-    function switchNav(tab) {
-      const btnCalc = document.getElementById('tabCalc');
-      const btnHist = document.getElementById('tabHistory');
-      const secCalc = document.getElementById('secCalc');
-      const secHistory = document.getElementById('secHistory');
-
-      if (tab === 'calc') {
-        btnCalc.className = 'flex-1 py-3 font-black text-xs md:text-sm rounded-xl bg-emerald-600 text-white shadow-sm transition';
-        btnHist.className = 'flex-1 py-3 font-black text-xs md:text-sm rounded-xl text-slate-500 transition';
-        secCalc.classList.remove('hidden');
-        secHistory.classList.add('hidden');
-      } else {
-        btnHist.className = 'flex-1 py-3 font-black text-xs md:text-sm rounded-xl bg-emerald-600 text-white shadow-sm transition';
-        btnCalc.className = 'flex-1 py-3 font-black text-xs md:text-sm rounded-xl text-slate-500 transition';
-        secHistory.classList.remove('hidden');
-        secHistory.classList.remove('lg:block');
-        secCalc.classList.add('hidden');
-        loadDashboardData();
-      }
-    }
-
-    // LOGIKA KALKULATOR
-    function updateDisplay() {
-      document.getElementById('calcFormula').innerText = formula || '0';
-      document.getElementById('calcDisplay').innerText = formatDisplayNumber(currentInput);
-    }
-
-    function formatDisplayNumber(str) {
-      if (str === '-' || str === '' || str === 'Error') return str;
-      const num = Number(str);
-      if (isNaN(num)) return str;
-      return new Intl.NumberFormat('id-ID').format(num);
-    }
-
+    // --- LOGIKA KALKULATOR TERINTEGRASI ---
     function pressNum(num) {
-      let appendVal = num;
-      // Pada mode capek: input angka pertama langsung dikali 1000 (tambah '000')
-      if (isModeCapek && (currentInput === '0' || isEvaluated)) {
-        appendVal = num + '000';
-      }
-
       if (isEvaluated) {
-        currentInput = appendVal;
-        formula = appendVal;
+        inputTokens = [num];
         isEvaluated = false;
       } else {
-        if (currentInput === '0') {
-          currentInput = appendVal;
-          formula = appendVal;
+        if (inputTokens.length === 0 || ['+', '-', '*', '/'].includes(inputTokens[inputTokens.length - 1])) {
+          inputTokens.push(num);
         } else {
-          currentInput += num;
-          formula += num;
+          inputTokens[inputTokens.length - 1] += num;
         }
       }
       updateDisplay();
@@ -477,45 +442,46 @@
 
     function press000() {
       if (isEvaluated) {
-        currentInput = '0';
-        formula = '0';
+        inputTokens = [];
         isEvaluated = false;
       } else {
-        if (currentInput !== '0' && currentInput !== '') {
-          currentInput += '000';
-          formula += '000';
+        if (inputTokens.length > 0 && !['+', '-', '*', '/'].includes(inputTokens[inputTokens.length - 1])) {
+          inputTokens[inputTokens.length - 1] += '000';
         }
       }
       updateDisplay();
     }
 
     function pressDot() {
-      if (!currentInput.includes('.')) {
-        currentInput += '.';
-        formula += '.';
-        updateDisplay();
+      if (isEvaluated) {
+        inputTokens = ['0.'];
+        isEvaluated = false;
+      } else {
+        if (inputTokens.length === 0 || ['+', '-', '*', '/'].includes(inputTokens[inputTokens.length - 1])) {
+          inputTokens.push('0.');
+        } else if (!inputTokens[inputTokens.length - 1].includes('.')) {
+          inputTokens[inputTokens.length - 1] += '.';
+        }
       }
+      updateDisplay();
     }
 
-    // Operasi Matematika Standar (x1000 dimatikan saat operasi matematika agar nilainya riil)
     function pressOp(op) {
       if (isEvaluated) isEvaluated = false;
-      
-      const trimmed = formula.trim();
-      const lastChar = trimmed.slice(-1);
 
-      if (['+', '-', '*', '/'].includes(lastChar)) {
-        formula = trimmed.slice(0, -1) + ' ' + op + ' ';
-      } else if (formula !== '') {
-        formula += ' ' + op + ' ';
+      if (inputTokens.length > 0) {
+        const last = inputTokens[inputTokens.length - 1];
+        if (['+', '-', '*', '/'].includes(last)) {
+          inputTokens[inputTokens.length - 1] = op;
+        } else {
+          inputTokens.push(op);
+        }
       }
-      currentInput = '0';
       updateDisplay();
     }
 
     function clearCalc() {
-      currentInput = '0';
-      formula = '';
+      inputTokens = [];
       isEvaluated = false;
       updateDisplay();
     }
@@ -526,55 +492,152 @@
         return;
       }
 
-      if (formula.length > 0) {
-        formula = formula.trimEnd();
-        if (['+', '-', '*', '/'].includes(formula.slice(-1))) {
-          formula = formula.slice(0, -1).trimEnd();
+      if (inputTokens.length > 0) {
+        let lastToken = inputTokens[inputTokens.length - 1];
+        if (['+', '-', '*', '/'].includes(lastToken)) {
+          inputTokens.pop();
         } else {
-          formula = formula.slice(0, -1);
+          lastToken = lastToken.slice(0, -1);
+          if (lastToken === '' || lastToken === '-') {
+            inputTokens.pop();
+          } else {
+            inputTokens[inputTokens.length - 1] = lastToken;
+          }
         }
       }
-
-      if (currentInput.length > 0) {
-        currentInput = currentInput.slice(0, -1);
-      }
-
-      if (formula === '' || formula === '-') {
-        formula = '';
-        currentInput = '0';
-      } else if (currentInput === '' || currentInput === '-') {
-        const parts = formula.split(/[\+\-\*\/]/);
-        currentInput = parts[parts.length - 1].trim() || '0';
-      }
-
       updateDisplay();
     }
 
-    function calculateResult() {
-      if (!formula || formula === '0') return 0;
+    // Mengolah Nilai Token (x1000 jika Mode Cepat aktif & bukan hasil dari kali/bagi)
+    function processTokenValue(token, prevOperator) {
+      let num = parseFloat(token);
+      if (isNaN(num)) return 0;
 
-      try {
-        let sanitized = formula.replace(/[^0-9+\-*/.]/g, '');
-        let res = eval(sanitized);
-        
-        if (res === undefined || isNaN(res)) res = 0;
-        
-        currentInput = String(res);
-        formula = String(res);
-        isEvaluated = true;
-        
-        updateDisplay();
-        return res;
-      } catch (e) {
-        currentInput = 'Error';
-        updateDisplay();
-        return 0;
+      if (isFastMode && prevOperator !== '*' && prevOperator !== '/') {
+        num = num * 1000;
       }
+      return num;
     }
 
-    // ALUR TRANSAKSI
+    function calculateResult() {
+      if (inputTokens.length === 0) return 0;
+
+      let tokens = [...inputTokens];
+
+      // Step 1: Normalisasi Token Angka
+      let evaluatedTokens = [];
+      let lastOp = null;
+
+      for (let i = 0; i < tokens.length; i++) {
+        let t = tokens[i];
+        if (['+', '-', '*', '/'].includes(t)) {
+          lastOp = t;
+          evaluatedTokens.push(t);
+        } else {
+          evaluatedTokens.push(processTokenValue(t, lastOp));
+        }
+      }
+
+      // Step 2: Operasi Perkalian & Pembagian
+      let pass1 = [];
+      let i = 0;
+      while (i < evaluatedTokens.length) {
+        let item = evaluatedTokens[i];
+        if (item === '*' || item === '/') {
+          let prevNum = pass1.pop();
+          let nextNum = evaluatedTokens[i + 1];
+          if (nextNum !== undefined && typeof nextNum === 'number') {
+            let res = item === '*' ? prevNum * nextNum : (nextNum !== 0 ? prevNum / nextNum : 0);
+            pass1.push(res);
+            i += 2;
+          } else {
+            pass1.push(prevNum);
+            i++;
+          }
+        } else {
+          pass1.push(item);
+          i++;
+        }
+      }
+
+      // Step 3: Operasi Penjumlahan & Pengurangan
+      let total = typeof pass1[0] === 'number' ? pass1[0] : 0;
+      for (let j = 1; j < pass1.length; j += 2) {
+        let op = pass1[j];
+        let val = pass1[j + 1];
+        if (typeof val === 'number') {
+          if (op === '+') total += val;
+          if (op === '-') total -= val;
+        }
+      }
+
+      isEvaluated = true;
+      inputTokens = [String(total)];
+      updateDisplay();
+      return total;
+    }
+
+    function updateDisplay() {
+      const rawText = inputTokens.join(' ') || '0';
+      document.getElementById('calcFormula').innerText = rawText;
+
+      let currentVal = calculateDisplayVal();
+      document.getElementById('calcDisplay').innerText = new Intl.NumberFormat('id-ID').format(currentVal);
+    }
+
+    function calculateDisplayVal() {
+      if (inputTokens.length === 0) return 0;
+      let tokens = [...inputTokens];
+      let evaluatedTokens = [];
+      let lastOp = null;
+
+      for (let i = 0; i < tokens.length; i++) {
+        let t = tokens[i];
+        if (['+', '-', '*', '/'].includes(t)) {
+          lastOp = t;
+          evaluatedTokens.push(t);
+        } else {
+          evaluatedTokens.push(processTokenValue(t, lastOp));
+        }
+      }
+
+      let pass1 = [];
+      let i = 0;
+      while (i < evaluatedTokens.length) {
+        let item = evaluatedTokens[i];
+        if (item === '*' || item === '/') {
+          let prevNum = pass1.pop();
+          let nextNum = evaluatedTokens[i + 1];
+          if (nextNum !== undefined && typeof nextNum === 'number') {
+            let res = item === '*' ? prevNum * nextNum : (nextNum !== 0 ? prevNum / nextNum : 0);
+            pass1.push(res);
+            i += 2;
+          } else {
+            pass1.push(prevNum);
+            i++;
+          }
+        } else {
+          pass1.push(item);
+          i++;
+        }
+      }
+
+      let total = typeof pass1[0] === 'number' ? pass1[0] : 0;
+      for (let j = 1; j < pass1.length; j += 2) {
+        let op = pass1[j];
+        let val = pass1[j + 1];
+        if (typeof val === 'number') {
+          if (op === '+') total += val;
+          if (op === '-') total -= val;
+        }
+      }
+
+      return total;
+    }
+
+    // ALUR TRANSAKSI & WEBHOOK
     function openPaymentModal() {
-      let finalVal = calculateResult();
+      let finalVal = calculateDisplayVal();
       
       if (finalVal === 0) {
         alert('Nominal transaksi tidak boleh Rp 0!');
@@ -611,9 +674,9 @@
       const targetBranch = getSelectedTargetBranch();
 
       const payload = {
-        action: finalActionType,
+        action: finalActionType === 'in' ? 'add_money_in' : 'add_money_out',
         nominal: String(finalCalculatedNominal),
-        transaksi: method,
+        transaksi: method.toUpperCase(),
         kasir: session.user,
         cabang: targetBranch
       };
@@ -628,12 +691,13 @@
           body: JSON.stringify(payload)
         });
         clearCalc();
+        loadDashboardData();
       } catch (err) {
         alert('Gagal sinkronisasi data ke server, namun perintah cetak telah diproses.');
       }
     }
 
-    // STRUK & DIRECT PRINT WEB BLUETOOTH
+    // CETAK BLUETOOTH DIRECT & STRUK
     function openReceiptModal(nominal, method, isMoneyIn, kasir, cabang, date) {
       const formattedNominal = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(nominal);
       const formattedDate = new Date(date || Date.now()).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' }) + ' WIB';
@@ -745,6 +809,28 @@
       document.getElementById('receiptModal').classList.add('hidden');
     }
 
+    // DASHBOARD & RIWAYAT LACI
+    function switchNav(tab) {
+      const btnCalc = document.getElementById('tabCalc');
+      const btnHist = document.getElementById('tabHistory');
+      const secCalc = document.getElementById('secCalc');
+      const secHistory = document.getElementById('secHistory');
+
+      if (tab === 'calc') {
+        btnCalc.className = 'flex-1 py-3 font-black text-xs md:text-sm rounded-xl bg-emerald-600 text-white shadow-sm transition';
+        btnHist.className = 'flex-1 py-3 font-black text-xs md:text-sm rounded-xl text-slate-500 transition';
+        secCalc.classList.remove('hidden');
+        secHistory.classList.add('hidden');
+      } else {
+        btnHist.className = 'flex-1 py-3 font-black text-xs md:text-sm rounded-xl bg-emerald-600 text-white shadow-sm transition';
+        btnCalc.className = 'flex-1 py-3 font-black text-xs md:text-sm rounded-xl text-slate-500 transition';
+        secHistory.classList.remove('hidden');
+        secHistory.classList.remove('lg:block');
+        secCalc.classList.add('hidden');
+        loadDashboardData();
+      }
+    }
+
     async function loadDashboardData() {
       try {
         const response = await fetch(WEBHOOK_URL, {
@@ -769,25 +855,24 @@
       activePeriod = period;
       ['today', 'week', 'month'].forEach(p => {
         const btn = document.getElementById('btn' + p.charAt(0).toUpperCase() + p.slice(1));
-        btn.className = (p === period) 
-          ? 'flex-1 py-1.5 rounded-xl bg-white text-emerald-700 shadow-xs' 
-          : 'flex-1 py-1.5 rounded-xl';
+        if (btn) {
+          btn.className = (p === period) 
+            ? 'flex-1 py-1.5 rounded-xl bg-white text-emerald-700 shadow-xs' 
+            : 'flex-1 py-1.5 rounded-xl';
+        }
       });
       calculateLaciTotals();
     }
 
-    // Perhitungan Laci Kasir Presisi
     function calculateLaciTotals() {
       const now = new Date();
       let listIn = (globalRawData.money_in || []);
       let listOut = (globalRawData.money_out || []);
 
-      const activeFilterBranch = session.isOwner 
-        ? document.getElementById('selectBranch').value 
-        : currentBranchName;
-
-      listIn = listIn.filter(i => String(i.CABANG || '').trim().toUpperCase() === String(activeFilterBranch || '').trim().toUpperCase());
-      listOut = listOut.filter(o => String(o.CABANG || '').trim().toUpperCase() === String(activeFilterBranch || '').trim().toUpperCase());
+      if (!session.isOwner) {
+        listIn = listIn.filter(i => String(i.CABANG).toUpperCase() === currentBranchName.toUpperCase());
+        listOut = listOut.filter(o => String(o.CABANG).toUpperCase() === currentBranchName.toUpperCase());
+      }
 
       const filterByDate = (item) => {
         if (!item.createdAt) return true;
@@ -822,23 +907,22 @@
       document.getElementById('valTotalNet').innerText = formatCurrency(totalNet);
     }
 
-    // Render Riwayat Presisi
     function renderHistoryList() {
       const container = document.getElementById('historyList');
+      if (!container) return;
+
       let listIn = (globalRawData.money_in || []).map(i => ({ ...i, type: 'IN' }));
       let listOut = (globalRawData.money_out || []).map(o => ({ ...o, type: 'OUT' }));
       let all = [...listIn, ...listOut];
 
-      const activeFilterBranch = session.isOwner 
-        ? document.getElementById('selectBranch').value 
-        : currentBranchName;
-
-      all = all.filter(item => String(item.CABANG || '').trim().toUpperCase() === String(activeFilterBranch || '').trim().toUpperCase());
+      if (!session.isOwner) {
+        all = all.filter(item => String(item.CABANG).toUpperCase() === currentBranchName.toUpperCase());
+      }
 
       all.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
 
       if (all.length === 0) {
-        container.innerHTML = `<p class="text-xs text-center text-slate-400 py-6">Belum ada riwayat transaksi di cabang ini.</p>`;
+        container.innerHTML = `<p class="text-xs text-center text-slate-400 py-6">Belum ada riwayat transaksi.</p>`;
         return;
       }
 
@@ -861,7 +945,7 @@
             <div class="flex items-center gap-2">
               <span class="text-[10px] text-slate-400 font-bold">${timeStr} WIB</span>
               <button onclick="reprintReceipt('${item.NOMINAL}', '${item.TRANSAKSI}', ${isIn}, '${item.KASIR}', '${item.CABANG}', '${item.createdAt}')" 
-                class="bg-white border border-slate-200 text-slate-800 text-xs font-bold px-3 py-1.5 rounded-xl hover:bg-slate-100 shadow-xs active:scale-95 transition">
+                class="bg-white border border-slate-200 text-slate-800 text-xs font-bold px-3 py-1.5 rounded-xl hover:bg-slate-100 shadow-xs active:scale-95 transition cursor-pointer">
                 🖨️ Struk
               </button>
             </div>
@@ -880,6 +964,7 @@
       window.location.href = 'index.html';
     }
 
+    // Inisialisasi awal
     loadDashboardData();
   </script>
 </body>
