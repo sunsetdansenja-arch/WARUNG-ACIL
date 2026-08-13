@@ -125,7 +125,6 @@
       </div>
 
       <div class="flex items-center gap-2 shrink-0">
-        <!-- Tombol Toggle Mode Cepat -->
         <button onclick="toggleFastMode()" id="fastModeBtn" class="flex items-center gap-1 bg-amber-500 hover:bg-amber-600 text-slate-900 text-xs px-2.5 py-1.5 rounded-xl font-bold shadow-xs transition cursor-pointer">
           <span>⚡</span>
           <span id="fastModeText">Mode Cepat</span>
@@ -163,54 +162,46 @@
     <div id="ownerBranchContainer" class="hidden mb-3">
       <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Pilih Cabang Transaksi</label>
       <select id="selectBranch" class="w-full px-4 py-2.5 text-sm font-bold rounded-2xl border border-slate-300 bg-amber-50 text-slate-800 focus:outline-none shadow-xs">
-        <!-- Opsi diisi via JS -->
       </select>
     </div>
 
-    <!-- WRAPPER UTAMA: Grid 1 Kolom (HP) / Grid 2 Kolom (Tablet) -->
+    <!-- WRAPPER UTAMA -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 flex-1">
       
       <!-- SEKSI 1: KALKULATOR KASIR -->
       <div id="secCalc" class="lg:col-span-7 flex-1 flex flex-col gap-3">
         
-        <!-- Display Kalkulator Ekstra Gede & Jelas -->
         <div class="bg-slate-900 text-white rounded-3xl p-4 md:p-6 border-4 border-slate-700 shadow-2xl text-right flex flex-col justify-end min-h-[140px] md:min-h-[160px] fast-input">
           <div id="calcFormula" class="text-xl md:text-2xl font-black text-emerald-400 min-h-[32px] overflow-x-auto tracking-wider mb-1">0</div>
           <div id="calcDisplay" class="text-5xl md:text-6xl font-black text-white overflow-x-auto whitespace-nowrap tracking-tight">0</div>
         </div>
 
-        <!-- Keypad Grid Kalkulator -->
         <div class="grid grid-cols-4 gap-2.5 md:gap-3 flex-1 my-auto">
-          <!-- Baris 1 -->
+          <!-- Keypad -->
           <button onclick="pressNum('7')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition fast-btn-num">7</button>
           <button onclick="pressNum('8')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition fast-btn-num">8</button>
           <button onclick="pressNum('9')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition fast-btn-num">9</button>
           <button onclick="pressOp('/')" class="bg-amber-100 hover:bg-amber-200 active:bg-amber-300 text-amber-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-amber-200 active:scale-95 transition fast-btn-op">÷</button>
 
-          <!-- Baris 2 -->
           <button onclick="pressNum('4')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition fast-btn-num">4</button>
           <button onclick="pressNum('5')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition fast-btn-num">5</button>
           <button onclick="pressNum('6')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition fast-btn-num">6</button>
           <button onclick="pressOp('*')" class="bg-amber-100 hover:bg-amber-200 active:bg-amber-300 text-amber-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-amber-200 active:scale-95 transition fast-btn-op">×</button>
 
-          <!-- Baris 3 -->
           <button onclick="pressNum('1')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition fast-btn-num">1</button>
           <button onclick="pressNum('2')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition fast-btn-num">2</button>
           <button onclick="pressNum('3')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition fast-btn-num">3</button>
           <button onclick="pressOp('-')" class="bg-amber-100 hover:bg-amber-200 active:bg-amber-300 text-amber-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-amber-200 active:scale-95 transition fast-btn-op">-</button>
 
-          <!-- Baris 4 -->
           <button onclick="pressNum('0')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition fast-btn-num">0</button>
           <button onclick="press000()" class="bg-slate-200 hover:bg-slate-300 active:bg-slate-400 text-slate-900 text-xl md:text-2xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-300 active:scale-95 transition fast-btn-num">000</button>
           <button onclick="pressDot()" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition fast-btn-num">.</button>
           <button onclick="pressOp('+')" class="bg-amber-100 hover:bg-amber-200 active:bg-amber-300 text-amber-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-amber-200 active:scale-95 transition fast-btn-op">+</button>
 
-          <!-- Baris 5 -->
           <button onclick="clearCalc()" class="bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white text-2xl md:text-3xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-md active:scale-95 transition" title="Clear All">C</button>
           <button onclick="backspace()" class="bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white text-2xl md:text-3xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-md active:scale-95 transition" title="Hapus 1 Karakter">⌫</button>
           <button onclick="calculateResult()" class="bg-slate-300 hover:bg-slate-400 active:bg-slate-500 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-300 active:scale-95 transition fast-btn-num">=</button>
           
-          <!-- Tombol Proses Rapi & Bebas Overflow -->
           <button onclick="openPaymentModal()" class="bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-lg md:text-2xl font-black rounded-2xl md:rounded-3xl p-3 md:p-6 shadow-lg uppercase tracking-wider border-b-4 border-emerald-900 active:scale-95 transition flex items-center justify-center fast-btn-process">
             <span class="truncate">PROSES ➔</span>
           </button>
@@ -219,7 +210,6 @@
 
       <!-- SEKSI 2: RIWAYAT TRANSAKSI -->
       <div id="secHistory" class="hidden lg:block lg:col-span-5 flex-1 flex flex-col gap-3">
-        <!-- Summary Laci -->
         <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-4 md:p-5 fast-card">
           <div class="flex justify-between items-center mb-3">
             <h2 class="font-extrabold text-slate-800 text-sm flex items-center gap-1">💵 Ringkasan Laci Kasir</h2>
@@ -250,7 +240,6 @@
           </div>
         </div>
 
-        <!-- Tray List Riwayat -->
         <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-4 md:p-5 flex-1 flex flex-col fast-card">
           <h3 class="font-extrabold text-xs uppercase tracking-wider mb-3">Daftar Transaksi Terakhir</h3>
           <div class="max-h-[380px] lg:max-h-[460px] overflow-y-auto pr-1 space-y-2.5 custom-scroll" id="historyList">
@@ -268,12 +257,12 @@
       <div class="text-center space-y-2">
         <p id="modalTypeBadge" class="inline-block text-xs md:text-sm font-black uppercase px-4 py-1.5 rounded-full bg-emerald-100 text-emerald-800 tracking-wider">UANG MASUK</p>
         <h3 class="font-black text-slate-800 text-xl md:text-2xl">Pilih Pembayaran</h3>
-        <p class="text-xs md:text-sm text-slate-500 font-semibold">Klik metode untuk langsung simpan & cetak</p>
+        <p class="text-xs md:text-sm text-slate-500 font-semibold" id="paymentStatusText">Klik metode untuk langsung menyimpan</p>
         <div id="modalNominal" class="text-4xl md:text-5xl font-black text-emerald-600 pt-2 tracking-tight">Rp 0</div>
       </div>
 
       <!-- Opsi Pembayaran -->
-      <div class="grid grid-cols-1 gap-3.5 pt-2">
+      <div class="grid grid-cols-1 gap-3.5 pt-2" id="paymentButtonsGroup">
         <button onclick="submitTransaction('cash')" class="w-full h-20 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black rounded-2xl md:rounded-3xl text-2xl shadow-xl flex items-center justify-center gap-3 cursor-pointer border-b-8 border-emerald-900 transition">
           💵 CASH
         </button>
@@ -285,7 +274,7 @@
         </button>
       </div>
 
-      <button onclick="closePaymentModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-extrabold py-3.5 rounded-2xl text-sm cursor-pointer">
+      <button id="btnCancelPayment" onclick="closePaymentModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-extrabold py-3.5 rounded-2xl text-sm cursor-pointer">
         Batal / Kembali
       </button>
     </div>
@@ -313,7 +302,6 @@
         <p class="text-[8px] mt-1.5 italic">*** Terima Kasih ***</p>
       </div>
 
-      <!-- Tombol Cetak Bluetooth Direct -->
       <div class="flex flex-col gap-2.5 no-print pt-3">
         <button onclick="triggerPrint()" class="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black text-base py-4 rounded-2xl shadow-lg cursor-pointer border-b-4 border-emerald-900 flex items-center justify-center gap-2 transition">
           🖨️ CETAK BLUETOOTH DIRECT
@@ -328,30 +316,24 @@
   <script>
     const WEBHOOK_URL = 'https://n8n-mzbmiib3etk4.kangkung.sumopod.my.id/webhook/0c2f335e-543b-4f3e-968e-f70d412f194b';
     
-    // State Kalkulator (Token-Based)
     let inputTokens = []; 
     let isEvaluated = false;
     let finalCalculatedNominal = 0;
     let finalActionType = 'in';
 
-    // State Mode Cepat
     let isFastMode = localStorage.getItem('warung_acil_fastmode') === 'true';
 
-    // State Receipt Data
     let activeReceiptData = null;
     let cachedBluetoothDevice = null;
 
-    // State Laci & Session
     let activePeriod = 'today';
     let globalRawData = { money_in: [], money_out: [] };
 
-    // Validasi Login
     const session = JSON.parse(localStorage.getItem('warung_acil_session'));
     if (!session) {
       window.location.href = 'index.html';
     }
 
-    // Inisialisasi Opsi Cabang dari CONFIG.BRANCH_MAP
     function initBranchOptions() {
       const selectBranch = document.getElementById('selectBranch');
       if (!selectBranch) return;
@@ -392,7 +374,6 @@
       return currentBranchName;
     }
 
-    // --- LOGIKA TOGGLE & UI MODE CEPAT ---
     function toggleFastMode() {
       isFastMode = !isFastMode;
       localStorage.setItem('warung_acil_fastmode', isFastMode);
@@ -425,7 +406,6 @@
       updateDisplay();
     }
 
-    // --- LOGIKA KALKULATOR TERINTEGRASI ---
     function pressNum(num) {
       if (isEvaluated) {
         inputTokens = [num];
@@ -605,7 +585,6 @@
       return total;
     }
 
-    // ALUR TRANSAKSI & WEBHOOK NON-BLOCKING
     function openPaymentModal() {
       let finalVal = calculateDisplayVal();
       
@@ -632,6 +611,9 @@
       }
 
       document.getElementById('modalNominal').innerText = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(finalCalculatedNominal);
+      document.getElementById('paymentStatusText').innerText = 'Klik metode untuk menyimpan transaksi';
+      document.getElementById('paymentButtonsGroup').style.pointerEvents = 'auto';
+      document.getElementById('paymentButtonsGroup').style.opacity = '1';
       document.getElementById('paymentModal').classList.remove('hidden');
     }
 
@@ -639,9 +621,8 @@
       document.getElementById('paymentModal').classList.add('hidden');
     }
 
-    function submitTransaction(method) {
-      closePaymentModal();
-      
+    // FUNGSI UTAMA: PENYIMPANAN TERJAMIN KE WEBHOOK
+    async function submitTransaction(method) {
       const targetBranch = getSelectedTargetBranch();
       const transNominal = finalCalculatedNominal;
       const transAction = finalActionType;
@@ -655,37 +636,49 @@
         cabang: targetBranch
       };
 
-      // 1. Tampilkan Struk & Pemicu Cetak Otomatis
-      openReceiptModal(transNominal, method, transAction === 'in', session.user, targetBranch, transTime);
-      setTimeout(() => { triggerPrint(); }, 150);
+      // Kunci UI modal saat loading kirim ke server
+      const statusText = document.getElementById('paymentStatusText');
+      const btnGroup = document.getElementById('paymentButtonsGroup');
+      statusText.innerText = '⏳ Memproses & Menyimpan Transaksi...';
+      btnGroup.style.pointerEvents = 'none';
+      btnGroup.style.opacity = '0.5';
 
-      // 2. Clear Layar Kalkulator Segera
-      clearCalc();
+      try {
+        const response = await fetch(WEBHOOK_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
 
-      // 3. Pengiriman Data Async (Background Save - Bebas Tutup Window)
-      fetch(WEBHOOK_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      })
-      .then(response => {
         if (response.ok) {
+          // 1. Data Sukses Tersimpan -> Reset Kalkulator & Refresh Data Laci
+          clearCalc();
           loadDashboardData();
+
+          // 2. Tutup Modal Pembayaran
+          closePaymentModal();
+
+          // 3. Buka Modal Struk
+          openReceiptModal(transNominal, method, transAction === 'in', session.user, targetBranch, transTime);
+
+          // 4. Picu cetak otomatis di background tanpa memblokir UI
+          setTimeout(() => { triggerPrint(); }, 200);
+
         } else {
-          // Retry otomatis jika ada kejanggalan koneksi
-          fetch(WEBHOOK_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          }).then(() => loadDashboardData());
+          alert('Gagal menyimpan transaksi! Server merespons error.');
+          statusText.innerText = 'Gagal menyimpan transaksi. Coba lagi.';
+          btnGroup.style.pointerEvents = 'auto';
+          btnGroup.style.opacity = '1';
         }
-      })
-      .catch(err => {
-        console.error('Koneksi terputus saat menyimpan:', err);
-      });
+      } catch (err) {
+        console.error('Error koneksi webhook:', err);
+        alert('Gagal terhubung ke webhook/server. Periksa koneksi internet Anda!');
+        statusText.innerText = 'Koneksi terputus. Silakan coba lagi.';
+        btnGroup.style.pointerEvents = 'auto';
+        btnGroup.style.opacity = '1';
+      }
     }
 
-    // CETAK BLUETOOTH DIRECT & STRUK
     function openReceiptModal(nominal, method, isMoneyIn, kasir, cabang, date) {
       const formattedNominal = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(nominal);
       const formattedDate = new Date(date || Date.now()).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' }) + ' WIB';
@@ -793,7 +786,6 @@
       document.getElementById('receiptModal').classList.add('hidden');
     }
 
-    // DASHBOARD & RIWAYAT LACI
     function switchNav(tab) {
       const btnCalc = document.getElementById('tabCalc');
       const btnHist = document.getElementById('tabHistory');
