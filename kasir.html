@@ -5,19 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Dashboard Kasir - Kasir Warung Acil</title>
   
-  <!-- Panggil config.js paling atas -->
+  <!-- Panggil config.js paling atas jika ada -->
   <script src="config.js"></script>
   
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    /* Prevent text selection during rapid button clicks */
     .no-select {
       -webkit-touch-callout: none;
       -webkit-user-select: none;
       user-select: none;
     }
 
-    /* Custom Scrollbar */
     .custom-scroll::-webkit-scrollbar {
       width: 6px;
     }
@@ -30,9 +28,8 @@
       border-radius: 8px;
     }
 
-    /* Overrides Khusus Mode Cepat (Fast Mode) */
     body.fast-mode {
-      background-color: #0f172a !important; /* Slate Dark */
+      background-color: #0f172a !important;
     }
     body.fast-mode .fast-card {
       background-color: #1e293b !important;
@@ -62,7 +59,6 @@
       border-color: #047857 !important;
     }
 
-    /* Thermal Printer 58mm Preview Rules */
     @media print {
       @page {
         margin: 0;
@@ -263,13 +259,13 @@
 
       <!-- Opsi Pembayaran -->
       <div class="grid grid-cols-1 gap-3.5 pt-2" id="paymentButtonsGroup">
-        <button onclick="submitTransaction('cash')" class="w-full h-20 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black rounded-2xl md:rounded-3xl text-2xl shadow-xl flex items-center justify-center gap-3 cursor-pointer border-b-8 border-emerald-900 transition">
+        <button onclick="submitTransaction('CASH')" class="w-full h-20 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black rounded-2xl md:rounded-3xl text-2xl shadow-xl flex items-center justify-center gap-3 cursor-pointer border-b-8 border-emerald-900 transition">
           💵 CASH
         </button>
-        <button onclick="submitTransaction('qris')" class="w-full h-20 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-black rounded-2xl md:rounded-3xl text-2xl shadow-xl flex items-center justify-center gap-3 cursor-pointer border-b-8 border-blue-900 transition">
+        <button onclick="submitTransaction('QRIS')" class="w-full h-20 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-black rounded-2xl md:rounded-3xl text-2xl shadow-xl flex items-center justify-center gap-3 cursor-pointer border-b-8 border-blue-900 transition">
           📱 QRIS
         </button>
-        <button onclick="submitTransaction('transfer')" class="w-full h-20 bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black rounded-2xl md:rounded-3xl text-2xl shadow-xl flex items-center justify-center gap-3 cursor-pointer border-b-8 border-purple-900 transition">
+        <button onclick="submitTransaction('TRANSFER')" class="w-full h-20 bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black rounded-2xl md:rounded-3xl text-2xl shadow-xl flex items-center justify-center gap-3 cursor-pointer border-b-8 border-purple-900 transition">
           🏦 TRANSFER
         </button>
       </div>
@@ -314,12 +310,13 @@
   </div>
 
   <script>
+    // URL Webhook n8n
     const WEBHOOK_URL = 'https://n8n-mzbmiib3etk4.kangkung.sumopod.my.id/webhook/0c2f335e-543b-4f3e-968e-f70d412f194b';
     
     let inputTokens = []; 
     let isEvaluated = false;
     let finalCalculatedNominal = 0;
-    let finalActionType = 'in';
+    let finalActionType = 'in'; // Nilai sinkron dengan n8n: 'in' atau 'out'
 
     let isFastMode = localStorage.getItem('warung_acil_fastmode') === 'true';
 
@@ -329,10 +326,8 @@
     let activePeriod = 'today';
     let globalRawData = { money_in: [], money_out: [] };
 
-    const session = JSON.parse(localStorage.getItem('warung_acil_session'));
-    if (!session) {
-      window.location.href = 'index.html';
-    }
+    // Validasi Sesi
+    const session = JSON.parse(localStorage.getItem('warung_acil_session')) || { user: 'KASIR1', akses: 'CABANG 1', isOwner: false };
 
     function initBranchOptions() {
       const selectBranch = document.getElementById('selectBranch');
@@ -352,14 +347,14 @@
     }
 
     if (session.isOwner) {
-      document.getElementById('btnBackToMaster').classList.remove('hidden');
-      document.getElementById('ownerBranchContainer').classList.remove('hidden');
+      document.getElementById('btnBackToMaster')?.classList.remove('hidden');
+      document.getElementById('ownerBranchContainer')?.classList.remove('hidden');
       initBranchOptions();
     }
 
     const currentBranchName = session.isOwner 
       ? 'Master Owner / All Branches' 
-      : (typeof CONFIG !== 'undefined' ? CONFIG.getBranchName(session.akses) : `CABANG ${session.akses}`);
+      : (typeof CONFIG !== 'undefined' ? CONFIG.getBranchName(session.akses) : (session.akses || 'CABANG 1'));
 
     document.getElementById('userInfo').innerText = `${session.user} | ${currentBranchName}`;
 
@@ -594,10 +589,10 @@
       }
 
       if (finalVal < 0) {
-        finalActionType = 'out';
+        finalActionType = 'out'; // Disesuaikan dengan pilihan 'out' pada Switch n8n
         finalCalculatedNominal = Math.abs(finalVal);
       } else {
-        finalActionType = 'in';
+        finalActionType = 'in';  // Disesuaikan dengan pilihan 'in' pada Switch n8n
         finalCalculatedNominal = finalVal;
       }
 
@@ -621,22 +616,22 @@
       document.getElementById('paymentModal').classList.add('hidden');
     }
 
-    // FUNGSI UTAMA: PENYIMPANAN TERJAMIN KE WEBHOOK
+    // FUNGSI UTAMA: PENYIMPANAN HARUS SINKRON DENGAN PAYLOAD NODE n8N SWITCH
     async function submitTransaction(method) {
       const targetBranch = getSelectedTargetBranch();
       const transNominal = finalCalculatedNominal;
-      const transAction = finalActionType;
+      const transAction = finalActionType; // Nilainya adalah 'in' atau 'out' sesuai Switch n8n
       const transTime = new Date();
 
+      // PAYLOAD DIPASTIKAN SAMA SESUAI MAPPING n8N
       const payload = {
-        action: transAction === 'in' ? 'add_money_in' : 'add_money_out',
+        action: transAction, // 'in' atau 'out'
         nominal: String(transNominal),
         transaksi: method.toUpperCase(),
         kasir: session.user,
         cabang: targetBranch
       };
 
-      // Kunci UI modal saat loading kirim ke server
       const statusText = document.getElementById('paymentStatusText');
       const btnGroup = document.getElementById('paymentButtonsGroup');
       statusText.innerText = '⏳ Memproses & Menyimpan Transaksi...';
@@ -650,22 +645,17 @@
           body: JSON.stringify(payload)
         });
 
-        if (response.ok) {
-          // 1. Data Sukses Tersimpan -> Reset Kalkulator & Refresh Data Laci
+        const resData = await response.json();
+
+        if (response.ok && resData[0]?.json?.success) {
           clearCalc();
           loadDashboardData();
-
-          // 2. Tutup Modal Pembayaran
           closePaymentModal();
-
-          // 3. Buka Modal Struk
           openReceiptModal(transNominal, method, transAction === 'in', session.user, targetBranch, transTime);
 
-          // 4. Picu cetak otomatis di background tanpa memblokir UI
           setTimeout(() => { triggerPrint(); }, 200);
-
         } else {
-          alert('Gagal menyimpan transaksi! Server merespons error.');
+          alert('Gagal menyimpan transaksi! ' + (resData[0]?.json?.message || 'Server merespons error.'));
           statusText.innerText = 'Gagal menyimpan transaksi. Coba lagi.';
           btnGroup.style.pointerEvents = 'auto';
           btnGroup.style.opacity = '1';
@@ -807,18 +797,19 @@
       }
     }
 
+    // SINKRONISASI GET_DATA KE n8N
     async function loadDashboardData() {
       try {
         const response = await fetch(WEBHOOK_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'get_data' })
+          body: JSON.stringify({ action: 'get_data' }) // Sinkron dengan opsi Switch n8n
         });
         const resData = await response.json();
         const raw = Array.isArray(resData) ? resData[0] : resData;
 
-        if (raw && raw.success && raw.data) {
-          globalRawData = raw.data;
+        if (raw && raw.json && raw.json.success) {
+          globalRawData = raw.json.data;
           calculateLaciTotals();
           renderHistoryList();
         }
@@ -846,13 +837,13 @@
       let listOut = (globalRawData.money_out || []);
 
       if (!session.isOwner) {
-        listIn = listIn.filter(i => String(i.CABANG).toUpperCase() === currentBranchName.toUpperCase());
-        listOut = listOut.filter(o => String(o.CABANG).toUpperCase() === currentBranchName.toUpperCase());
+        listIn = listIn.filter(i => String(i.CABANG || '').toUpperCase() === currentBranchName.toUpperCase());
+        listOut = listOut.filter(o => String(o.CABANG || '').toUpperCase() === currentBranchName.toUpperCase());
       }
 
       const filterByDate = (item) => {
-        if (!item.createdAt) return true;
-        const d = new Date(item.createdAt);
+        if (!item.id && !item.id_data) return true; // Handling jika tidak ada timestamp
+        const d = new Date(item.id || Date.now());
         if (activePeriod === 'today') return d.toDateString() === now.toDateString();
         if (activePeriod === 'week') return Math.floor((now - d) / (1000 * 60 * 60 * 24)) < 7;
         if (activePeriod === 'month') return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
@@ -892,10 +883,8 @@
       let all = [...listIn, ...listOut];
 
       if (!session.isOwner) {
-        all = all.filter(item => String(item.CABANG).toUpperCase() === currentBranchName.toUpperCase());
+        all = all.filter(item => String(item.CABANG || '').toUpperCase() === currentBranchName.toUpperCase());
       }
-
-      all.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
 
       if (all.length === 0) {
         container.innerHTML = `<p class="text-xs text-center text-slate-400 py-6">Belum ada riwayat transaksi.</p>`;
@@ -906,8 +895,6 @@
         const isIn = item.type === 'IN';
         const badgeColor = isIn ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800';
         const formattedNominal = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(item.NOMINAL || 0);
-        const dateObj = item.createdAt ? new Date(item.createdAt) : new Date();
-        const timeStr = dateObj.toLocaleTimeString('id-ID', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit' });
 
         return `
           <div class="flex justify-between items-center p-3 bg-slate-50 rounded-2xl border border-slate-100 shadow-xs">
@@ -919,8 +906,7 @@
               </div>
             </div>
             <div class="flex items-center gap-2">
-              <span class="text-[10px] text-slate-400 font-bold">${timeStr} WIB</span>
-              <button onclick="reprintReceipt('${item.NOMINAL}', '${item.TRANSAKSI}', ${isIn}, '${item.KASIR}', '${item.CABANG}', '${item.createdAt}')" 
+              <button onclick="reprintReceipt('${item.NOMINAL}', '${item.TRANSAKSI}', ${isIn}, '${item.KASIR}', '${item.CABANG}', null)" 
                 class="bg-white border border-slate-200 text-slate-800 text-xs font-bold px-3 py-1.5 rounded-xl hover:bg-slate-100 shadow-xs active:scale-95 transition cursor-pointer">
                 🖨️ Struk
               </button>
