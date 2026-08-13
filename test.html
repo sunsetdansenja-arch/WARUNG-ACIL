@@ -113,7 +113,7 @@
         </button>
       </div>
 
-      <!-- Mode Input Switcher (Selalu Muncul & Tidak Tertutup) -->
+      <!-- Mode Input Switcher (Selalu Muncul & Responsive) -->
       <div class="w-full sm:w-auto flex items-center justify-between sm:justify-end gap-2 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200">
         <span class="text-[11px] md:text-xs font-black text-slate-600 uppercase tracking-wide">Mode Input:</span>
         <div class="flex gap-1 bg-slate-200/70 p-0.5 rounded-lg">
@@ -139,9 +139,9 @@
     <!-- SEKSI 1: KALKULATOR KASIR -->
     <div id="secCalc" class="flex-1 flex flex-col gap-3">
 
-      <!-- Layar Display Kalkulator -->
+      <!-- Layar Display Kalkulator dengan Preview Real-time -->
       <div class="bg-slate-200 rounded-2xl p-4 md:p-6 border border-slate-300 shadow-inner text-right flex flex-col justify-end min-h-[100px] md:min-h-[120px]">
-        <div id="calcFormula" class="text-xs md:text-sm font-bold text-slate-500 min-h-[18px] overflow-x-auto tracking-wide">0</div>
+        <div id="calcFormula" class="text-xs md:text-sm font-bold text-slate-500 min-h-[22px] overflow-x-auto tracking-wide flex justify-end items-center">0</div>
         <div id="calcDisplay" class="text-3xl sm:text-4xl md:text-5xl font-black text-slate-800 overflow-x-auto whitespace-nowrap tracking-tight">0</div>
       </div>
 
@@ -319,7 +319,8 @@
         btnQ.className = 'px-3 py-1 rounded-md text-[11px] md:text-xs font-bold bg-emerald-600 text-white shadow-xs transition cursor-pointer';
         btnN.className = 'px-3 py-1 rounded-md text-[11px] md:text-xs font-bold text-slate-600 hover:text-slate-900 transition cursor-pointer';
       }
-      clearCalc();
+      
+      updateDisplay();
     }
 
     // Ambil penamaan cabang resmi via CONFIG
@@ -391,10 +392,28 @@
       }
     }
 
-    // LOGIKA KALKULATOR
+    // LOGIKA KALKULATOR DENGAN PREVIEW MODE CEPAT (+000)
     function updateDisplay() {
-      document.getElementById('calcDisplay').innerText = formatDisplayNumber(currentInput);
-      document.getElementById('calcFormula').innerText = formula || '0';
+      const displayEl = document.getElementById('calcDisplay');
+      const formulaEl = document.getElementById('calcFormula');
+
+      displayEl.innerText = formatDisplayNumber(currentInput);
+
+      // Jika Mode Cepat Aktif & Sedang Menginput Angka/Bukan Rumus Kompleks
+      if (inputMode === 'quick' && !isEvaluated) {
+        const rawNum = Number(currentInput);
+        if (!isNaN(rawNum) && rawNum > 0 && !formula.includes('+') && !formula.includes('-') && !formula.includes('*') && !formula.includes('/')) {
+          const estimatedValue = rawNum * 1000;
+          const formattedEstimate = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(estimatedValue);
+          
+          // Tampilkan Preview Nominal Nyata di Layar Kecil Atas
+          formulaEl.innerHTML = `<span class="text-emerald-700 font-black bg-emerald-100 px-2 py-0.5 rounded-md border border-emerald-300">⚡ Total: ${formattedEstimate}</span>`;
+          return;
+        }
+      }
+
+      // Tampilan Default untuk Mode Normal / Rumus Matematika
+      formulaEl.innerText = formula || '0';
     }
 
     function formatDisplayNumber(str) {
