@@ -432,7 +432,6 @@
         isEvaluated = false;
       } else {
         if (inputTokens.length === 0 || ['+', '-', '*', '/'].includes(inputTokens[inputTokens.length - 1])) {
-          // Jika token terakhir adalah minus tunggal (input negatif awal), gabungkan dengan angka
           if (inputTokens.length > 0 && inputTokens[inputTokens.length - 1] === '-') {
             inputTokens[inputTokens.length - 1] = '-' + num;
           } else {
@@ -479,7 +478,6 @@
       if (isEvaluated) isEvaluated = false;
 
       if (inputTokens.length === 0) {
-        // Izinkan penekanan minus '-' pertama untuk menginput angka negatif
         if (op === '-') {
           inputTokens.push('-');
         }
@@ -522,7 +520,6 @@
       updateDisplay();
     }
 
-    // Mengolah Nilai Token (x1000 jika Mode Cepat aktif & bukan hasil dari kali/bagi)
     function processTokenValue(token, prevOperator) {
       let num = parseFloat(token);
       if (isNaN(num)) return 0;
@@ -533,17 +530,12 @@
       return num;
     }
 
-    // FUNGSI PERBAIKAN TOMBOL '=' SAMA DENGAN
     function calculateResult() {
       if (inputTokens.length === 0) return 0;
 
-      // 1. Hitung total rupiah aktual saat ini
       let total = calculateDisplayVal();
-
       isEvaluated = true;
 
-      // 2. Jika Mode Cepat aktif, simpan nilai dasarnya (/1000) ke inputTokens
-      // Contoh: Total Rp 2.000 diset kembali ke "2" di memori internal
       if (isFastMode) {
         let baseValue = total / 1000;
         inputTokens = [String(baseValue)];
@@ -551,9 +543,7 @@
         inputTokens = [String(total)];
       }
 
-      // 3. Update tampilan layar (Layar tetap menampilkan nilai penuh Rp 2.000)
       updateDisplay();
-
       return total;
     }
 
@@ -615,7 +605,7 @@
       return total;
     }
 
-    // ALUR TRANSAKSI & WEBHOOK
+    // ALUR TRANSAKSI & WEBHOOK NON-BLOCKING
     function openPaymentModal() {
       let finalVal = calculateDisplayVal();
       
@@ -649,32 +639,50 @@
       document.getElementById('paymentModal').classList.add('hidden');
     }
 
-    async function submitTransaction(method) {
+    function submitTransaction(method) {
       closePaymentModal();
+      
       const targetBranch = getSelectedTargetBranch();
+      const transNominal = finalCalculatedNominal;
+      const transAction = finalActionType;
+      const transTime = new Date();
 
       const payload = {
-        action: finalActionType === 'in' ? 'add_money_in' : 'add_money_out',
-        nominal: String(finalCalculatedNominal),
+        action: transAction === 'in' ? 'add_money_in' : 'add_money_out',
+        nominal: String(transNominal),
         transaksi: method.toUpperCase(),
         kasir: session.user,
         cabang: targetBranch
       };
 
-      openReceiptModal(finalCalculatedNominal, method, finalActionType === 'in', session.user, targetBranch, new Date());
-      setTimeout(() => { triggerPrint(); }, 200);
+      // 1. Tampilkan Struk & Pemicu Cetak Otomatis
+      openReceiptModal(transNominal, method, transAction === 'in', session.user, targetBranch, transTime);
+      setTimeout(() => { triggerPrint(); }, 150);
 
-      try {
-        await fetch(WEBHOOK_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        clearCalc();
-        loadDashboardData();
-      } catch (err) {
-        alert('Gagal sinkronisasi data ke server, namun perintah cetak telah diproses.');
-      }
+      // 2. Clear Layar Kalkulator Segera
+      clearCalc();
+
+      // 3. Pengiriman Data Async (Background Save - Bebas Tutup Window)
+      fetch(WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      .then(response => {
+        if (response.ok) {
+          loadDashboardData();
+        } else {
+          // Retry otomatis jika ada kejanggalan koneksi
+          fetch(WEBHOOK_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          }).then(() => loadDashboardData());
+        }
+      })
+      .catch(err => {
+        console.error('Koneksi terputus saat menyimpan:', err);
+      });
     }
 
     // CETAK BLUETOOTH DIRECT & STRUK
@@ -703,13 +711,10 @@
     }
 
     async function triggerPrint() {
-      if (!activeReceiptData) {
-        alert('Data struk tidak ditemukan!');
-        return;
-      }
+      if (!activeReceiptData) return;
 
       if (!navigator.bluetooth) {
-        alert('Browser ini belum mendukung Web Bluetooth. Pastikan menggunakan Google Chrome versi terbaru.');
+        console.warn('Web Bluetooth tidak didukung pada browser ini.');
         return;
       }
 
@@ -781,7 +786,6 @@
       } catch (error) {
         console.error('Error Web Bluetooth:', error);
         cachedBluetoothDevice = null;
-        alert('Batal/Gagal mencetak: ' + error.message);
       }
     }
 
