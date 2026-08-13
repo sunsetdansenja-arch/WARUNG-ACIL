@@ -432,7 +432,12 @@
         isEvaluated = false;
       } else {
         if (inputTokens.length === 0 || ['+', '-', '*', '/'].includes(inputTokens[inputTokens.length - 1])) {
-          inputTokens.push(num);
+          // Jika token terakhir adalah minus tunggal (input negatif awal), gabungkan dengan angka
+          if (inputTokens.length > 0 && inputTokens[inputTokens.length - 1] === '-') {
+            inputTokens[inputTokens.length - 1] = '-' + num;
+          } else {
+            inputTokens.push(num);
+          }
         } else {
           inputTokens[inputTokens.length - 1] += num;
         }
@@ -458,7 +463,11 @@
         isEvaluated = false;
       } else {
         if (inputTokens.length === 0 || ['+', '-', '*', '/'].includes(inputTokens[inputTokens.length - 1])) {
-          inputTokens.push('0.');
+          if (inputTokens.length > 0 && inputTokens[inputTokens.length - 1] === '-') {
+            inputTokens[inputTokens.length - 1] = '-0.';
+          } else {
+            inputTokens.push('0.');
+          }
         } else if (!inputTokens[inputTokens.length - 1].includes('.')) {
           inputTokens[inputTokens.length - 1] += '.';
         }
@@ -469,7 +478,12 @@
     function pressOp(op) {
       if (isEvaluated) isEvaluated = false;
 
-      if (inputTokens.length > 0) {
+      if (inputTokens.length === 0) {
+        // Izinkan penekanan minus '-' pertama untuk menginput angka negatif
+        if (op === '-') {
+          inputTokens.push('-');
+        }
+      } else {
         const last = inputTokens[inputTokens.length - 1];
         if (['+', '-', '*', '/'].includes(last)) {
           inputTokens[inputTokens.length - 1] = op;
@@ -494,7 +508,7 @@
 
       if (inputTokens.length > 0) {
         let lastToken = inputTokens[inputTokens.length - 1];
-        if (['+', '-', '*', '/'].includes(lastToken)) {
+        if (['+', '-', '*', '/'].includes(lastToken) && lastToken !== '-') {
           inputTokens.pop();
         } else {
           lastToken = lastToken.slice(0, -1);
