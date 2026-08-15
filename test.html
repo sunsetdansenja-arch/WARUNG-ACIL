@@ -198,7 +198,6 @@
           <button onclick="backspace()" class="bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white text-2xl md:text-3xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-md active:scale-95 transition" title="Hapus 1 Karakter">⌫</button>
           <button onclick="calculateResult()" class="bg-slate-300 hover:bg-slate-400 active:bg-slate-500 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-300 active:scale-95 transition fast-btn-num">=</button>
           
-          <!-- Tombol PROSES yang memicu simpan dan cetak otomatis -->
           <button onclick="openPaymentModal()" class="bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-lg md:text-2xl font-black rounded-2xl md:rounded-3xl p-3 md:p-6 shadow-lg uppercase tracking-wider border-b-4 border-emerald-900 active:scale-95 transition flex items-center justify-center fast-btn-process">
             <span class="truncate">PROSES ➔</span>
           </button>
@@ -403,7 +402,7 @@
     }
 
     // ==========================================
-    // LOGIKA KALKULATOR TERPERBAIKI
+    // LOGIKA KALKULATOR
     // ==========================================
     function pressNum(num) {
       if (isEvaluated) {
@@ -584,9 +583,11 @@
       return total;
     }
 
-    // ==========================================
-    // TRANSAKSI & PEMBAYARAN
-    // ==========================================
+    // =========================================================================
+    // FITUR UTAMA SETELAH TOMBOL PROSES (SAMA PERSIS DENGAN TEST 3)
+    // =========================================================================
+
+    // 1. Membuka Modal Pilihan Metode Pembayaran
     function openPaymentModal() {
       let finalVal = calculateDisplayVal();
       
@@ -623,7 +624,7 @@
       document.getElementById('paymentModal').classList.add('hidden');
     }
 
-    // Fungsi submit transaksi otomatis menyimpan dan mentriger cetak struk
+    // 2. Mengirim data transaksi ke n8n lalu mentriger cetak otomatis
     async function submitTransaction(method) {
       const targetBranch = getSelectedTargetBranch();
       const transNominal = finalCalculatedNominal;
@@ -653,18 +654,31 @@
 
         const resData = await response.json();
 
-        if (response.ok && resData[0]?.json?.success) {
+        // DETEKSI KESUKSESAN FLEKSIBEL UNTUK N8N
+        let isSuccess = false;
+        if (response.ok) {
+          if (Array.isArray(resData) && resData[0]?.json?.success !== undefined) {
+            isSuccess = resData[0].json.success;
+          } else if (resData?.success !== undefined) {
+            isSuccess = resData.success;
+          } else {
+            // Jika HTTP OK (200), anggap sukses tersimpan
+            isSuccess = true; 
+          }
+        }
+
+        if (isSuccess) {
           clearCalc();
           loadDashboardData();
           closePaymentModal();
           
-          // Tampilkan modal struk
+          // Tampilkan modal struk resi otomatis
           openReceiptModal(transNominal, method, transAction === 'in', session.user, targetBranch, transTime);
 
-          // Pemicu otomatis pencetakan struk melalui bluetooth
+          // Pemicu cetak langsung Bluetooth Thermal
           setTimeout(() => { triggerPrint(); }, 200);
         } else {
-          alert('Gagal menyimpan transaksi! ' + (resData[0]?.json?.message || 'Server merespons error.'));
+          alert('Gagal menyimpan transaksi! ' + (resData[0]?.json?.message || resData?.message || 'Server merespons error.'));
           statusText.innerText = 'Gagal menyimpan transaksi. Coba lagi.';
           btnGroup.style.pointerEvents = 'auto';
           btnGroup.style.opacity = '1';
@@ -678,6 +692,7 @@
       }
     }
 
+    // 3. Render Modal Struk 58mm
     function openReceiptModal(nominal, method, isMoneyIn, kasir, cabang, date) {
       const formattedNominal = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(nominal);
       const formattedDate = new Date(date || Date.now()).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' }) + ' WIB';
@@ -702,6 +717,7 @@
       document.getElementById('receiptModal').classList.remove('hidden');
     }
 
+    // 4. Eksekusi Pencetakan via Web Bluetooth (Printer ESC/POS Thermal)
     async function triggerPrint() {
       if (!activeReceiptData) return;
 
@@ -785,6 +801,9 @@
       document.getElementById('receiptModal').classList.add('hidden');
     }
 
+    // ==========================================
+    // FUNGSI RIWAYAT & NAVIGASI
+    // ==========================================
     function switchNav(tab) {
       const btnCalc = document.getElementById('tabCalc');
       const btnHist = document.getElementById('tabHistory');
