@@ -9,63 +9,100 @@
   <script src="config.js"></script>
   
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Fonts Inspired by Modern Minimalist Technical Dashboard -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #121316;
+      color: #E2E8F0;
+    }
+    .font-mono-tech {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    /* Custom Scrollbar for Bento Card & Tray */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #121316;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #2A2B30;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #3F4048;
+    }
+  </style>
 </head>
-<body class="bg-slate-100 min-h-screen pb-10">
+<body class="bg-[#121316] min-h-screen text-[#E2E8F0] font-sans pb-10 selection:bg-[#53627D] selection:text-white">
 
   <!-- TRAY NOTIFIKASI PERMANEN (PALING ATAS) -->
   <div class="max-w-4xl mx-auto px-4 pt-4">
-    <div class="bg-slate-900 text-white rounded-2xl p-4 shadow-md border border-slate-800">
-      <div class="flex justify-between items-center mb-2 pb-2 border-b border-slate-800">
+    <div class="bg-[#1C1D21] text-white rounded-xl p-4 shadow-2xl border border-[#2A2B30]">
+      <div class="flex justify-between items-center mb-2 pb-2 border-b border-[#2A2B30]">
         <div class="flex items-center space-x-2">
-          <span class="text-base">🔔</span>
-          <h3 class="font-bold text-xs uppercase tracking-wider text-slate-300">Tray Live Notifikasi Transaksi</h3>
+          <span class="text-xs text-[#53627D]"><i class="fa-solid fa-bell animate-pulse"></i></span>
+          <h3 class="font-bold text-xs uppercase tracking-widest text-white font-mono-tech">Tray Live Notifikasi Transaksi</h3>
         </div>
-        <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full font-mono" id="queueStatus">0 antrean</span>
+        <span class="text-[10px] bg-[#121316] text-[#8E929B] border border-[#2A2B30] px-2 py-0.5 rounded font-mono-tech" id="queueStatus">0 antrean</span>
       </div>
 
       <!-- Area Tempat Menampung Log Notifikasi -->
       <div id="trayContainer" class="space-y-2 max-h-48 overflow-y-auto pr-1">
         <!-- Default State Jika Belum Ada Notifikasi -->
-        <div id="emptyTrayState" class="text-center py-3 text-slate-500 text-xs italic">
+        <div id="emptyTrayState" class="text-center py-4 text-[#8E929B] text-xs font-mono-tech">
           Belum ada transaksi baru yang terdeteksi...
         </div>
       </div>
     </div>
   </div>
 
-  <nav class="bg-emerald-700 text-white shadow-md sticky top-0 z-30 mt-4">
-    <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
-      <div>
-        <h1 class="font-bold text-base">Warung Acil - Master Hub</h1>
-        <p class="text-xs text-emerald-200" id="userInfo">Owner Panel</p>
+  <nav class="bg-[#1C1D21] text-white border-b border-[#2A2B30] sticky top-0 z-30 mt-4 shadow-2xl">
+    <div class="max-w-4xl mx-auto px-4 py-3.5 flex justify-between items-center">
+      <div class="flex items-center space-x-3">
+        <div class="w-2.5 h-2.5 rounded-full bg-[#4E9F79] animate-pulse"></div>
+        <div>
+          <h1 class="font-bold text-sm font-mono-tech tracking-wider uppercase text-white">WARUNG ACIL <span class="text-[10px] bg-[#2A2B30] text-[#8E929B] px-1.5 py-0.5 rounded ml-1 border border-[#3F4048]">MASTER HUB</span></h1>
+          <p class="text-[11px] text-[#8E929B] font-mono-tech" id="userInfo">Owner Panel</p>
+        </div>
       </div>
-      <button onclick="logout()" class="bg-emerald-800 hover:bg-emerald-900 text-xs px-3 py-1.5 rounded-lg border border-emerald-600 font-medium cursor-pointer">
-        Logout
+      <button onclick="logout()" class="bg-[#121316] hover:bg-[#2A2B30] text-xs text-[#8E929B] hover:text-white px-3.5 py-1.5 rounded-lg border border-[#2A2B30] font-mono-tech transition cursor-pointer flex items-center gap-2">
+        <i class="fa-solid fa-right-from-bracket"></i> LOGOUT
       </button>
     </div>
   </nav>
 
   <main class="max-w-4xl mx-auto px-4 py-6 space-y-6">
 
-    <!-- Navigasi Cepat Ke Seluruh Modul -->
-    <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
-      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Navigasi Modul Aplikasi</h2>
+    <!-- Navigasi Cepat Ke Seluruh Modul (Bento Grid Style) -->
+    <div class="bg-[#1C1D21] rounded-xl p-4 shadow-xl border border-[#2A2B30]">
+      <h2 class="text-xs font-bold text-[#8E929B] uppercase tracking-widest font-mono-tech mb-3 flex items-center gap-2">
+        <i class="fa-solid fa-[#53627D] fa-compass"></i> NAVIGASI MODUL APLIKASI
+      </h2>
       <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <a href="kasir.html" class="flex flex-col items-center justify-center p-3 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl transition text-center">
-          <span class="text-2xl mb-1">🛒</span>
-          <span class="font-bold text-xs text-emerald-800">Kasir App</span>
+        <a href="kasir.html" class="flex flex-col items-center justify-center p-3.5 bg-[#121316] hover:bg-[#2A2B30] border border-[#2A2B30] rounded-xl transition text-center group">
+          <span class="text-xl mb-1 text-[#8E929B] group-hover:text-white transition"><i class="fa-solid fa-cart-shopping"></i></span>
+          <span class="font-bold text-xs text-white font-mono-tech">Kasir App</span>
         </a>
-        <a href="master.html" class="flex flex-col items-center justify-center p-3 bg-emerald-600 text-white rounded-xl shadow-sm text-center font-bold">
-          <span class="text-2xl mb-1">👑</span>
-          <span class="text-xs">Master Hub</span>
+        <a href="master.html" class="flex flex-col items-center justify-center p-3.5 bg-[#53627D] text-white rounded-xl shadow-lg text-center font-bold border border-[#64748B]">
+          <span class="text-xl mb-1"><i class="fa-solid fa-crown text-amber-300"></i></span>
+          <span class="text-xs font-mono-tech uppercase tracking-wider">Master Hub</span>
         </a>
-        <a href="admin.html" class="flex flex-col items-center justify-center p-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition text-center">
-          <span class="text-2xl mb-1">⚙️</span>
-          <span class="font-bold text-xs text-slate-700">Admin Log</span>
+        <a href="admin.html" class="flex flex-col items-center justify-center p-3.5 bg-[#121316] hover:bg-[#2A2B30] border border-[#2A2B30] rounded-xl transition text-center group">
+          <span class="text-xl mb-1 text-[#8E929B] group-hover:text-white transition"><i class="fa-solid fa-[#53627D] fa-[#53627D] fa-sliders"></i></span>
+          <span class="font-bold text-xs text-white font-mono-tech">Admin Log</span>
         </a>
-        <a href="analitik.html" class="flex flex-col items-center justify-center p-3 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-xl transition text-center">
-          <span class="text-2xl mb-1">📊</span>
-          <span class="font-bold text-xs text-indigo-800">Analitik Omset</span>
+        <a href="analitik.html" class="flex flex-col items-center justify-center p-3.5 bg-[#121316] hover:bg-[#2A2B30] border border-[#2A2B30] rounded-xl transition text-center group">
+          <span class="text-xl mb-1 text-[#8E929B] group-hover:text-white transition"><i class="fa-solid fa-chart-line"></i></span>
+          <span class="font-bold text-xs text-white font-mono-tech">Analitik Omset</span>
         </a>
       </div>
     </div>
@@ -74,78 +111,78 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
       
       <!-- HARI INI -->
-      <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+      <div class="bg-[#1C1D21] p-4 rounded-xl border border-[#2A2B30] shadow-xl flex flex-col justify-between">
         <div>
           <div class="flex justify-between items-center mb-2">
-            <span class="text-xs font-black text-slate-400 uppercase tracking-wider">HARI INI</span>
-            <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-bold" id="trxHariIni">0 Trx</span>
+            <span class="text-[11px] font-bold text-[#8E929B] uppercase tracking-widest font-mono-tech">HARI INI</span>
+            <span class="text-[10px] bg-[#121316] text-[#53627D] px-2 py-0.5 rounded border border-[#2A2B30] font-mono-tech font-bold" id="trxHariIni">0 Trx</span>
           </div>
-          <h3 class="text-2xl font-black text-emerald-600 mb-3" id="omsetHariIni">Rp 0</h3>
+          <h3 class="text-2xl font-bold text-[#4E9F79] font-mono-tech mb-3" id="omsetHariIni">Rp 0</h3>
           
-          <div class="space-y-1.5 text-xs border-t border-slate-100 pt-2.5">
-            <div class="flex justify-between text-slate-600">
+          <div class="space-y-1.5 text-xs font-mono-tech border-t border-[#2A2B30] pt-2.5">
+            <div class="flex justify-between text-[#8E929B]">
               <span>💵 Cash:</span>
-              <span class="font-bold text-slate-800" id="cashHariIni">Rp 0</span>
+              <span class="font-bold text-white" id="cashHariIni">Rp 0</span>
             </div>
-            <div class="flex justify-between text-slate-600">
+            <div class="flex justify-between text-[#8E929B]">
               <span>📱 QRIS:</span>
-              <span class="font-bold text-slate-800" id="qrisHariIni">Rp 0</span>
+              <span class="font-bold text-white" id="qrisHariIni">Rp 0</span>
             </div>
-            <div class="flex justify-between text-slate-600">
+            <div class="flex justify-between text-[#8E929B]">
               <span>🏦 Transfer:</span>
-              <span class="font-bold text-slate-800" id="transferHariIni">Rp 0</span>
+              <span class="font-bold text-white" id="transferHariIni">Rp 0</span>
             </div>
           </div>
         </div>
       </div>
 
       <!-- MINGGU INI -->
-      <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+      <div class="bg-[#1C1D21] p-4 rounded-xl border border-[#2A2B30] shadow-xl flex flex-col justify-between">
         <div>
           <div class="flex justify-between items-center mb-2">
-            <span class="text-xs font-black text-slate-400 uppercase tracking-wider">MINGGU INI</span>
-            <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-bold" id="trxMingguIni">0 Trx</span>
+            <span class="text-[11px] font-bold text-[#8E929B] uppercase tracking-widest font-mono-tech">MINGGU INI</span>
+            <span class="text-[10px] bg-[#121316] text-[#53627D] px-2 py-0.5 rounded border border-[#2A2B30] font-mono-tech font-bold" id="trxMingguIni">0 Trx</span>
           </div>
-          <h3 class="text-2xl font-black text-emerald-600 mb-3" id="omsetMingguIni">Rp 0</h3>
+          <h3 class="text-2xl font-bold text-[#4E9F79] font-mono-tech mb-3" id="omsetMingguIni">Rp 0</h3>
 
-          <div class="space-y-1.5 text-xs border-t border-slate-100 pt-2.5">
-            <div class="flex justify-between text-slate-600">
+          <div class="space-y-1.5 text-xs font-mono-tech border-t border-[#2A2B30] pt-2.5">
+            <div class="flex justify-between text-[#8E929B]">
               <span>💵 Cash:</span>
-              <span class="font-bold text-slate-800" id="cashMingguIni">Rp 0</span>
+              <span class="font-bold text-white" id="cashMingguIni">Rp 0</span>
             </div>
-            <div class="flex justify-between text-slate-600">
+            <div class="flex justify-between text-[#8E929B]">
               <span>📱 QRIS:</span>
-              <span class="font-bold text-slate-800" id="qrisMingguIni">Rp 0</span>
+              <span class="font-bold text-white" id="qrisMingguIni">Rp 0</span>
             </div>
-            <div class="flex justify-between text-slate-600">
+            <div class="flex justify-between text-[#8E929B]">
               <span>🏦 Transfer:</span>
-              <span class="font-bold text-slate-800" id="transferMingguIni">Rp 0</span>
+              <span class="font-bold text-white" id="transferMingguIni">Rp 0</span>
             </div>
           </div>
         </div>
       </div>
 
       <!-- BULAN INI -->
-      <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+      <div class="bg-[#1C1D21] p-4 rounded-xl border border-[#2A2B30] shadow-xl flex flex-col justify-between">
         <div>
           <div class="flex justify-between items-center mb-2">
-            <span class="text-xs font-black text-slate-400 uppercase tracking-wider">BULAN INI</span>
-            <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-bold" id="trxBulanIni">0 Trx</span>
+            <span class="text-[11px] font-bold text-[#8E929B] uppercase tracking-widest font-mono-tech">BULAN INI</span>
+            <span class="text-[10px] bg-[#121316] text-[#53627D] px-2 py-0.5 rounded border border-[#2A2B30] font-mono-tech font-bold" id="trxBulanIni">0 Trx</span>
           </div>
-          <h3 class="text-2xl font-black text-emerald-600 mb-3" id="omsetBulanIni">Rp 0</h3>
+          <h3 class="text-2xl font-bold text-[#4E9F79] font-mono-tech mb-3" id="omsetBulanIni">Rp 0</h3>
 
-          <div class="space-y-1.5 text-xs border-t border-slate-100 pt-2.5">
-            <div class="flex justify-between text-slate-600">
+          <div class="space-y-1.5 text-xs font-mono-tech border-t border-[#2A2B30] pt-2.5">
+            <div class="flex justify-between text-[#8E929B]">
               <span>💵 Cash:</span>
-              <span class="font-bold text-slate-800" id="cashBulanIni">Rp 0</span>
+              <span class="font-bold text-white" id="cashBulanIni">Rp 0</span>
             </div>
-            <div class="flex justify-between text-slate-600">
+            <div class="flex justify-between text-[#8E929B]">
               <span>📱 QRIS:</span>
-              <span class="font-bold text-slate-800" id="qrisBulanIni">Rp 0</span>
+              <span class="font-bold text-white" id="qrisBulanIni">Rp 0</span>
             </div>
-            <div class="flex justify-between text-slate-600">
+            <div class="flex justify-between text-[#8E929B]">
               <span>🏦 Transfer:</span>
-              <span class="font-bold text-slate-800" id="transferBulanIni">Rp 0</span>
+              <span class="font-bold text-white" id="transferBulanIni">Rp 0</span>
             </div>
           </div>
         </div>
@@ -154,16 +191,20 @@
     </div>
 
     <!-- Peringkat Cabang (Auto Ranking Pemasukan Terbanyak) -->
-    <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 space-y-3">
-      <div class="flex justify-between items-center">
-        <h3 class="font-bold text-sm text-slate-800">🏆 Performa Cabang (Urut Pemasukan Terbanyak)</h3>
-        <button onclick="loadMasterData()" class="text-xs text-emerald-600 font-semibold hover:underline cursor-pointer">🔄 Refresh</button>
+    <div class="bg-[#1C1D21] rounded-xl p-4 shadow-xl border border-[#2A2B30] space-y-3">
+      <div class="flex justify-between items-center border-b border-[#2A2B30] pb-3">
+        <h3 class="font-bold text-xs text-white font-mono-tech uppercase tracking-wider flex items-center gap-2">
+          <i class="fa-solid fa-trophy text-amber-400"></i> PERFORMA CABANG (URUT PEMASUKAN TERBANYAK)
+        </h3>
+        <button onclick="loadMasterData()" class="text-xs text-[#53627D] hover:text-white font-mono-tech transition cursor-pointer flex items-center gap-1">
+          <i class="fa-solid fa-rotate"></i> REFRESH
+        </button>
       </div>
 
-      <div class="overflow-x-auto">
-        <table class="w-full text-left text-xs">
+      <div class="overflow-x-auto border border-[#2A2B30] rounded-lg">
+        <table class="w-full text-left text-xs font-mono-tech border-collapse">
           <thead>
-            <tr class="bg-slate-50 text-slate-500 font-bold border-b border-slate-200">
+            <tr class="bg-[#121316] text-[#8E929B] font-bold border-b border-[#2A2B30] uppercase">
               <th class="p-2.5">Peringkat</th>
               <th class="p-2.5">Cabang</th>
               <th class="p-2.5">Pemasukan</th>
@@ -171,8 +212,8 @@
               <th class="p-2.5">Laba Bersih</th>
             </tr>
           </thead>
-          <tbody id="branchRankTable">
-            <tr><td colspan="5" class="text-center py-4 text-slate-400">Memuat data cabang...</td></tr>
+          <tbody id="branchRankTable" class="divide-y divide-[#2A2B30]">
+            <tr><td colspan="5" class="text-center py-6 text-[#8E929B] font-mono-tech">Memuat data cabang...</td></tr>
           </tbody>
         </table>
       </div>
@@ -319,28 +360,28 @@
         const isEntry = item.type === 'IN';
 
         const card = document.createElement('div');
-        card.className = `p-2.5 rounded-xl border text-xs flex justify-between items-center transition-all duration-500 opacity-0 transform -translate-y-2 ${
+        card.className = `p-2.5 rounded-lg border text-xs font-mono-tech flex justify-between items-center transition-all duration-500 opacity-0 transform -translate-y-2 ${
           isEntry 
-            ? 'bg-emerald-950/40 border-emerald-800/60 text-emerald-200' 
-            : 'bg-rose-950/40 border-rose-800/60 text-rose-200'
+            ? 'bg-[#121316] border-[#4E9F79]/40 text-[#4E9F79]' 
+            : 'bg-[#121316] border-rose-500/40 text-rose-400'
         }`;
 
         card.innerHTML = `
           <div class="flex items-center space-x-2">
-            <span class="text-base">${isEntry ? '💵' : '💸'}</span>
+            <span class="text-xs">${isEntry ? '💵' : '💸'}</span>
             <div>
               <div class="font-bold text-white flex items-center space-x-1.5">
                 <span>${item.branch}</span>
-                <span class="text-[10px] px-1.5 py-0.2 bg-slate-800 text-slate-300 rounded">${item.kasir}</span>
+                <span class="text-[10px] px-1.5 py-0.2 bg-[#1C1D21] border border-[#2A2B30] text-[#8E929B] rounded">${item.kasir}</span>
               </div>
-              <div class="text-[11px] text-slate-300 mt-0.5">
+              <div class="text-[11px] text-[#8E929B] mt-0.5">
                 ${item.metode} • <span class="font-bold text-white">${item.nominal}</span>
               </div>
             </div>
           </div>
           <div class="text-right">
-            <span class="text-[10px] text-slate-400 block">${item.time} WIB</span>
-            <span class="text-[10px] font-bold ${isEntry ? 'text-emerald-400' : 'text-rose-400'}">${isEntry ? '+Masuk' : '-Keluar'}</span>
+            <span class="text-[10px] text-[#8E929B] block">${item.time} WIB</span>
+            <span class="text-[10px] font-bold ${isEntry ? 'text-[#4E9F79]' : 'text-rose-400'}">${isEntry ? '+Masuk' : '-Keluar'}</span>
           </div>
         `;
 
@@ -438,17 +479,17 @@
 
       const tableBody = document.getElementById('branchRankTable');
       if (sortedBranches.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-slate-400">Belum ada data transaksi cabang.</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-[#8E929B] font-mono-tech">Belum ada data transaksi cabang.</td></tr>`;
         return;
       }
 
       tableBody.innerHTML = sortedBranches.map((b, idx) => `
-        <tr class="border-b border-slate-100 hover:bg-slate-50">
-          <td class="p-2.5 font-bold text-center">${idx === 0 ? '🥇 1' : idx === 1 ? '🥈 2' : idx === 2 ? '🥉 3' : idx + 1}</td>
-          <td class="p-2.5 font-bold text-slate-800">${b.name}</td>
-          <td class="p-2.5 font-bold text-emerald-600">${fmt(b.masuk)}</td>
-          <td class="p-2.5 font-bold text-rose-600">${fmt(b.keluar)}</td>
-          <td class="p-2.5 font-black text-slate-800">${fmt(b.laba)}</td>
+        <tr class="hover:bg-[#121316] transition-colors">
+          <td class="p-2.5 font-bold text-center font-mono-tech">${idx === 0 ? '🥇 1' : idx === 1 ? '🥈 2' : idx === 2 ? '🥉 3' : idx + 1}</td>
+          <td class="p-2.5 font-bold text-white font-mono-tech">${b.name}</td>
+          <td class="p-2.5 font-bold text-[#4E9F79] font-mono-tech">${fmt(b.masuk)}</td>
+          <td class="p-2.5 font-bold text-rose-400 font-mono-tech">${fmt(b.keluar)}</td>
+          <td class="p-2.5 font-bold text-white font-mono-tech">${fmt(b.laba)}</td>
         </tr>
       `).join('');
     }
