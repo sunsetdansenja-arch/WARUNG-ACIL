@@ -198,7 +198,6 @@
           <button onclick="backspace()" class="bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white text-2xl md:text-3xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-md active:scale-95 transition" title="Hapus 1 Karakter">⌫</button>
           <button onclick="calculateResult()" class="bg-slate-300 hover:bg-slate-400 active:bg-slate-500 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-300 active:scale-95 transition fast-btn-num">=</button>
           
-          <!-- Tombol PROSES yang memicu simpan dan cetak otomatis -->
           <button onclick="openPaymentModal()" class="bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-lg md:text-2xl font-black rounded-2xl md:rounded-3xl p-3 md:p-6 shadow-lg uppercase tracking-wider border-b-4 border-emerald-900 active:scale-95 transition flex items-center justify-center fast-btn-process">
             <span class="truncate">PROSES ➔</span>
           </button>
@@ -313,7 +312,7 @@
   <script>
     // URL Webhook n8n
     const WEBHOOK_URL = 'https://n8n-mzbmiib3etk4.kangkung.sumopod.my.id/webhook/0c2f335e-543b-4f3e-968e-f70d412f194b';
-    
+
     let inputTokens = []; 
     let isEvaluated = false;
     let finalCalculatedNominal = 0;
@@ -403,7 +402,7 @@
     }
 
     // ==========================================
-    // LOGIKA KALKULATOR TERPERBAIKI
+    // LOGIKA KALKULATOR
     // ==========================================
     function pressNum(num) {
       if (isEvaluated) {
@@ -623,7 +622,6 @@
       document.getElementById('paymentModal').classList.add('hidden');
     }
 
-    // Fungsi submit transaksi otomatis menyimpan dan mentriger cetak struk
     async function submitTransaction(method) {
       const targetBranch = getSelectedTargetBranch();
       const transNominal = finalCalculatedNominal;
@@ -653,25 +651,32 @@
 
         const resData = await response.json();
 
-        if (response.ok && resData[0]?.json?.success) {
+        let isSuccess = false;
+        if (response.ok) {
+          if (Array.isArray(resData) && resData[0]?.json?.success !== undefined) {
+            isSuccess = resData[0].json.success;
+          } else if (resData?.success !== undefined) {
+            isSuccess = resData.success;
+          } else {
+            isSuccess = true; 
+          }
+        }
+
+        if (isSuccess) {
           clearCalc();
           loadDashboardData();
           closePaymentModal();
-          
-          // Tampilkan modal struk
           openReceiptModal(transNominal, method, transAction === 'in', session.user, targetBranch, transTime);
-
-          // Pemicu otomatis pencetakan struk melalui bluetooth
           setTimeout(() => { triggerPrint(); }, 200);
         } else {
-          alert('Gagal menyimpan transaksi! ' + (resData[0]?.json?.message || 'Server merespons error.'));
+          alert('Gagal menyimpan transaksi!');
           statusText.innerText = 'Gagal menyimpan transaksi. Coba lagi.';
           btnGroup.style.pointerEvents = 'auto';
           btnGroup.style.opacity = '1';
         }
       } catch (err) {
         console.error('Error koneksi webhook:', err);
-        alert('Gagal terhubung ke webhook/server. Periksa koneksi internet Anda!');
+        alert('Gagal terhubung ke webhook/server.');
         statusText.innerText = 'Koneksi terputus. Silakan coba lagi.';
         btnGroup.style.pointerEvents = 'auto';
         btnGroup.style.opacity = '1';
@@ -704,11 +709,7 @@
 
     async function triggerPrint() {
       if (!activeReceiptData) return;
-
-      if (!navigator.bluetooth) {
-        console.warn('Web Bluetooth tidak didukung pada browser ini.');
-        return;
-      }
+      if (!navigator.bluetooth) return;
 
       try {
         const optionalServicesList = (typeof CONFIG !== 'undefined' && CONFIG.PRINTER && CONFIG.PRINTER.OPTIONAL_SERVICES) ? CONFIG.PRINTER.OPTIONAL_SERVICES : [
@@ -732,7 +733,6 @@
         }
 
         const server = await cachedBluetoothDevice.gatt.connect();
-
         let characteristic = null;
         let primaryServices = await server.getPrimaryServices();
 
@@ -747,26 +747,20 @@
           if (characteristic) break;
         }
 
-        if (!characteristic) {
-          throw new Error("Karakteristik cetak printer tidak ditemukan.");
-        }
+        if (!characteristic) return;
 
         const encoder = new TextEncoder();
-
         let commands = "";
         commands += "\x1B\x40"; 
         commands += "\x1B\x61\x01"; 
-        
         commands += "\x1B\x45\x01WARUNG ACIL\x1B\x45\x00\n";
         commands += activeReceiptData.branch + "\n";
         commands += activeReceiptData.date + "\n";
         commands += "--------------------------------\n";
-        
         commands += "\x1B\x61\x00"; 
         commands += "Jenis   : " + activeReceiptData.type.toUpperCase() + "\n";
         commands += "Metode  : " + activeReceiptData.method.toUpperCase() + "\n";
         commands += "Kasir   : " + activeReceiptData.kasir + "\n";
-        
         commands += "\x1B\x61\x01"; 
         commands += "--------------------------------\n";
         commands += "TOTAL   : \x1B\x45\x01" + activeReceiptData.nominal + "\x1B\x45\x00\n";
@@ -774,7 +768,6 @@
         commands += "*** Terima Kasih ***\n\n\n\n";
 
         await characteristic.writeValue(encoder.encode(commands));
-
       } catch (error) {
         console.error('Error Web Bluetooth:', error);
         cachedBluetoothDevice = null;
@@ -784,6 +777,10 @@
     function closeReceiptModal() {
       document.getElementById('receiptModal').classList.add('hidden');
     }
+
+    // ==========================================
+    // PARSING DATA RESPONSE N8N SECARA ROBUST & REVERSE ORDER
+    // ==========================================
 
     function switchNav(tab) {
       const btnCalc = document.getElementById('tabCalc');
@@ -806,23 +803,62 @@
       }
     }
 
+    function getItemTimestamp(item) {
+      const rawDate = item.createdAt || item.created_at || item.tanggal || item.TANGGAL;
+      if (rawDate) {
+        const parsed = new Date(rawDate).getTime();
+        if (!isNaN(parsed)) return parsed;
+      }
+      if (item.id && !isNaN(Number(item.id))) {
+        return Number(item.id);
+      }
+      return 0;
+    }
+
     async function loadDashboardData() {
+      const container = document.getElementById('historyList');
+      if (container) container.innerHTML = `<p class="text-xs text-center text-slate-400 py-6">Memuat riwayat...</p>`;
+
       try {
         const response = await fetch(WEBHOOK_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ action: 'get_data' })
         });
+        
         const resData = await response.json();
-        const raw = Array.isArray(resData) ? resData[0] : resData;
+        
+        // Extractor dinamis: mencari properti money_in & money_out di level manapun
+        let extractedIn = [];
+        let extractedOut = [];
 
-        if (raw && raw.json && raw.json.success) {
-          globalRawData = raw.json.data;
-          calculateLaciTotals();
-          renderHistoryList();
-        }
+        const searchData = (obj) => {
+          if (!obj || typeof obj !== 'object') return;
+          if (Array.isArray(obj)) {
+            obj.forEach(searchData);
+            return;
+          }
+          if (obj.money_in || obj.money_out) {
+            if (Array.isArray(obj.money_in)) extractedIn = obj.money_in;
+            if (Array.isArray(obj.money_out)) extractedOut = obj.money_out;
+            return;
+          }
+          if (obj.data) searchData(obj.data);
+          if (obj.json) searchData(obj.json);
+        };
+
+        searchData(resData);
+
+        globalRawData = {
+          money_in: extractedIn,
+          money_out: extractedOut
+        };
+
+        calculateLaciTotals();
+        renderHistoryList();
       } catch (err) {
         console.error('Gagal memuat data:', err);
+        if (container) container.innerHTML = `<p class="text-xs text-center text-rose-500 py-6">Gagal memuat riwayat. Periksa koneksi/n8n.</p>`;
       }
     }
 
@@ -832,8 +868,8 @@
         const btn = document.getElementById('btn' + p.charAt(0).toUpperCase() + p.slice(1));
         if (btn) {
           btn.className = (p === period) 
-            ? 'flex-1 py-1.5 rounded-xl bg-white text-emerald-700 shadow-xs' 
-            : 'flex-1 py-1.5 rounded-xl';
+            ? 'flex-1 py-1.5 rounded-xl bg-white text-emerald-700 shadow-xs font-black' 
+            : 'flex-1 py-1.5 rounded-xl font-bold';
         }
       });
       calculateLaciTotals();
@@ -841,18 +877,24 @@
 
     function calculateLaciTotals() {
       const now = new Date();
-      let listIn = (globalRawData.money_in || []);
-      let listOut = (globalRawData.money_out || []);
+      let listIn = [...(globalRawData.money_in || [])];
+      let listOut = [...(globalRawData.money_out || [])];
 
       if (!session.isOwner) {
-        listIn = listIn.filter(i => String(i.CABANG || '').toUpperCase() === currentBranchName.toUpperCase());
-        listOut = listOut.filter(o => String(o.CABANG || '').toUpperCase() === currentBranchName.toUpperCase());
+        listIn = listIn.filter(i => String(i.CABANG || i.cabang || '').toUpperCase() === currentBranchName.toUpperCase());
+        listOut = listOut.filter(o => String(o.CABANG || o.cabang || '').toUpperCase() === currentBranchName.toUpperCase());
       }
 
       const filterByDate = (item) => {
-        if (!item.id && !item.id_data) return true;
-        const d = new Date(item.id || Date.now());
-        if (activePeriod === 'today') return d.toDateString() === now.toDateString();
+        const ts = getItemTimestamp(item);
+        if (!ts) return true; // Fallback jika tidak ada timestamp
+        
+        const d = new Date(ts);
+        if (activePeriod === 'today') {
+          return d.getFullYear() === now.getFullYear() && 
+                 d.getMonth() === now.getMonth() && 
+                 d.getDate() === now.getDate();
+        }
         if (activePeriod === 'week') return Math.floor((now - d) / (1000 * 60 * 60 * 24)) < 7;
         if (activePeriod === 'month') return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
         return true;
@@ -864,13 +906,15 @@
       let totals = { cash: 0, qris: 0, transfer: 0 };
 
       filteredIn.forEach(i => {
-        const m = String(i.TRANSAKSI || '').toLowerCase();
-        if (totals[m] !== undefined) totals[m] += Number(i.NOMINAL || 0);
+        const m = String(i.TRANSAKSI || i.transaksi || '').toLowerCase();
+        const nom = Number(i.NOMINAL || i.nominal || 0);
+        if (totals[m] !== undefined) totals[m] += nom;
       });
 
       filteredOut.forEach(o => {
-        const m = String(o.TRANSAKSI || '').toLowerCase();
-        if (totals[m] !== undefined) totals[m] -= Number(o.NOMINAL || 0);
+        const m = String(o.TRANSAKSI || o.transaksi || '').toLowerCase();
+        const nom = Number(o.NOMINAL || o.nominal || 0);
+        if (totals[m] !== undefined) totals[m] -= nom;
       });
 
       const totalNet = totals.cash + totals.qris + totals.transfer;
@@ -886,12 +930,12 @@
       const container = document.getElementById('historyList');
       if (!container) return;
 
-      let listIn = (globalRawData.money_in || []).map(i => ({ ...i, type: 'IN' }));
-      let listOut = (globalRawData.money_out || []).map(o => ({ ...o, type: 'OUT' }));
+      let listIn = (globalRawData.money_in || []).map(i => ({ ...i, type: 'IN', timestamp: getItemTimestamp(i) }));
+      let listOut = (globalRawData.money_out || []).map(o => ({ ...o, type: 'OUT', timestamp: getItemTimestamp(o) }));
       let all = [...listIn, ...listOut];
 
       if (!session.isOwner) {
-        all = all.filter(item => String(item.CABANG || '').toUpperCase() === currentBranchName.toUpperCase());
+        all = all.filter(item => String(item.CABANG || item.cabang || '').toUpperCase() === currentBranchName.toUpperCase());
       }
 
       if (all.length === 0) {
@@ -899,10 +943,23 @@
         return;
       }
 
+      // DIBALIKKAN (REVERSE) AGAR TRANSAKSI TERAKHIR MASUK DI ATAS
+      all.reverse();
+
       container.innerHTML = all.map((item) => {
         const isIn = item.type === 'IN';
         const badgeColor = isIn ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800';
-        const formattedNominal = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(item.NOMINAL || 0);
+        
+        const nominal = item.NOMINAL || item.nominal || 0;
+        const metode = item.TRANSAKSI || item.transaksi || '-';
+        const kasir = item.KASIR || item.kasir || '-';
+        const cabang = item.CABANG || item.cabang || currentBranchName;
+        
+        const timeText = item.timestamp > 0 
+          ? new Date(item.timestamp).toLocaleString('id-ID', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' }) 
+          : '-';
+
+        const formattedNominal = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(nominal);
 
         return `
           <div class="flex justify-between items-center p-3 bg-slate-50 rounded-2xl border border-slate-100 shadow-xs">
@@ -910,11 +967,11 @@
               <span class="text-[10px] font-black px-2 py-1 rounded-lg ${badgeColor}">${item.type}</span>
               <div>
                 <p class="text-sm font-extrabold text-slate-800">${formattedNominal}</p>
-                <p class="text-[10px] text-slate-400 uppercase font-bold">${item.TRANSAKSI || '-'} • ${item.KASIR || '-'}</p>
+                <p class="text-[10px] text-slate-400 uppercase font-bold">${metode} • ${kasir} • ${timeText}</p>
               </div>
             </div>
             <div class="flex items-center gap-2">
-              <button onclick="reprintReceipt('${item.NOMINAL}', '${item.TRANSAKSI}', ${isIn}, '${item.KASIR}', '${item.CABANG}', null)" 
+              <button onclick="reprintReceipt('${nominal}', '${metode}', ${isIn}, '${kasir}', '${cabang}', ${item.timestamp || 'null'})" 
                 class="bg-white border border-slate-200 text-slate-800 text-xs font-bold px-3 py-1.5 rounded-xl hover:bg-slate-100 shadow-xs active:scale-95 transition cursor-pointer">
                 🖨️ Struk
               </button>
@@ -934,7 +991,6 @@
       window.location.href = 'index.html';
     }
 
-    // Inisialisasi awal
     loadDashboardData();
   </script>
 </body>
