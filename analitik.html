@@ -12,25 +12,59 @@
   <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Fonts Inspired by Modern Minimalist Technical Dashboard -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #121316;
+      color: #E2E8F0;
+    }
+    .font-mono-tech {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #121316;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #2A2B30;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #3F4048;
+    }
+  </style>
 </head>
-<body class="bg-slate-100 min-h-screen pb-10 font-sans text-slate-800">
+<body class="bg-[#121316] min-h-screen text-[#E2E8F0] font-sans pb-10 selection:bg-[#53627D] selection:text-white">
 
   <!-- Navigation Header -->
-  <nav class="bg-indigo-900 text-white shadow-md sticky top-0 z-30">
-    <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
-      <div>
-        <h1 class="font-bold text-base flex items-center gap-2">
-          <i class="fa-solid fa-chart-line text-indigo-400"></i>
-          <span id="dashboardTitle">Business Intelligence & Analytics</span>
-        </h1>
-        <p class="text-xs text-indigo-300" id="dashboardSubtitle">Monitoring Dashboard Multi-Entitas</p>
+  <nav class="bg-[#1C1D21] text-white border-b border-[#2A2B30] sticky top-0 z-30 shadow-2xl">
+    <div class="max-w-6xl mx-auto px-4 py-3.5 flex justify-between items-center">
+      <div class="flex items-center space-x-3">
+        <div class="w-2.5 h-2.5 rounded-full bg-[#53627D] animate-pulse"></div>
+        <div>
+          <h1 class="font-bold text-sm font-mono-tech tracking-wider uppercase text-white flex items-center gap-2">
+            <i class="fa-solid fa-chart-line text-[#53627D]"></i>
+            <span id="dashboardTitle">Business Intelligence & Analytics</span>
+          </h1>
+          <p class="text-[11px] text-[#8E929B] font-mono-tech" id="dashboardSubtitle">Monitoring Dashboard Multi-Entitas</p>
+        </div>
       </div>
       <div class="flex items-center space-x-2">
-        <button onclick="fetchData()" class="bg-indigo-800 hover:bg-indigo-700 text-xs px-3 py-1.5 rounded-lg border border-indigo-600 font-medium cursor-pointer transition">
-          <i class="fa-solid fa-rotate mr-1"></i> Refresh
+        <button onclick="fetchData()" class="bg-[#121316] hover:bg-[#2A2B30] text-xs text-[#8E929B] hover:text-white px-3.5 py-1.5 rounded-lg border border-[#2A2B30] font-mono-tech transition cursor-pointer flex items-center gap-1.5">
+          <i class="fa-solid fa-rotate"></i> REFRESH
         </button>
-        <a href="master.html" class="bg-indigo-800 hover:bg-indigo-700 text-xs px-3 py-1.5 rounded-lg border border-indigo-600 font-medium transition">
-          ← Kembali
+        <a href="master.html" class="bg-[#53627D] hover:bg-[#64748B] text-xs text-white px-3.5 py-1.5 rounded-lg border border-[#64748B] font-mono-tech transition flex items-center gap-1.5">
+          ← KEMBALI
         </a>
       </div>
     </div>
@@ -39,30 +73,30 @@
   <main class="max-w-6xl mx-auto px-4 py-6 space-y-6">
 
     <!-- Control Bar Segmentasi Data & Entitas Usaha -->
-    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-4">
+    <div class="bg-[#1C1D21] p-4 rounded-xl shadow-xl border border-[#2A2B30] flex flex-wrap items-center justify-between gap-4 font-mono-tech">
       <div class="flex items-center space-x-3">
-        <div class="p-2 bg-indigo-50 text-indigo-600 rounded-xl">
-          <i class="fa-solid fa-layer-group text-lg"></i>
+        <div class="p-2.5 bg-[#121316] text-[#53627D] rounded-lg border border-[#2A2B30]">
+          <i class="fa-solid fa-layer-group text-base"></i>
         </div>
         <div>
-          <label class="block text-[10px] font-bold uppercase text-slate-400 tracking-wider">Lingkup Monitoring Analitik</label>
-          <select id="entityScopeFilter" onchange="handleScopeChange()" class="text-xs font-bold border border-slate-300 px-3 py-1.5 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-slate-700 bg-slate-50">
+          <label class="block text-[10px] font-bold uppercase text-[#8E929B] tracking-widest">Lingkup Monitoring Analitik</label>
+          <select id="entityScopeFilter" onchange="handleScopeChange()" class="mt-1 text-xs font-bold border border-[#2A2B30] px-3 py-1.5 rounded-lg focus:ring-1 focus:ring-[#53627D] outline-none text-white bg-[#121316]">
             <!-- Pilihan diisi secara dinamis via JS sesuai Role User -->
           </select>
         </div>
       </div>
 
-      <div class="flex items-center space-x-2">
+      <div class="flex items-center space-x-3">
         <div>
-          <label class="block text-[10px] font-bold uppercase text-slate-400 tracking-wider">Filter Cabang Spesifik</label>
-          <select id="branchChartFilter" onchange="updateChartAndAnalytics()" class="text-xs border border-slate-300 px-3 py-1.5 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-slate-700">
+          <label class="block text-[10px] font-bold uppercase text-[#8E929B] tracking-widest">Filter Cabang Spesifik</label>
+          <select id="branchChartFilter" onchange="updateChartAndAnalytics()" class="mt-1 text-xs border border-[#2A2B30] px-3 py-1.5 rounded-lg focus:ring-1 focus:ring-[#53627D] outline-none text-white bg-[#121316]">
             <option value="">Semua Cabang Lingkup</option>
           </select>
         </div>
 
         <div>
-          <label class="block text-[10px] font-bold uppercase text-slate-400 tracking-wider">Periode Tren</label>
-          <select id="chartPeriodFilter" onchange="updateChartAndAnalytics()" class="text-xs border border-slate-300 px-3 py-1.5 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-slate-700">
+          <label class="block text-[10px] font-bold uppercase text-[#8E929B] tracking-widest">Periode Tren</label>
+          <select id="chartPeriodFilter" onchange="updateChartAndAnalytics()" class="mt-1 text-xs border border-[#2A2B30] px-3 py-1.5 rounded-lg focus:ring-1 focus:ring-[#53627D] outline-none text-white bg-[#121316]">
             <option value="12m">12 Bulan Terakhir</option>
             <option value="6m">6 Bulan Terakhir</option>
             <option value="30d">30 Hari Terakhir</option>
@@ -72,15 +106,15 @@
     </div>
 
     <!-- Chart Grafik Omset -->
-    <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 space-y-4">
-      <div class="flex justify-between items-center border-b pb-3">
+    <div class="bg-[#1C1D21] rounded-xl p-5 shadow-xl border border-[#2A2B30] space-y-4">
+      <div class="flex justify-between items-center border-b border-[#2A2B30] pb-3">
         <div>
-          <h3 class="font-bold text-sm text-slate-800 flex items-center gap-2">
-            📈 Grafik Performance Omset
+          <h3 class="font-bold text-xs font-mono-tech text-white uppercase tracking-wider flex items-center gap-2">
+            <i class="fa-solid fa-[#53627D] fa-chart-line"></i> GRAFIK PERFORMANCE OMSET
           </h3>
-          <p class="text-xs text-slate-400" id="chartScopeLabel">Menampilkan data sesuai lingkup terpilih</p>
+          <p class="text-[11px] font-mono-tech text-[#8E929B] mt-0.5" id="chartScopeLabel">Menampilkan data sesuai lingkup terpilih</p>
         </div>
-        <span class="text-xs px-2.5 py-1 bg-emerald-100 text-emerald-700 font-bold rounded-full" id="totalOmsetSummary">Rp 0</span>
+        <span class="text-xs px-3 py-1 bg-[#121316] text-[#4E9F79] font-bold font-mono-tech rounded border border-[#2A2B30]" id="totalOmsetSummary">Rp 0</span>
       </div>
       
       <div class="w-full h-72 relative">
@@ -90,24 +124,24 @@
 
     <!-- Top Performance vs Expense Cabang -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+      <div class="bg-[#1C1D21] p-4 rounded-xl border border-[#2A2B30] shadow-xl flex items-center justify-between">
         <div>
-          <p class="text-xs font-bold text-emerald-600 uppercase tracking-wider">🏆 Top Performance Cabang</p>
-          <h4 class="text-lg font-black text-slate-800 mt-1" id="topBranch">Memuat...</h4>
-          <p class="text-xs text-slate-500 mt-0.5" id="topBranchSub">Kontribusi omset terbesar</p>
+          <p class="text-[11px] font-bold text-[#4E9F79] uppercase tracking-widest font-mono-tech">🏆 Top Performance Cabang</p>
+          <h4 class="text-base font-bold text-white font-mono-tech mt-1" id="topBranch">Memuat...</h4>
+          <p class="text-xs text-[#8E929B] font-mono-tech mt-0.5" id="topBranchSub">Kontribusi omset terbesar</p>
         </div>
-        <div class="p-3 bg-emerald-50 text-emerald-600 rounded-2xl text-2xl">
+        <div class="p-3 bg-[#121316] text-amber-400 rounded-lg border border-[#2A2B30] text-xl">
           <i class="fa-solid fa-trophy"></i>
         </div>
       </div>
 
-      <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+      <div class="bg-[#1C1D21] p-4 rounded-xl border border-[#2A2B30] shadow-xl flex items-center justify-between">
         <div>
-          <p class="text-xs font-bold text-rose-600 uppercase tracking-wider">💸 Top Expense Cabang</p>
-          <h4 class="text-lg font-black text-slate-800 mt-1" id="topExpenseBranch">Memuat...</h4>
-          <p class="text-xs text-slate-500 mt-0.5" id="topExpenseSub">Pengeluaran terbiaya paling tinggi</p>
+          <p class="text-[11px] font-bold text-rose-400 uppercase tracking-widest font-mono-tech">💸 Top Expense Cabang</p>
+          <h4 class="text-base font-bold text-white font-mono-tech mt-1" id="topExpenseBranch">Memuat...</h4>
+          <p class="text-xs text-[#8E929B] font-mono-tech mt-0.5" id="topExpenseSub">Pengeluaran terbiaya paling tinggi</p>
         </div>
-        <div class="p-3 bg-rose-50 text-rose-600 rounded-2xl text-2xl">
+        <div class="p-3 bg-[#121316] text-rose-400 rounded-lg border border-[#2A2B30] text-xl">
           <i class="fa-solid fa-arrow-trend-down"></i>
         </div>
       </div>
@@ -115,47 +149,49 @@
 
     <!-- Analisis Jam Sibuk dan Sepi -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-3">
-        <div class="p-3 bg-amber-100 text-amber-700 rounded-xl text-xl">🔥</div>
+      <div class="bg-[#1C1D21] p-4 rounded-xl border border-[#2A2B30] shadow-xl flex items-center space-x-3">
+        <div class="p-3 bg-[#121316] text-amber-400 rounded-lg border border-[#2A2B30] text-lg">🔥</div>
         <div>
-          <p class="text-[11px] font-bold text-slate-400 uppercase">Jam Transaksi Paling Aktif</p>
-          <h4 class="text-base font-extrabold text-slate-800" id="busyHour">Memuat...</h4>
+          <p class="text-[10px] font-bold text-[#8E929B] uppercase tracking-widest font-mono-tech">Jam Transaksi Paling Aktif</p>
+          <h4 class="text-sm font-bold text-white font-mono-tech" id="busyHour">Memuat...</h4>
         </div>
       </div>
 
-      <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-3">
-        <div class="p-3 bg-blue-100 text-blue-700 rounded-xl text-xl">🧊</div>
+      <div class="bg-[#1C1D21] p-4 rounded-xl border border-[#2A2B30] shadow-xl flex items-center space-x-3">
+        <div class="p-3 bg-[#121316] text-[#53627D] rounded-lg border border-[#2A2B30] text-lg">🧊</div>
         <div>
-          <p class="text-[11px] font-bold text-slate-400 uppercase">Jam Transaksi Paling Sepi</p>
-          <h4 class="text-base font-extrabold text-slate-800" id="quietHour">Memuat...</h4>
+          <p class="text-[10px] font-bold text-[#8E929B] uppercase tracking-widest font-mono-tech">Jam Transaksi Paling Sepi</p>
+          <h4 class="text-sm font-bold text-white font-mono-tech" id="quietHour">Memuat...</h4>
         </div>
       </div>
     </div>
 
     <!-- Analytics Insight Tambahan -->
-    <div class="border-t border-slate-300 pt-4 space-y-4">
-      <h3 class="font-bold text-xs text-slate-500 uppercase tracking-wider">💡 Strategic Analytics Insight</h3>
+    <div class="border-t border-[#2A2B30] pt-4 space-y-4">
+      <h3 class="font-bold text-xs text-[#8E929B] font-mono-tech uppercase tracking-widest flex items-center gap-2">
+        <i class="fa-regular fa-lightbulb text-amber-400"></i> STRATEGIC ANALYTICS INSIGHT
+      </h3>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <!-- Fitur 1: Preferensi Payment Method -->
-        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-1">
-          <span class="text-xs font-bold text-indigo-600 uppercase">1. Metode Pembayaran Utama</span>
-          <h5 class="text-sm font-extrabold text-slate-800" id="topPaymentMethod">Memuat...</h5>
-          <p class="text-[11px] text-slate-500">Dominasi pilihan pembayaran pelanggan.</p>
+        <div class="bg-[#1C1D21] p-4 rounded-xl border border-[#2A2B30] shadow-xl space-y-1 font-mono-tech">
+          <span class="text-[10px] font-bold text-[#53627D] uppercase tracking-wider block">1. METODE PEMBAYARAN UTAMA</span>
+          <h5 class="text-sm font-bold text-white" id="topPaymentMethod">Memuat...</h5>
+          <p class="text-[11px] text-[#8E929B]">Dominasi pilihan pembayaran pelanggan.</p>
         </div>
 
         <!-- Fitur 2: Forecasting Omset Akhir Bulan -->
-        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-1">
-          <span class="text-xs font-bold text-emerald-600 uppercase">2. Proyeksi Omset Akhir Bulan</span>
-          <h5 class="text-sm font-extrabold text-slate-800" id="forecastOmset">Memuat...</h5>
-          <p class="text-[11px] text-slate-500">Estimasi total pemasukan berdasarkan performa saat ini.</p>
+        <div class="bg-[#1C1D21] p-4 rounded-xl border border-[#2A2B30] shadow-xl space-y-1 font-mono-tech">
+          <span class="text-[10px] font-bold text-[#4E9F79] uppercase tracking-wider block">2. PROYEKSI OMSET AKHIR BULAN</span>
+          <h5 class="text-sm font-bold text-white" id="forecastOmset">Memuat...</h5>
+          <p class="text-[11px] text-[#8E929B]">Estimasi total pemasukan berdasarkan performa saat ini.</p>
         </div>
 
         <!-- Fitur 3: Deteksi Fraud & Anomali -->
-        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-1">
-          <span class="text-xs font-bold text-rose-600 uppercase">3. Alert Anomali / Risk</span>
-          <h5 class="text-sm font-extrabold text-slate-800" id="anomalyAlert">Memuat...</h5>
-          <p class="text-[11px] text-slate-500">Deteksi pengeluaran &gt; Rp 500.000 dalam 1 transaksi.</p>
+        <div class="bg-[#1C1D21] p-4 rounded-xl border border-[#2A2B30] shadow-xl space-y-1 font-mono-tech">
+          <span class="text-[10px] font-bold text-rose-400 uppercase tracking-wider block">3. ALERT ANOMALI / RISK</span>
+          <h5 class="text-sm font-bold text-white" id="anomalyAlert">Memuat...</h5>
+          <p class="text-[11px] text-[#8E929B]">Deteksi pengeluaran &gt; Rp 500.000 dalam 1 transaksi.</p>
         </div>
       </div>
     </div>
@@ -248,7 +284,7 @@
       return `CABANG ${code}`;
     }
 
-    // Inisialisasi Chart.js
+    // Inisialisasi Chart.js dengan Theme Modern Tech (Dark Mode)
     function initChart() {
       const ctx = document.getElementById('omsetChart').getContext('2d');
       omsetChartInstance = new Chart(ctx, {
@@ -258,13 +294,15 @@
           datasets: [{
             label: 'Total Omset (Rp)',
             data: [],
-            borderColor: '#4f46e5',
-            backgroundColor: 'rgba(79, 70, 229, 0.1)',
+            borderColor: '#53627D',
+            backgroundColor: 'rgba(83, 98, 125, 0.15)',
             fill: true,
             tension: 0.3,
             borderWidth: 2,
             pointRadius: 4,
-            pointBackgroundColor: '#4f46e5'
+            pointBackgroundColor: '#53627D',
+            pointBorderColor: '#1C1D21',
+            pointBorderWidth: 2
           }]
         },
         options: {
@@ -273,6 +311,13 @@
           plugins: {
             legend: { display: false },
             tooltip: {
+              backgroundColor: '#121316',
+              titleColor: '#E2E8F0',
+              bodyColor: '#4E9F79',
+              borderColor: '#2A2B30',
+              borderWidth: 1,
+              padding: 10,
+              displayColors: false,
               callbacks: {
                 label: function(context) {
                   return ' Omset: ' + formatRupiah(context.parsed.y);
@@ -281,9 +326,25 @@
             }
           },
           scales: {
+            x: {
+              grid: {
+                color: '#2A2B30',
+                drawBorder: false
+              },
+              ticks: {
+                color: '#8E929B',
+                font: { family: 'JetBrains Mono', size: 10 }
+              }
+            },
             y: {
               beginAtZero: true,
+              grid: {
+                color: '#2A2B30',
+                drawBorder: false
+              },
               ticks: {
+                color: '#8E929B',
+                font: { family: 'JetBrains Mono', size: 10 },
                 callback: function(value) {
                   return 'Rp ' + (value / 1000).toLocaleString('id-ID') + 'k';
                 }
