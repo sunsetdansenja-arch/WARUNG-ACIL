@@ -584,7 +584,7 @@
     }
 
     // =========================================================================
-    // FITUR UTAMA SETELAH TOMBOL PROSES (SAMA PERSIS DENGAN TEST 3)
+    // FITUR ALUR PEMBAYARAN DAN PENYIMPANAN
     // =========================================================================
 
     // 1. Membuka Modal Pilihan Metode Pembayaran
@@ -654,7 +654,7 @@
 
         const resData = await response.json();
 
-        // DETEKSI KESUKSESAN FLEKSIBEL UNTUK N8N
+        // DETEKSI KESUKSESAN RESPONS N8N
         let isSuccess = false;
         if (response.ok) {
           if (Array.isArray(resData) && resData[0]?.json?.success !== undefined) {
@@ -662,7 +662,7 @@
           } else if (resData?.success !== undefined) {
             isSuccess = resData.success;
           } else {
-            // Jika HTTP OK (200), anggap sukses tersimpan
+            // Jika HTTP status OK (200/201), anggap transaksi berhasil disimpan
             isSuccess = true; 
           }
         }
@@ -672,7 +672,7 @@
           loadDashboardData();
           closePaymentModal();
           
-          // Tampilkan modal struk resi otomatis
+          // Tampilkan modal struk resi
           openReceiptModal(transNominal, method, transAction === 'in', session.user, targetBranch, transTime);
 
           // Pemicu cetak langsung Bluetooth Thermal
@@ -802,7 +802,7 @@
     }
 
     // ==========================================
-    // FUNGSI RIWAYAT & NAVIGASI
+    // FUNGSI RIWAYAT & NAVIGASI (DENGAN REVISI TARIK DATA)
     // ==========================================
     function switchNav(tab) {
       const btnCalc = document.getElementById('tabCalc');
@@ -826,22 +826,34 @@
     }
 
     async function loadDashboardData() {
+      const container = document.getElementById('historyList');
+      if (container) container.innerHTML = `<p class="text-xs text-center text-slate-400 py-6">Memuat riwayat...</p>`;
+
       try {
         const response = await fetch(WEBHOOK_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ action: 'get_data' })
         });
+        
         const resData = await response.json();
-        const raw = Array.isArray(resData) ? resData[0] : resData;
+        
+        // Handling variasi struktur JSON n8n (Array vs Object & nested data)
+        let raw = Array.isArray(resData) ? resData[0] : resData;
+        if (raw?.json) raw = raw.json;
+        
+        const retrievedData = raw?.data || raw || {};
 
-        if (raw && raw.json && raw.json.success) {
-          globalRawData = raw.json.data;
-          calculateLaciTotals();
-          renderHistoryList();
-        }
+        globalRawData = {
+          money_in: Array.isArray(retrievedData.money_in) ? retrievedData.money_in : [],
+          money_out: Array.isArray(retrievedData.money_out) ? retrievedData.money_out : []
+        };
+
+        calculateLaciTotals();
+        renderHistoryList();
       } catch (err) {
         console.error('Gagal memuat data:', err);
+        if (container) container.innerHTML = `<p class="text-xs text-center text-rose-500 py-6">Gagal memuat riwayat. Periksa koneksi/n8n.</p>`;
       }
     }
 
@@ -860,17 +872,22 @@
 
     function calculateLaciTotals() {
       const now = new Date();
-      let listIn = (globalRawData.money_in || []);
-      let listOut = (globalRawData.money_out || []);
+      let listIn = [...(globalRawData.money_in || [])];
+      let listOut = [...(globalRawData.money_out || [])];
 
+      // Filter Cabang (Case-Insensitive & Tolereansi Null)
       if (!session.isOwner) {
-        listIn = listIn.filter(i => String(i.CABANG || '').toUpperCase() === currentBranchName.toUpperCase());
-        listOut = listOut.filter(o => String(o.CABANG || '').toUpperCase() === currentBranchName.toUpperCase());
+        listIn = listIn.filter(i => String(i.CABANG || i.cabang || '').toUpperCase() === currentBranchName.toUpperCase());
+        listOut = listOut.filter(o => String(o.CABANG || o.cabang || '').toUpperCase() === currentBranchName.toUpperCase());
       }
 
       const filterByDate = (item) => {
-        if (!item.id && !item.id_data) return true;
-        const d = new Date(item.id || Date.now());
+        const rawDate = item.id || item.id_data || item.created_at || item.tanggal || item.TANGGAL;
+        if (!rawDate) return true;
+        
+        const d = new Date(rawDate);
+        if (isNaN(d.getTime())) return true;
+
         if (activePeriod === 'today') return d.toDateString() === now.toDateString();
         if (activePeriod === 'week') return Math.floor((now - d) / (1000 * 60 * 60 * 24)) < 7;
         if (activePeriod === 'month') return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
@@ -883,13 +900,15 @@
       let totals = { cash: 0, qris: 0, transfer: 0 };
 
       filteredIn.forEach(i => {
-        const m = String(i.TRANSAKSI || '').toLowerCase();
-        if (totals[m] !== undefined) totals[m] += Number(i.NOMINAL || 0);
+        const m = String(i.TRANSAKSI || i.transaksi || '').toLowerCase();
+        const nom = Number(i.NOMINAL || i.nominal || 0);
+        if (totals[m] !== undefined) totals[m] += nom;
       });
 
       filteredOut.forEach(o => {
-        const m = String(o.TRANSAKSI || '').toLowerCase();
-        if (totals[m] !== undefined) totals[m] -= Number(o.NOMINAL || 0);
+        const m = String(o.TRANSAKSI || o.transaksi || '').toLowerCase();
+        const nom = Number(o.NOMINAL || o.nominal || 0);
+        if (totals[m] !== undefined) totals[m] -= nom;
       });
 
       const totalNet = totals.cash + totals.qris + totals.transfer;
@@ -909,8 +928,9 @@
       let listOut = (globalRawData.money_out || []).map(o => ({ ...o, type: 'OUT' }));
       let all = [...listIn, ...listOut];
 
+      // Filter Cabang
       if (!session.isOwner) {
-        all = all.filter(item => String(item.CABANG || '').toUpperCase() === currentBranchName.toUpperCase());
+        all = all.filter(item => String(item.CABANG || item.cabang || '').toUpperCase() === currentBranchName.toUpperCase());
       }
 
       if (all.length === 0) {
@@ -921,7 +941,14 @@
       container.innerHTML = all.map((item) => {
         const isIn = item.type === 'IN';
         const badgeColor = isIn ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800';
-        const formattedNominal = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(item.NOMINAL || 0);
+        
+        // Toleransi nama atribut properti
+        const nominal = item.NOMINAL || item.nominal || 0;
+        const metode = item.TRANSAKSI || item.transaksi || '-';
+        const kasir = item.KASIR || item.kasir || '-';
+        const cabang = item.CABANG || item.cabang || currentBranchName;
+        
+        const formattedNominal = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(nominal);
 
         return `
           <div class="flex justify-between items-center p-3 bg-slate-50 rounded-2xl border border-slate-100 shadow-xs">
@@ -929,11 +956,11 @@
               <span class="text-[10px] font-black px-2 py-1 rounded-lg ${badgeColor}">${item.type}</span>
               <div>
                 <p class="text-sm font-extrabold text-slate-800">${formattedNominal}</p>
-                <p class="text-[10px] text-slate-400 uppercase font-bold">${item.TRANSAKSI || '-'} • ${item.KASIR || '-'}</p>
+                <p class="text-[10px] text-slate-400 uppercase font-bold">${metode} • ${kasir}</p>
               </div>
             </div>
             <div class="flex items-center gap-2">
-              <button onclick="reprintReceipt('${item.NOMINAL}', '${item.TRANSAKSI}', ${isIn}, '${item.KASIR}', '${item.CABANG}', null)" 
+              <button onclick="reprintReceipt('${nominal}', '${metode}', ${isIn}, '${kasir}', '${cabang}', null)" 
                 class="bg-white border border-slate-200 text-slate-800 text-xs font-bold px-3 py-1.5 rounded-xl hover:bg-slate-100 shadow-xs active:scale-95 transition cursor-pointer">
                 🖨️ Struk
               </button>
@@ -953,7 +980,7 @@
       window.location.href = 'index.html';
     }
 
-    // Inisialisasi awal
+    // Inisialisasi data laci awal
     loadDashboardData();
   </script>
 </body>
