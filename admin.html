@@ -65,12 +65,11 @@
             <option value="today" selected>Hari Ini</option>
             <option value="7days">7 Hari Terakhir</option>
             <option value="month">Bulan Ini</option>
-
             <option value="custom">Custom Tanggal</option>
           </select>
         </div>
 
-        <!-- Custom Date Range Picker (Awalnya tersembunyi) -->
+        <!-- Custom Date Range Picker -->
         <div id="customDateContainer" class="hidden flex items-center space-x-2">
           <input type="date" id="startDate" onchange="applyFilter()" class="border border-slate-300 rounded-lg px-2 py-1 text-sm focus:ring-2 focus:ring-slate-800 outline-none">
           <span class="text-xs text-slate-400">s/d</span>
@@ -92,17 +91,16 @@
       </button>
     </div>
 
-    <!-- Table Container dengan Fixed Header & Scrollable Body -->
+    <!-- Table Container -->
     <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden p-5 space-y-4">
       <div class="flex justify-between items-center">
         <h3 id="tableTitle" class="font-bold text-slate-700 text-base">Daftar Transaksi Aktif</h3>
         <span id="recordCount" class="text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full font-semibold">0 Data Found</span>
       </div>
       
-      <!-- Internal Scroll Container dengan Max Height -->
+      <!-- Internal Scroll Container -->
       <div class="overflow-x-auto max-h-[550px] overflow-y-auto border border-slate-200 rounded-xl">
         <table class="w-full text-left text-sm relative border-collapse">
-          <!-- Sticky Header -->
           <thead class="bg-slate-100 text-slate-700 font-semibold sticky top-0 z-10 shadow-sm">
             <tr>
               <th class="py-3 px-4 bg-slate-100">Waktu</th>
@@ -151,7 +149,7 @@
 
   </main>
 
-  <!-- Modal Edit Transaksi -->
+  <!-- Modal Edit Transaksi (Hanya Nominal & Jenis Transaksi) -->
   <div id="editModal" class="fixed inset-0 bg-slate-900/50 hidden flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4">
       <div class="flex justify-between items-center border-b pb-3">
@@ -160,28 +158,25 @@
       </div>
       
       <form id="editForm" onsubmit="submitEdit(event)" class="space-y-4">
+        <!-- Hidden Inputs untuk Data Tetap -->
         <input type="hidden" id="editId">
         <input type="hidden" id="editType">
         <input type="hidden" id="editKasir">
+        <input type="hidden" id="editCabang">
         
+        <!-- Input Nominal -->
         <div>
           <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Nominal (Rp)</label>
           <input type="number" id="editNominal" min="1" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-slate-800 outline-none font-semibold">
         </div>
 
+        <!-- Dropdown Jenis/Metode Transaksi -->
         <div>
-          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Metode Pembayaran</label>
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Jenis / Metode Transaksi</label>
           <select id="editTransaksi" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-slate-800 outline-none uppercase font-semibold text-slate-700">
             <option value="cash">💵 CASH</option>
             <option value="qris">📱 QRIS</option>
             <option value="transfer">🏦 TRANSFER</option>
-          </select>
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Cabang</label>
-          <select id="editCabang" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-slate-800 outline-none font-semibold text-slate-700">
-            <!-- Pilihan Cabang diisi via JS -->
           </select>
         </div>
 
@@ -204,11 +199,9 @@
     let deletedData = [];
     let currentTab = 'active';
 
-    // State Pagination
     let currentPage = 1;
     let itemsPerPage = 25;
 
-    // Helper Penamaan Cabang
     function getBranchName(code) {
       if (typeof CONFIG !== 'undefined' && CONFIG.getBranchName) {
         return CONFIG.getBranchName(code);
@@ -221,15 +214,11 @@
       fetchData();
     });
 
-    // Inisialisasi Dropdown Cabang dari CONFIG
     function initBranchOptions() {
       const filterSelect = document.getElementById("branchFilter");
-      const editSelect = document.getElementById("editCabang");
-
-      if (!filterSelect || !editSelect) return;
+      if (!filterSelect) return;
 
       filterSelect.innerHTML = '<option value="">Semua Cabang</option>';
-      editSelect.innerHTML = '';
 
       const branches = (typeof CONFIG !== 'undefined' && (CONFIG.BRANCH_MAP || CONFIG.BRANCHES)) 
         ? (CONFIG.BRANCH_MAP || CONFIG.BRANCHES)
@@ -237,18 +226,12 @@
 
       Object.keys(branches).forEach(code => {
         if (code === 'ALL') return;
-
         const branchName = branches[code];
 
         const optFilter = document.createElement('option');
         optFilter.value = String(code).trim();
         optFilter.textContent = branchName;
         filterSelect.appendChild(optFilter);
-
-        const optEdit = document.createElement('option');
-        optEdit.value = String(code).trim();
-        optEdit.textContent = branchName;
-        editSelect.appendChild(optEdit);
       });
     }
 
@@ -348,7 +331,6 @@
       }
     }
 
-    // Penanganan Presets Periode Waktu
     function handlePresetChange() {
       const preset = document.getElementById("datePreset").value;
       const customContainer = document.getElementById("customDateContainer");
@@ -362,7 +344,6 @@
       applyFilter();
     }
 
-    // Fungsi Utama Menyaring / Filtering Data
     function applyFilter() {
       const search = document.getElementById("searchInput").value.toLowerCase().trim();
       const branch = String(document.getElementById("branchFilter").value).trim();
@@ -393,20 +374,14 @@
       }
 
       filteredData = source.filter(item => {
-        // 1. Filter Cabang (Pengecekan String Akses Kode Eksak)
         const matchBranch = branch === "" || String(item.cabang).trim() === branch;
-
-        // 2. Filter Tipe
         const matchType = type === "" || item.tipe === type;
-
-        // 3. Filter Pencarian Text
         const matchSearch = search === "" || 
                             item.kasir.toLowerCase().includes(search) || 
                             item.nominal.toString().includes(search) || 
                             item.transaksi.toLowerCase().includes(search) ||
                             getBranchName(item.cabang).toLowerCase().includes(search);
 
-        // 4. Filter Tanggal
         let matchDate = true;
         if (item.rawDate && (startRange || endRange)) {
           if (startRange && item.rawDate < startRange) matchDate = false;
@@ -432,7 +407,6 @@
       applyFilter();
     }
 
-    // Pagination Rendering
     function renderPaginatedTable() {
       const total = filteredData.length;
       document.getElementById("recordCount").innerText = `${total} Data Found`;
@@ -443,13 +417,11 @@
 
       renderTable(pageData);
 
-      // Render info pagination
       const displayStart = total === 0 ? 0 : startIdx + 1;
       const displayEnd = Math.min(endIdx, total);
       document.getElementById("paginationInfo").innerText = `Menampilkan ${displayStart} - ${displayEnd} dari ${total} data`;
       document.getElementById("currentPageDisplay").innerText = currentPage;
 
-      // Navigasi Button State
       document.getElementById("btnPrevPage").disabled = currentPage === 1;
       document.getElementById("btnNextPage").disabled = endIdx >= total;
     }
