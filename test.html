@@ -198,6 +198,7 @@
           <button onclick="backspace()" class="bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white text-2xl md:text-3xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-md active:scale-95 transition" title="Hapus 1 Karakter">⌫</button>
           <button onclick="calculateResult()" class="bg-slate-300 hover:bg-slate-400 active:bg-slate-500 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-300 active:scale-95 transition fast-btn-num">=</button>
           
+          <!-- Tombol PROSES yang memicu simpan dan cetak otomatis -->
           <button onclick="openPaymentModal()" class="bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-lg md:text-2xl font-black rounded-2xl md:rounded-3xl p-3 md:p-6 shadow-lg uppercase tracking-wider border-b-4 border-emerald-900 active:scale-95 transition flex items-center justify-center fast-btn-process">
             <span class="truncate">PROSES ➔</span>
           </button>
@@ -622,6 +623,7 @@
       document.getElementById('paymentModal').classList.add('hidden');
     }
 
+    // Fungsi submit transaksi otomatis menyimpan dan mentriger cetak struk
     async function submitTransaction(method) {
       const targetBranch = getSelectedTargetBranch();
       const transNominal = finalCalculatedNominal;
@@ -655,8 +657,11 @@
           clearCalc();
           loadDashboardData();
           closePaymentModal();
+          
+          // Tampilkan modal struk
           openReceiptModal(transNominal, method, transAction === 'in', session.user, targetBranch, transTime);
 
+          // Pemicu otomatis pencetakan struk melalui bluetooth
           setTimeout(() => { triggerPrint(); }, 200);
         } else {
           alert('Gagal menyimpan transaksi! ' + (resData[0]?.json?.message || 'Server merespons error.'));
