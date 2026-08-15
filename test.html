@@ -5,19 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Dashboard Kasir - Kasir Warung Acil</title>
   
-  <!-- Panggil config.js paling atas -->
+  <!-- Panggil config.js paling atas jika ada -->
   <script src="config.js"></script>
   
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    /* Prevent text selection during rapid button clicks */
     .no-select {
       -webkit-touch-callout: none;
       -webkit-user-select: none;
       user-select: none;
     }
 
-    /* Custom Scrollbar */
     .custom-scroll::-webkit-scrollbar {
       width: 6px;
     }
@@ -30,7 +28,37 @@
       border-radius: 8px;
     }
 
-    /* Thermal Printer 58mm Preview Rules */
+    body.fast-mode {
+      background-color: #0f172a !important;
+    }
+    body.fast-mode .fast-card {
+      background-color: #1e293b !important;
+      border-color: #334155 !important;
+      color: #f8fafc !important;
+    }
+    body.fast-mode .fast-input {
+      background-color: #020617 !important;
+      border-color: #0284c7 !important;
+    }
+    body.fast-mode .fast-btn-num {
+      background-color: #334155 !important;
+      color: #ffffff !important;
+      border-color: #475569 !important;
+    }
+    body.fast-mode .fast-btn-num:hover {
+      background-color: #475569 !important;
+    }
+    body.fast-mode .fast-btn-op {
+      background-color: #1e3a8a !important;
+      color: #93c5fd !important;
+      border-color: #1d4ed8 !important;
+    }
+    body.fast-mode .fast-btn-process {
+      background-color: #059669 !important;
+      color: #ffffff !important;
+      border-color: #047857 !important;
+    }
+
     @media print {
       @page {
         margin: 0;
@@ -77,37 +105,47 @@
     }
   </style>
 </head>
-<body class="bg-slate-100 min-h-screen flex flex-col no-select">
+<body class="bg-slate-100 min-h-screen flex flex-col no-select transition-colors duration-300" id="bodyApp">
 
   <!-- Header Navbar -->
-  <nav class="bg-emerald-600 text-white shadow-md sticky top-0 z-30 no-print flex-none">
-    <div class="max-w-5xl mx-auto px-4 py-3 flex justify-between items-center">
-      <div class="flex items-center gap-2">
-        <a id="btnBackToMaster" href="master.html" class="hidden bg-emerald-700 hover:bg-emerald-800 text-sm px-3 py-1.5 rounded-xl border border-emerald-500 font-bold cursor-pointer flex items-center gap-1">
+  <nav class="bg-emerald-600 text-white shadow-md sticky top-0 z-30 no-print flex-none transition-colors duration-300" id="mainNav">
+    <div class="max-w-5xl mx-auto px-4 py-3 flex justify-between items-center gap-2">
+      <div class="flex items-center gap-2 min-w-0">
+        <a id="btnBackToMaster" href="master.html" class="hidden bg-emerald-700 hover:bg-emerald-800 text-xs md:text-sm px-2.5 py-1.5 rounded-xl border border-emerald-500 font-bold cursor-pointer flex items-center gap-1 shrink-0">
           ⬅️ Master
         </a>
-        <div>
-          <h1 class="font-extrabold text-lg leading-tight">Kasir Warung Acil</h1>
-          <p class="text-xs text-emerald-100 font-medium" id="userInfo">Loading...</p>
+        <div class="min-w-0">
+          <h1 class="font-extrabold text-base md:text-lg leading-tight truncate">Kasir Warung Acil</h1>
+          <p class="text-[11px] md:text-xs text-emerald-100 font-medium truncate" id="userInfo">Loading...</p>
         </div>
       </div>
-      <div class="flex items-center gap-2">
-        <!-- Tombol Mode Capek (Layout Tetap Sama, Mengubah Status & Warna Visual) -->
-        <button id="btnModeCapek" onclick="toggleModeCapek()" class="bg-amber-500 hover:bg-amber-600 text-xs md:text-sm px-3.5 py-2 rounded-xl border border-amber-400 font-bold cursor-pointer transition">
-          ⚡ mode capek
+
+      <div class="flex items-center gap-2 shrink-0">
+        <button onclick="toggleFastMode()" id="fastModeBtn" class="flex items-center gap-1 bg-amber-500 hover:bg-amber-600 text-slate-900 text-xs px-2.5 py-1.5 rounded-xl font-bold shadow-xs transition cursor-pointer">
+          <span>⚡</span>
+          <span id="fastModeText">Mode Cepat</span>
         </button>
-        <button onclick="logout()" class="bg-emerald-700 hover:bg-emerald-800 text-xs md:text-sm px-3.5 py-2 rounded-xl border border-emerald-500 font-bold cursor-pointer">
+
+        <button onclick="logout()" class="bg-emerald-700 hover:bg-emerald-800 text-xs md:text-sm px-3 py-1.5 rounded-xl border border-emerald-500 font-bold cursor-pointer">
           Logout
         </button>
       </div>
     </div>
   </nav>
 
-  <!-- Container Utama (Optimasi Tablet: max-w-5xl & layout 2-kolom jika di Tablet) -->
+  <!-- Container Utama -->
   <main class="max-w-5xl w-full mx-auto p-3 md:p-5 flex-1 flex flex-col no-print">
 
-    <!-- Tab Navigasi HP/Mobile (Otomatis tersembunyi di layar Tablet/Desktop) -->
-    <div class="lg:hidden bg-white rounded-2xl shadow-sm p-1.5 flex mb-3 border border-slate-200">
+    <!-- FAST MODE INDICATOR BANNER -->
+    <div id="fastModeBanner" class="hidden bg-amber-500/10 border border-amber-500/30 text-amber-400 p-2.5 rounded-2xl text-xs mb-3 flex justify-between items-center">
+      <div class="flex items-center gap-2">
+        <span class="animate-pulse">⚡</span>
+        <span><b>MODE CEPAT AKTIF:</b> Angka otomatis x1000 (misal tekan 15 = 15.000), kecuali operasi kali (×) & bagi (÷).</span>
+      </div>
+    </div>
+
+    <!-- Tab Navigasi HP/Mobile -->
+    <div class="lg:hidden bg-white rounded-2xl shadow-sm p-1.5 flex mb-3 border border-slate-200 fast-card">
       <button id="tabCalc" onclick="switchNav('calc')" class="flex-1 py-3 font-black text-xs md:text-sm rounded-xl bg-emerald-600 text-white shadow-sm transition">
         🧮 KALKULATOR
       </button>
@@ -116,71 +154,64 @@
       </button>
     </div>
 
-    <!-- Dropdown Pilih Cabang (Akses Owner - Diisi Otomatis dari CONFIG.BRANCH_MAP) -->
+    <!-- Dropdown Pilih Cabang (Akses Owner) -->
     <div id="ownerBranchContainer" class="hidden mb-3">
       <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Pilih Cabang Transaksi</label>
       <select id="selectBranch" class="w-full px-4 py-2.5 text-sm font-bold rounded-2xl border border-slate-300 bg-amber-50 text-slate-800 focus:outline-none shadow-xs">
-        <!-- Opsi diisi via JS dari config.js -->
       </select>
     </div>
 
-    <!-- WRAPPER UTAMA: Grid 1 Kolom (HP) / Grid 2 Kolom (Tablet Landscape) -->
+    <!-- WRAPPER UTAMA -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 flex-1">
       
-      <!-- SEKSI 1: KALKULATOR KASIR (Kolom Kiri Tablet: col-span-7) -->
+      <!-- SEKSI 1: KALKULATOR KASIR -->
       <div id="secCalc" class="lg:col-span-7 flex-1 flex flex-col gap-3">
         
-        <!-- Display Kalkulator Ekstra Gede & Jelas -->
-        <div class="bg-slate-900 text-white rounded-3xl p-4 md:p-6 border-4 border-slate-700 shadow-2xl text-right flex flex-col justify-end min-h-[140px] md:min-h-[160px]">
+        <div class="bg-slate-900 text-white rounded-3xl p-4 md:p-6 border-4 border-slate-700 shadow-2xl text-right flex flex-col justify-end min-h-[140px] md:min-h-[160px] fast-input">
           <div id="calcFormula" class="text-xl md:text-2xl font-black text-emerald-400 min-h-[32px] overflow-x-auto tracking-wider mb-1">0</div>
           <div id="calcDisplay" class="text-5xl md:text-6xl font-black text-white overflow-x-auto whitespace-nowrap tracking-tight">0</div>
         </div>
 
-        <!-- Keypad Grid Kalkulator Touch-Friendly Tablet -->
         <div class="grid grid-cols-4 gap-2.5 md:gap-3 flex-1 my-auto">
-          <!-- Baris 1 -->
-          <button onclick="pressNum('7')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition">7</button>
-          <button onclick="pressNum('8')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition">8</button>
-          <button onclick="pressNum('9')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition">9</button>
-          <button onclick="pressOp('/')" class="bg-amber-100 hover:bg-amber-200 active:bg-amber-300 text-amber-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-amber-200 active:scale-95 transition">÷</button>
+          <!-- Keypad -->
+          <button onclick="pressNum('7')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition fast-btn-num">7</button>
+          <button onclick="pressNum('8')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition fast-btn-num">8</button>
+          <button onclick="pressNum('9')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition fast-btn-num">9</button>
+          <button onclick="pressOp('/')" class="bg-amber-100 hover:bg-amber-200 active:bg-amber-300 text-amber-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-amber-200 active:scale-95 transition fast-btn-op">÷</button>
 
-          <!-- Baris 2 -->
-          <button onclick="pressNum('4')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition">4</button>
-          <button onclick="pressNum('5')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition">5</button>
-          <button onclick="pressNum('6')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition">6</button>
-          <button onclick="pressOp('*')" class="bg-amber-100 hover:bg-amber-200 active:bg-amber-300 text-amber-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-amber-200 active:scale-95 transition">×</button>
+          <button onclick="pressNum('4')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition fast-btn-num">4</button>
+          <button onclick="pressNum('5')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition fast-btn-num">5</button>
+          <button onclick="pressNum('6')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition fast-btn-num">6</button>
+          <button onclick="pressOp('*')" class="bg-amber-100 hover:bg-amber-200 active:bg-amber-300 text-amber-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-amber-200 active:scale-95 transition fast-btn-op">×</button>
 
-          <!-- Baris 3 -->
-          <button onclick="pressNum('1')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition">1</button>
-          <button onclick="pressNum('2')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition">2</button>
-          <button onclick="pressNum('3')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition">3</button>
-          <button onclick="pressOp('-')" class="bg-amber-100 hover:bg-amber-200 active:bg-amber-300 text-amber-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-amber-200 active:scale-95 transition">-</button>
+          <button onclick="pressNum('1')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition fast-btn-num">1</button>
+          <button onclick="pressNum('2')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition fast-btn-num">2</button>
+          <button onclick="pressNum('3')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition fast-btn-num">3</button>
+          <button onclick="pressOp('-')" class="bg-amber-100 hover:bg-amber-200 active:bg-amber-300 text-amber-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-amber-200 active:scale-95 transition fast-btn-op">-</button>
 
-          <!-- Baris 4 -->
-          <button onclick="pressNum('0')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition">0</button>
-          <button onclick="press000()" class="bg-slate-200 hover:bg-slate-300 active:bg-slate-400 text-slate-900 text-xl md:text-2xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-300 active:scale-95 transition">000</button>
-          <button onclick="pressDot()" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition">.</button>
-          <button onclick="pressOp('+')" class="bg-amber-100 hover:bg-amber-200 active:bg-amber-300 text-amber-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-amber-200 active:scale-95 transition">+</button>
+          <button onclick="pressNum('0')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition fast-btn-num">0</button>
+          <button onclick="press000()" class="bg-slate-200 hover:bg-slate-300 active:bg-slate-400 text-slate-900 text-xl md:text-2xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-300 active:scale-95 transition fast-btn-num">000</button>
+          <button onclick="pressDot()" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition fast-btn-num">.</button>
+          <button onclick="pressOp('+')" class="bg-amber-100 hover:bg-amber-200 active:bg-amber-300 text-amber-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-amber-200 active:scale-95 transition fast-btn-op">+</button>
 
-          <!-- Baris 5 (Aksi: Clear, Backspace, Equals, Proses) -->
           <button onclick="clearCalc()" class="bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white text-2xl md:text-3xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-md active:scale-95 transition" title="Clear All">C</button>
           <button onclick="backspace()" class="bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white text-2xl md:text-3xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-md active:scale-95 transition" title="Hapus 1 Karakter">⌫</button>
-          <button onclick="calculateResult()" class="bg-slate-300 hover:bg-slate-400 active:bg-slate-500 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-300 active:scale-95 transition">=</button>
-          <button id="btnProses" onclick="openPaymentModal()" class="bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xl md:text-2xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-lg uppercase tracking-wider border-b-4 border-emerald-900 active:scale-95 transition">
-            PROSES ➔
+          <button onclick="calculateResult()" class="bg-slate-300 hover:bg-slate-400 active:bg-slate-500 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-300 active:scale-95 transition fast-btn-num">=</button>
+          
+          <button onclick="openPaymentModal()" class="bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-lg md:text-2xl font-black rounded-2xl md:rounded-3xl p-3 md:p-6 shadow-lg uppercase tracking-wider border-b-4 border-emerald-900 active:scale-95 transition flex items-center justify-center fast-btn-process">
+            <span class="truncate">PROSES ➔</span>
           </button>
         </div>
       </div>
 
-      <!-- SEKSI 2: RIWAYAT TRANSAKSI (Kolom Kanan Tablet: col-span-5) -->
+      <!-- SEKSI 2: RIWAYAT TRANSAKSI -->
       <div id="secHistory" class="hidden lg:block lg:col-span-5 flex-1 flex flex-col gap-3">
-        <!-- Summary Laci -->
-        <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-4 md:p-5">
+        <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-4 md:p-5 fast-card">
           <div class="flex justify-between items-center mb-3">
             <h2 class="font-extrabold text-slate-800 text-sm flex items-center gap-1">💵 Ringkasan Laci Kasir</h2>
-            <button onclick="loadDashboardData()" class="text-xs text-emerald-600 font-extrabold bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">🔄 Refresh</button>
+            <button onclick="loadDashboardData()" class="text-xs text-emerald-600 font-extrabold bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 cursor-pointer">🔄 Refresh</button>
           </div>
-          <div class="flex bg-slate-100 p-1.5 rounded-2xl mb-3 text-xs font-bold text-slate-500">
+          <div class="flex bg-slate-100 p-1.5 rounded-2xl mb-3 text-xs font-bold text-slate-500 fast-input">
             <button id="btnToday" onclick="switchPeriod('today')" class="flex-1 py-1.5 rounded-xl bg-white text-emerald-700 shadow-xs">Hari Ini</button>
             <button id="btnWeek" onclick="switchPeriod('week')" class="flex-1 py-1.5 rounded-xl">7 Hari</button>
             <button id="btnMonth" onclick="switchPeriod('month')" class="flex-1 py-1.5 rounded-xl">Bulan Ini</button>
@@ -205,9 +236,8 @@
           </div>
         </div>
 
-        <!-- Tray List Riwayat -->
-        <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-4 md:p-5 flex-1 flex flex-col">
-          <h3 class="font-extrabold text-slate-800 text-xs uppercase tracking-wider mb-3">Daftar Transaksi Terakhir</h3>
+        <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-4 md:p-5 flex-1 flex flex-col fast-card">
+          <h3 class="font-extrabold text-xs uppercase tracking-wider mb-3">Daftar Transaksi Terakhir</h3>
           <div class="max-h-[380px] lg:max-h-[460px] overflow-y-auto pr-1 space-y-2.5 custom-scroll" id="historyList">
             <p class="text-xs text-center text-slate-400 py-6">Memuat riwayat...</p>
           </div>
@@ -223,24 +253,24 @@
       <div class="text-center space-y-2">
         <p id="modalTypeBadge" class="inline-block text-xs md:text-sm font-black uppercase px-4 py-1.5 rounded-full bg-emerald-100 text-emerald-800 tracking-wider">UANG MASUK</p>
         <h3 class="font-black text-slate-800 text-xl md:text-2xl">Pilih Pembayaran</h3>
-        <p class="text-xs md:text-sm text-slate-500 font-semibold">Klik metode untuk langsung simpan & cetak</p>
+        <p class="text-xs md:text-sm text-slate-500 font-semibold" id="paymentStatusText">Klik metode untuk langsung menyimpan</p>
         <div id="modalNominal" class="text-4xl md:text-5xl font-black text-emerald-600 pt-2 tracking-tight">Rp 0</div>
       </div>
 
-      <!-- Opsi Pembayaran Ekstra Besar -->
-      <div class="grid grid-cols-1 gap-3.5 pt-2">
-        <button onclick="submitTransaction('cash')" class="w-full h-20 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black rounded-2xl md:rounded-3xl text-2xl shadow-xl flex items-center justify-center gap-3 cursor-pointer border-b-8 border-emerald-900 transition">
+      <!-- Opsi Pembayaran -->
+      <div class="grid grid-cols-1 gap-3.5 pt-2" id="paymentButtonsGroup">
+        <button onclick="submitTransaction('CASH')" class="w-full h-20 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black rounded-2xl md:rounded-3xl text-2xl shadow-xl flex items-center justify-center gap-3 cursor-pointer border-b-8 border-emerald-900 transition">
           💵 CASH
         </button>
-        <button onclick="submitTransaction('qris')" class="w-full h-20 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-black rounded-2xl md:rounded-3xl text-2xl shadow-xl flex items-center justify-center gap-3 cursor-pointer border-b-8 border-blue-900 transition">
+        <button onclick="submitTransaction('QRIS')" class="w-full h-20 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-black rounded-2xl md:rounded-3xl text-2xl shadow-xl flex items-center justify-center gap-3 cursor-pointer border-b-8 border-blue-900 transition">
           📱 QRIS
         </button>
-        <button onclick="submitTransaction('transfer')" class="w-full h-20 bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black rounded-2xl md:rounded-3xl text-2xl shadow-xl flex items-center justify-center gap-3 cursor-pointer border-b-8 border-purple-900 transition">
+        <button onclick="submitTransaction('TRANSFER')" class="w-full h-20 bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black rounded-2xl md:rounded-3xl text-2xl shadow-xl flex items-center justify-center gap-3 cursor-pointer border-b-8 border-purple-900 transition">
           🏦 TRANSFER
         </button>
       </div>
 
-      <button onclick="closePaymentModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-extrabold py-3.5 rounded-2xl text-sm">
+      <button id="btnCancelPayment" onclick="closePaymentModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-extrabold py-3.5 rounded-2xl text-sm cursor-pointer">
         Batal / Kembali
       </button>
     </div>
@@ -268,7 +298,6 @@
         <p class="text-[8px] mt-1.5 italic">*** Terima Kasih ***</p>
       </div>
 
-      <!-- Tombol Cetak Bluetooth Direct -->
       <div class="flex flex-col gap-2.5 no-print pt-3">
         <button onclick="triggerPrint()" class="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black text-base py-4 rounded-2xl shadow-lg cursor-pointer border-b-4 border-emerald-900 flex items-center justify-center gap-2 transition">
           🖨️ CETAK BLUETOOTH DIRECT
@@ -281,37 +310,28 @@
   </div>
 
   <script>
+    // URL Webhook n8n
     const WEBHOOK_URL = 'https://n8n-mzbmiib3etk4.kangkung.sumopod.my.id/webhook/0c2f335e-543b-4f3e-968e-f70d412f194b';
     
-    // State Kalkulator
-    let currentInput = '0';
-    let formula = '';
+    let inputTokens = []; 
     let isEvaluated = false;
     let finalCalculatedNominal = 0;
     let finalActionType = 'in';
 
-    // State Mode Capek
-    let isModeCapek = false;
+    let isFastMode = localStorage.getItem('warung_acil_fastmode') === 'true';
 
-    // State Active Receipt Data untuk Direct Print
     let activeReceiptData = null;
-
-    // Cache Perangkat Bluetooth Printer
     let cachedBluetoothDevice = null;
 
-    // State Laci & Session
     let activePeriod = 'today';
     let globalRawData = { money_in: [], money_out: [] };
 
-    // Validasi Login
-    const session = JSON.parse(localStorage.getItem('warung_acil_session'));
-    if (!session) {
-      window.location.href = 'index.html';
-    }
+    // Validasi Sesi
+    const session = JSON.parse(localStorage.getItem('warung_acil_session')) || { user: 'KASIR1', akses: 'CABANG 1', isOwner: false };
 
-    // Inisialisasi Opsi Cabang dari CONFIG.BRANCH_MAP
     function initBranchOptions() {
       const selectBranch = document.getElementById('selectBranch');
+      if (!selectBranch) return;
       selectBranch.innerHTML = '';
 
       if (typeof CONFIG !== 'undefined' && CONFIG.BRANCH_MAP) {
@@ -327,17 +347,20 @@
     }
 
     if (session.isOwner) {
-      document.getElementById('btnBackToMaster').classList.remove('hidden');
-      document.getElementById('ownerBranchContainer').classList.remove('hidden');
+      document.getElementById('btnBackToMaster')?.classList.remove('hidden');
+      document.getElementById('ownerBranchContainer')?.classList.remove('hidden');
       initBranchOptions();
     }
 
-    // Tentukan Nama Cabang Pengguna Berdasarkan config.js
     const currentBranchName = session.isOwner 
       ? 'Master Owner / All Branches' 
-      : (typeof CONFIG !== 'undefined' ? CONFIG.getBranchName(session.akses) : `CABANG ${session.akses}`);
+      : (typeof CONFIG !== 'undefined' ? CONFIG.getBranchName(session.akses) : (session.akses || 'CABANG 1'));
 
     document.getElementById('userInfo').innerText = `${session.user} | ${currentBranchName}`;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      applyFastModeUI();
+    });
 
     function getSelectedTargetBranch() {
       if (session.isOwner) {
@@ -346,172 +369,225 @@
       return currentBranchName;
     }
 
-    // Fungsi Pengatur Mode Capek
-    function toggleModeCapek() {
-      isModeCapek = !isModeCapek;
-      const btnCapek = document.getElementById('btnModeCapek');
-      const btnProses = document.getElementById('btnProses');
+    function toggleFastMode() {
+      isFastMode = !isFastMode;
+      localStorage.setItem('warung_acil_fastmode', isFastMode);
+      applyFastModeUI();
+    }
 
-      if (isModeCapek) {
-        btnCapek.className = 'bg-rose-600 hover:bg-rose-700 text-xs md:text-sm px-3.5 py-2 rounded-xl border border-rose-500 font-bold cursor-pointer transition text-white shadow-md';
-        btnCapek.innerText = '⚡ mode capek (aktif)';
-        btnProses.className = 'bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-white text-xl md:text-2xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-lg uppercase tracking-wider border-b-4 border-amber-800 active:scale-95 transition';
+    function applyFastModeUI() {
+      const body = document.getElementById('bodyApp');
+      const nav = document.getElementById('mainNav');
+      const btn = document.getElementById('fastModeBtn');
+      const banner = document.getElementById('fastModeBanner');
+
+      if (isFastMode) {
+        body.classList.add('fast-mode');
+        nav.classList.remove('bg-emerald-600');
+        nav.classList.add('bg-slate-900', 'border-b', 'border-slate-800');
+        btn.classList.remove('bg-amber-500', 'text-slate-900');
+        btn.classList.add('bg-amber-400', 'text-slate-950', 'ring-2', 'ring-amber-300');
+        document.getElementById('fastModeText').innerText = 'Mode Cepat ON';
+        banner.classList.remove('hidden');
       } else {
-        btnCapek.className = 'bg-amber-500 hover:bg-amber-600 text-xs md:text-sm px-3.5 py-2 rounded-xl border border-amber-400 font-bold cursor-pointer transition text-white';
-        btnCapek.innerText = '⚡ mode capek';
-        btnProses.className = 'bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xl md:text-2xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-lg uppercase tracking-wider border-b-4 border-emerald-900 active:scale-95 transition';
+        body.classList.remove('fast-mode');
+        nav.classList.remove('bg-slate-900', 'border-b', 'border-slate-800');
+        nav.classList.add('bg-emerald-600');
+        btn.classList.remove('bg-amber-400', 'text-slate-950', 'ring-2', 'ring-amber-300');
+        btn.classList.add('bg-amber-500', 'text-slate-900');
+        document.getElementById('fastModeText').innerText = 'Mode Cepat';
+        banner.classList.add('hidden');
       }
+      updateDisplay();
     }
 
-    // Navigasi Tab (Mobile View)
-    function switchNav(tab) {
-      const btnCalc = document.getElementById('tabCalc');
-      const btnHist = document.getElementById('tabHistory');
-      const secCalc = document.getElementById('secCalc');
-      const secHistory = document.getElementById('secHistory');
-
-      if (tab === 'calc') {
-        btnCalc.className = 'flex-1 py-3 font-black text-xs md:text-sm rounded-xl bg-emerald-600 text-white shadow-sm transition';
-        btnHist.className = 'flex-1 py-3 font-black text-xs md:text-sm rounded-xl text-slate-500 transition';
-        secCalc.classList.remove('hidden');
-        secHistory.classList.add('hidden');
-      } else {
-        btnHist.className = 'flex-1 py-3 font-black text-xs md:text-sm rounded-xl bg-emerald-600 text-white shadow-sm transition';
-        btnCalc.className = 'flex-1 py-3 font-black text-xs md:text-sm rounded-xl text-slate-500 transition';
-        secHistory.classList.remove('hidden');
-        secHistory.classList.remove('lg:block');
-        secCalc.classList.add('hidden');
-        loadDashboardData();
-      }
-    }
-
-    // LOGIKA KALKULATOR
-    function updateDisplay() {
-      document.getElementById('calcDisplay').innerText = formatDisplayNumber(currentInput);
-      document.getElementById('calcFormula').innerText = formula || '0';
-    }
-
-    function formatDisplayNumber(str) {
-      if (str === '-' || str === '' || str === 'Error') return str;
-      const num = Number(str);
-      if (isNaN(num)) return str;
-      return new Intl.NumberFormat('id-ID').format(num);
-    }
-
+    // ==========================================
+    // LOGIKA KALKULATOR TERPERBAIKI
+    // ==========================================
     function pressNum(num) {
       if (isEvaluated) {
-        currentInput = num;
-        formula = num;
+        inputTokens = [num];
         isEvaluated = false;
       } else {
-        if (currentInput === '0') currentInput = num;
-        else currentInput += num;
-        formula += num;
+        if (inputTokens.length === 0 || ['+', '-', '*', '/'].includes(inputTokens[inputTokens.length - 1])) {
+          inputTokens.push(num);
+        } else {
+          inputTokens[inputTokens.length - 1] += num;
+        }
       }
       updateDisplay();
     }
 
     function press000() {
       if (isEvaluated) {
-        currentInput = '0';
-        formula = '0';
+        inputTokens = [];
         isEvaluated = false;
       } else {
-        if (currentInput !== '0' && currentInput !== '') {
-          currentInput += '000';
-          formula += '000';
+        if (inputTokens.length > 0 && !['+', '-', '*', '/'].includes(inputTokens[inputTokens.length - 1])) {
+          inputTokens[inputTokens.length - 1] += '000';
         }
       }
       updateDisplay();
     }
 
     function pressDot() {
-      if (!currentInput.includes('.')) {
-        currentInput += '.';
-        formula += '.';
-        updateDisplay();
+      if (isEvaluated) {
+        inputTokens = ['0.'];
+        isEvaluated = false;
+      } else {
+        if (inputTokens.length === 0 || ['+', '-', '*', '/'].includes(inputTokens[inputTokens.length - 1])) {
+          inputTokens.push('0.');
+        } else if (!inputTokens[inputTokens.length - 1].includes('.')) {
+          inputTokens[inputTokens.length - 1] += '.';
+        }
       }
+      updateDisplay();
     }
 
     function pressOp(op) {
-      if (isEvaluated) isEvaluated = false;
-      
-      const trimmed = formula.trim();
-      const lastChar = trimmed.slice(-1);
-
-      if (['+', '-', '*', '/'].includes(lastChar)) {
-        formula = trimmed.slice(0, -1) + ' ' + op + ' ';
-      } else if (formula !== '') {
-        formula += ' ' + op + ' ';
+      if (isEvaluated) {
+        isEvaluated = false;
       }
-      currentInput = '';
+
+      if (inputTokens.length === 0) {
+        if (op === '-') {
+          inputTokens.push('0');
+          inputTokens.push('-');
+        }
+      } else {
+        const last = inputTokens[inputTokens.length - 1];
+        if (['+', '-', '*', '/'].includes(last)) {
+          inputTokens[inputTokens.length - 1] = op;
+        } else {
+          inputTokens.push(op);
+        }
+      }
       updateDisplay();
     }
 
     function clearCalc() {
-      currentInput = '0';
-      formula = '';
+      inputTokens = [];
       isEvaluated = false;
       updateDisplay();
     }
 
-    // FUNGSI BACKSPACE: Hapus 1 Karakter per Tap
     function backspace() {
       if (isEvaluated) {
         clearCalc();
         return;
       }
 
-      // Hapus 1 karakter dari ekspresi formula
-      if (formula.length > 0) {
-        formula = formula.trimEnd();
-        if (['+', '-', '*', '/'].includes(formula.slice(-1))) {
-          formula = formula.slice(0, -1).trimEnd();
+      if (inputTokens.length > 0) {
+        let lastToken = inputTokens[inputTokens.length - 1];
+        if (['+', '-', '*', '/'].includes(lastToken)) {
+          inputTokens.pop();
         } else {
-          formula = formula.slice(0, -1);
+          lastToken = lastToken.slice(0, -1);
+          if (lastToken === '') {
+            inputTokens.pop();
+          } else {
+            inputTokens[inputTokens.length - 1] = lastToken;
+          }
         }
       }
-
-      // Hapus 1 karakter dari input angka saat ini
-      if (currentInput.length > 0) {
-        currentInput = currentInput.slice(0, -1);
-      }
-
-      // Penyesuaian jika input/formula menjadi kosong
-      if (formula === '' || formula === '-') {
-        formula = '';
-        currentInput = '0';
-      } else if (currentInput === '' || currentInput === '-') {
-        const parts = formula.split(/[\+\-\*\/]/);
-        currentInput = parts[parts.length - 1].trim() || '0';
-      }
-
       updateDisplay();
     }
 
-    function calculateResult() {
-      if (!formula) return 0;
-      try {
-        let sanitized = formula.replace(/[^0-9+\-*/.]/g, '');
-        let res = eval(sanitized);
-        
-        if (res === undefined || isNaN(res)) res = 0;
-        
-        currentInput = String(res);
-        formula = String(res);
-        isEvaluated = true;
-        updateDisplay();
-        return res;
-      } catch (e) {
-        currentInput = 'Error';
-        updateDisplay();
-        return 0;
+    function processTokenValue(token, prevOperator) {
+      let num = parseFloat(token);
+      if (isNaN(num)) return 0;
+
+      if (isFastMode && prevOperator !== '*' && prevOperator !== '/') {
+        num = num * 1000;
       }
+      return num;
     }
 
-    // ALUR TRANSAKSI
+    function calculateResult() {
+      if (inputTokens.length === 0) return 0;
+
+      const lastToken = inputTokens[inputTokens.length - 1];
+      if (['+', '-', '*', '/'].includes(lastToken)) {
+        inputTokens.pop();
+      }
+
+      let total = calculateDisplayVal();
+      isEvaluated = true;
+
+      if (isFastMode) {
+        let baseValue = total / 1000;
+        inputTokens = [String(baseValue)];
+      } else {
+        inputTokens = [String(total)];
+      }
+
+      updateDisplay();
+      return total;
+    }
+
+    function updateDisplay() {
+      const rawText = inputTokens.join(' ') || '0';
+      document.getElementById('calcFormula').innerText = rawText;
+
+      let currentVal = calculateDisplayVal();
+      document.getElementById('calcDisplay').innerText = new Intl.NumberFormat('id-ID').format(currentVal);
+    }
+
+    function calculateDisplayVal() {
+      if (inputTokens.length === 0) return 0;
+      let tokens = [...inputTokens];
+      let evaluatedTokens = [];
+      let lastOp = null;
+
+      for (let i = 0; i < tokens.length; i++) {
+        let t = tokens[i];
+        if (['+', '-', '*', '/'].includes(t)) {
+          lastOp = t;
+          evaluatedTokens.push(t);
+        } else {
+          evaluatedTokens.push(processTokenValue(t, lastOp));
+        }
+      }
+
+      let pass1 = [];
+      let i = 0;
+      while (i < evaluatedTokens.length) {
+        let item = evaluatedTokens[i];
+        if (item === '*' || item === '/') {
+          let prevNum = pass1.pop();
+          let nextNum = evaluatedTokens[i + 1];
+          if (nextNum !== undefined && typeof nextNum === 'number') {
+            let res = item === '*' ? prevNum * nextNum : (nextNum !== 0 ? prevNum / nextNum : 0);
+            pass1.push(res);
+            i += 2;
+          } else {
+            pass1.push(prevNum);
+            i++;
+          }
+        } else {
+          pass1.push(item);
+          i++;
+        }
+      }
+
+      let total = typeof pass1[0] === 'number' ? pass1[0] : 0;
+      for (let j = 1; j < pass1.length; j += 2) {
+        let op = pass1[j];
+        let val = pass1[j + 1];
+        if (typeof val === 'number') {
+          if (op === '+') total += val;
+          if (op === '-') total -= val;
+        }
+      }
+
+      return total;
+    }
+
+    // ==========================================
+    // TRANSAKSI & PEMBAYARAN
+    // ==========================================
     function openPaymentModal() {
-      let finalVal = calculateResult();
+      let finalVal = calculateDisplayVal();
       
       if (finalVal === 0) {
         alert('Nominal transaksi tidak boleh Rp 0!');
@@ -526,12 +602,6 @@
         finalCalculatedNominal = finalVal;
       }
 
-      if (isModeCapek) {
-        // Mode Capek: Langsung submit transaksi cash tanpa pop-up modal
-        submitTransaction('cash');
-        return;
-      }
-
       const badge = document.getElementById('modalTypeBadge');
       if (finalActionType === 'in') {
         badge.innerText = 'UANG MASUK / PENJUALAN';
@@ -542,6 +612,9 @@
       }
 
       document.getElementById('modalNominal').innerText = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(finalCalculatedNominal);
+      document.getElementById('paymentStatusText').innerText = 'Klik metode untuk menyimpan transaksi';
+      document.getElementById('paymentButtonsGroup').style.pointerEvents = 'auto';
+      document.getElementById('paymentButtonsGroup').style.opacity = '1';
       document.getElementById('paymentModal').classList.remove('hidden');
     }
 
@@ -550,34 +623,56 @@
     }
 
     async function submitTransaction(method) {
-      closePaymentModal();
       const targetBranch = getSelectedTargetBranch();
+      const transNominal = finalCalculatedNominal;
+      const transAction = finalActionType;
+      const transTime = new Date();
 
       const payload = {
-        action: finalActionType,
-        nominal: String(finalCalculatedNominal),
-        transaksi: method,
+        action: transAction,
+        nominal: String(transNominal),
+        transaksi: method.toUpperCase(),
         kasir: session.user,
         cabang: targetBranch
       };
 
-      // Tampilkan Struk & Panggil Direct Print Web Bluetooth
-      openReceiptModal(finalCalculatedNominal, method, finalActionType === 'in', session.user, targetBranch, new Date());
-      setTimeout(() => { triggerPrint(); }, 200);
+      const statusText = document.getElementById('paymentStatusText');
+      const btnGroup = document.getElementById('paymentButtonsGroup');
+      statusText.innerText = '⏳ Memproses & Menyimpan Transaksi...';
+      btnGroup.style.pointerEvents = 'none';
+      btnGroup.style.opacity = '0.5';
 
       try {
-        await fetch(WEBHOOK_URL, {
+        const response = await fetch(WEBHOOK_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
-        clearCalc();
+
+        const resData = await response.json();
+
+        if (response.ok && resData[0]?.json?.success) {
+          clearCalc();
+          loadDashboardData();
+          closePaymentModal();
+          openReceiptModal(transNominal, method, transAction === 'in', session.user, targetBranch, transTime);
+
+          setTimeout(() => { triggerPrint(); }, 200);
+        } else {
+          alert('Gagal menyimpan transaksi! ' + (resData[0]?.json?.message || 'Server merespons error.'));
+          statusText.innerText = 'Gagal menyimpan transaksi. Coba lagi.';
+          btnGroup.style.pointerEvents = 'auto';
+          btnGroup.style.opacity = '1';
+        }
       } catch (err) {
-        alert('Gagal sinkronisasi data ke server, namun perintah cetak telah diproses.');
+        console.error('Error koneksi webhook:', err);
+        alert('Gagal terhubung ke webhook/server. Periksa koneksi internet Anda!');
+        statusText.innerText = 'Koneksi terputus. Silakan coba lagi.';
+        btnGroup.style.pointerEvents = 'auto';
+        btnGroup.style.opacity = '1';
       }
     }
 
-    // LOGIKA STRUK & DIRECT PRINT WEB BLUETOOTH
     function openReceiptModal(nominal, method, isMoneyIn, kasir, cabang, date) {
       const formattedNominal = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(nominal);
       const formattedDate = new Date(date || Date.now()).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' }) + ' WIB';
@@ -603,13 +698,10 @@
     }
 
     async function triggerPrint() {
-      if (!activeReceiptData) {
-        alert('Data struk tidak ditemukan!');
-        return;
-      }
+      if (!activeReceiptData) return;
 
       if (!navigator.bluetooth) {
-        alert('Browser ini belum mendukung Web Bluetooth. Pastikan menggunakan Google Chrome versi terbaru.');
+        console.warn('Web Bluetooth tidak didukung pada browser ini.');
         return;
       }
 
@@ -681,12 +773,32 @@
       } catch (error) {
         console.error('Error Web Bluetooth:', error);
         cachedBluetoothDevice = null;
-        alert('Batal/Gagal mencetak: ' + error.message);
       }
     }
 
     function closeReceiptModal() {
       document.getElementById('receiptModal').classList.add('hidden');
+    }
+
+    function switchNav(tab) {
+      const btnCalc = document.getElementById('tabCalc');
+      const btnHist = document.getElementById('tabHistory');
+      const secCalc = document.getElementById('secCalc');
+      const secHistory = document.getElementById('secHistory');
+
+      if (tab === 'calc') {
+        btnCalc.className = 'flex-1 py-3 font-black text-xs md:text-sm rounded-xl bg-emerald-600 text-white shadow-sm transition';
+        btnHist.className = 'flex-1 py-3 font-black text-xs md:text-sm rounded-xl text-slate-500 transition';
+        secCalc.classList.remove('hidden');
+        secHistory.classList.add('hidden');
+      } else {
+        btnHist.className = 'flex-1 py-3 font-black text-xs md:text-sm rounded-xl bg-emerald-600 text-white shadow-sm transition';
+        btnCalc.className = 'flex-1 py-3 font-black text-xs md:text-sm rounded-xl text-slate-500 transition';
+        secHistory.classList.remove('hidden');
+        secHistory.classList.remove('lg:block');
+        secCalc.classList.add('hidden');
+        loadDashboardData();
+      }
     }
 
     async function loadDashboardData() {
@@ -699,8 +811,8 @@
         const resData = await response.json();
         const raw = Array.isArray(resData) ? resData[0] : resData;
 
-        if (raw && raw.success && raw.data) {
-          globalRawData = raw.data;
+        if (raw && raw.json && raw.json.success) {
+          globalRawData = raw.json.data;
           calculateLaciTotals();
           renderHistoryList();
         }
@@ -713,9 +825,11 @@
       activePeriod = period;
       ['today', 'week', 'month'].forEach(p => {
         const btn = document.getElementById('btn' + p.charAt(0).toUpperCase() + p.slice(1));
-        btn.className = (p === period) 
-          ? 'flex-1 py-1.5 rounded-xl bg-white text-emerald-700 shadow-xs' 
-          : 'flex-1 py-1.5 rounded-xl';
+        if (btn) {
+          btn.className = (p === period) 
+            ? 'flex-1 py-1.5 rounded-xl bg-white text-emerald-700 shadow-xs' 
+            : 'flex-1 py-1.5 rounded-xl';
+        }
       });
       calculateLaciTotals();
     }
@@ -726,13 +840,13 @@
       let listOut = (globalRawData.money_out || []);
 
       if (!session.isOwner) {
-        listIn = listIn.filter(i => String(i.CABANG).toUpperCase() === currentBranchName.toUpperCase());
-        listOut = listOut.filter(o => String(o.CABANG).toUpperCase() === currentBranchName.toUpperCase());
+        listIn = listIn.filter(i => String(i.CABANG || '').toUpperCase() === currentBranchName.toUpperCase());
+        listOut = listOut.filter(o => String(o.CABANG || '').toUpperCase() === currentBranchName.toUpperCase());
       }
 
       const filterByDate = (item) => {
-        if (!item.createdAt) return true;
-        const d = new Date(item.createdAt);
+        if (!item.id && !item.id_data) return true;
+        const d = new Date(item.id || Date.now());
         if (activePeriod === 'today') return d.toDateString() === now.toDateString();
         if (activePeriod === 'week') return Math.floor((now - d) / (1000 * 60 * 60 * 24)) < 7;
         if (activePeriod === 'month') return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
@@ -765,15 +879,15 @@
 
     function renderHistoryList() {
       const container = document.getElementById('historyList');
+      if (!container) return;
+
       let listIn = (globalRawData.money_in || []).map(i => ({ ...i, type: 'IN' }));
       let listOut = (globalRawData.money_out || []).map(o => ({ ...o, type: 'OUT' }));
       let all = [...listIn, ...listOut];
 
       if (!session.isOwner) {
-        all = all.filter(item => String(item.CABANG).toUpperCase() === currentBranchName.toUpperCase());
+        all = all.filter(item => String(item.CABANG || '').toUpperCase() === currentBranchName.toUpperCase());
       }
-
-      all.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
 
       if (all.length === 0) {
         container.innerHTML = `<p class="text-xs text-center text-slate-400 py-6">Belum ada riwayat transaksi.</p>`;
@@ -784,8 +898,6 @@
         const isIn = item.type === 'IN';
         const badgeColor = isIn ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800';
         const formattedNominal = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(item.NOMINAL || 0);
-        const dateObj = item.createdAt ? new Date(item.createdAt) : new Date();
-        const timeStr = dateObj.toLocaleTimeString('id-ID', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit' });
 
         return `
           <div class="flex justify-between items-center p-3 bg-slate-50 rounded-2xl border border-slate-100 shadow-xs">
@@ -797,9 +909,8 @@
               </div>
             </div>
             <div class="flex items-center gap-2">
-              <span class="text-[10px] text-slate-400 font-bold">${timeStr} WIB</span>
-              <button onclick="reprintReceipt('${item.NOMINAL}', '${item.TRANSAKSI}', ${isIn}, '${item.KASIR}', '${item.CABANG}', '${item.createdAt}')" 
-                class="bg-white border border-slate-200 text-slate-800 text-xs font-bold px-3 py-1.5 rounded-xl hover:bg-slate-100 shadow-xs active:scale-95 transition">
+              <button onclick="reprintReceipt('${item.NOMINAL}', '${item.TRANSAKSI}', ${isIn}, '${item.KASIR}', '${item.CABANG}', null)" 
+                class="bg-white border border-slate-200 text-slate-800 text-xs font-bold px-3 py-1.5 rounded-xl hover:bg-slate-100 shadow-xs active:scale-95 transition cursor-pointer">
                 🖨️ Struk
               </button>
             </div>
@@ -818,7 +929,7 @@
       window.location.href = 'index.html';
     }
 
-    // Otomatis muat data awal
+    // Inisialisasi awal
     loadDashboardData();
   </script>
 </body>
