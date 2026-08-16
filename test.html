@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Dashboard Kasir - Kasir Warung Acil</title>
   
-  <!-- Panggil config.js paling atas jika ada -->
+  <!-- Config file -->
   <script src="config.js"></script>
   
   <script src="https://cdn.tailwindcss.com"></script>
@@ -198,7 +198,7 @@
           <button onclick="backspace()" class="bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white text-2xl md:text-3xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-md active:scale-95 transition" title="Hapus 1 Karakter">⌫</button>
           <button onclick="calculateResult()" class="bg-slate-300 hover:bg-slate-400 active:bg-slate-500 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-300 active:scale-95 transition fast-btn-num">=</button>
           
-          <button onclick="openPaymentModal()" class="bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-lg md:text-2xl font-black rounded-2xl md:rounded-3xl p-3 md:p-6 shadow-lg uppercase tracking-wider border-b-4 border-emerald-900 active:scale-95 transition flex items-center justify-center fast-btn-process">
+          <button onclick="openPaymentModal()" class="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-lg md:text-2xl font-black rounded-2xl md:rounded-3xl p-3 md:p-6 shadow-lg uppercase tracking-wider border-b-4 border-emerald-900 active:scale-95 transition flex items-center justify-center fast-btn-process">
             <span class="truncate">PROSES ➔</span>
           </button>
         </div>
@@ -318,7 +318,7 @@
       <div class="text-center space-y-2">
         <p class="inline-block text-xs font-black uppercase px-3.5 py-1 rounded-full bg-rose-100 text-rose-800 tracking-wider">KONFIRMASI AKHIR SESI</p>
         <h3 class="font-black text-slate-800 text-xl md:text-2xl">🔒 Tutup Buku Sesi</h3>
-        <p class="text-xs text-slate-500 font-semibold">Tutup sesi kasir, cetak rekap harian, dan bersihkan tampilan lokal browser?</p>
+        <p class="text-xs text-slate-500 font-semibold">Tutup sesi kasir, simpan ke database, dan cetak rekap harian?</p>
       </div>
 
       <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-xs space-y-2">
@@ -336,8 +336,8 @@
       </div>
 
       <div class="grid grid-cols-1 gap-2.5 pt-1">
-        <button onclick="executeCloseBook()" class="w-full bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-black py-3.5 rounded-2xl text-base shadow-lg cursor-pointer border-b-4 border-rose-900 transition flex items-center justify-center gap-2">
-          🖨️ Ya, Cetak & Tutup Sesi
+        <button id="btnExecuteCloseBook" onclick="executeCloseBook()" class="w-full bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-black py-3.5 rounded-2xl text-base shadow-lg cursor-pointer border-b-4 border-rose-900 transition flex items-center justify-center gap-2">
+          🖨️ Ya, Simpan & Cetak Rekap
         </button>
         <button onclick="closeCloseBookConfirmModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-extrabold py-3 rounded-2xl text-xs cursor-pointer">
           Batal / Kembali
@@ -889,7 +889,7 @@
     }
 
     function getItemTimestamp(item) {
-      const rawDate = item.createdAt || item.created_at || item.tanggal || item.TANGGAL;
+      const rawDate = item.createdAt || item.created_at || item.tanggal || item.TANGGAL || item.waktu || item.WAKTU;
       if (rawDate) {
         const parsed = new Date(rawDate).getTime();
         if (!isNaN(parsed)) return parsed;
@@ -1102,16 +1102,58 @@
       document.getElementById('closeBookConfirmModal').classList.add('hidden');
     }
 
-    function executeCloseBook() {
+    async function executeCloseBook() {
       const summary = calculateLaciTotals();
       const formatCurrency = (val) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(val);
-      const formattedDate = new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' }) + ' WIB';
+      
+      const now = new Date();
+      const exactTime = now.getFullYear() + "-" +
+        String(now.getMonth() + 1).padStart(2, '0') + "-" +
+        String(now.getDate()).padStart(2, '0') + " " +
+        String(now.getHours()).padStart(2, '0') + ":" +
+        String(now.getMinutes()).padStart(2, '0') + ":" +
+        String(now.getSeconds()).padStart(2, '0');
+
       const branchName = isSuperUser ? 'ALL BRANCHES' : (session.isOwner ? getSelectedTargetBranch() : currentBranchName);
+
+      const btn = document.getElementById('btnExecuteCloseBook');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerText = "⏳ Menyimpan Ke Backend...";
+      }
+
+      try {
+        // Kirim request `close_book_write` ke n8n backend
+        const response = await fetch(WEBHOOK_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'close_book_write',
+            userbook: session.user,
+            exacttime: exactTime,
+            cabang: branchName
+          })
+        });
+
+        const resData = await response.json();
+        const isSuccess = resData?.success || (Array.isArray(resData) && resData[0]?.json?.success);
+
+        if (!isSuccess) {
+          console.warn("Peringatan: Tutup buku tidak mengembalikan flag success baku, tetap memproses cetak.");
+        }
+      } catch (err) {
+        console.error("Gagal mengirim data tutup buku ke backend:", err);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = "🖨️ Ya, Simpan & Cetak Rekap";
+        }
+      }
 
       activeCloseBookData = {
         branch: branchName,
         kasir: session.user,
-        date: formattedDate,
+        date: exactTime + ' WIB',
         cash: formatCurrency(summary.cash),
         qris: formatCurrency(summary.qris),
         transfer: formatCurrency(summary.transfer),
