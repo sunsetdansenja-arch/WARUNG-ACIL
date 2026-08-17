@@ -421,7 +421,10 @@
     let globalRawData = { money_in: [], money_out: [] };
 
     // Validasi Sesi
-    const session = JSON.parse(localStorage.getItem('warung_acil_session')) || { user: 'KASIR1', akses: 'CABANG 1', isOwner: false };
+    const session = JSON.parse(localStorage.getItem('warung_acil_session')) || { user: 'KASIR1', akses: '1', isOwner: false };
+
+    // Sanitasi kode akses (jika bernilai "CABANG 1" atau "1", diubah murni ke kodenya saja "1")
+    const cleanAksesCode = String(session.akses || '1').replace(/[^0-9]/g, '') || String(session.akses || '1');
 
     // Pengecekan Khusus User ACIL / LULU (Case-insensitive)
     const currentUserUpper = String(session.user || '').trim().toUpperCase();
@@ -450,11 +453,12 @@
       initBranchOptions();
     }
 
+    // Resolusi nama cabang membaca CONFIG.getBranchName() secara konsisten
     const currentBranchName = isSuperUser
       ? 'ALL BRANCHES (SUPER USER)'
       : (session.isOwner 
           ? 'Master Owner / All Branches' 
-          : (typeof CONFIG !== 'undefined' ? CONFIG.getBranchName(session.akses) : (session.akses || 'CABANG 1')));
+          : (typeof CONFIG !== 'undefined' ? CONFIG.getBranchName(cleanAksesCode) : `Cabang ${cleanAksesCode}`));
 
     document.getElementById('userInfo').innerText = `${session.user} | ${currentBranchName}`;
 
@@ -807,16 +811,22 @@
       document.getElementById('receiptModal').classList.remove('hidden');
     }
 
+    // PENCETAKAN THERMAL SINKRON DENGAN CONFIG.JS
     async function triggerPrint() {
-      if (!activeReceiptData) return;
-      if (!navigator.bluetooth) return;
+      if (!activeReceiptData || !navigator.bluetooth) return;
 
       try {
-        const optionalServicesList = (typeof CONFIG !== 'undefined' && CONFIG.PRINTER && CONFIG.PRINTER.OPTIONAL_SERVICES) ? CONFIG.PRINTER.OPTIONAL_SERVICES : [
-          '000018f0-0000-1000-8000-00805f9b34fb',
-          '0000e025-0000-1000-8000-00805f9b34fb',
-          '00001101-0000-1000-8000-00805f9b34fb'
-        ];
+        const optionalServicesList = (typeof CONFIG !== 'undefined' && CONFIG.PRINTER && CONFIG.PRINTER.OPTIONAL_SERVICES)
+          ? CONFIG.PRINTER.OPTIONAL_SERVICES
+          : ['000018f0-0000-1000-8000-00805f9b34fb'];
+
+        const serviceUuid = (typeof CONFIG !== 'undefined' && CONFIG.PRINTER && CONFIG.PRINTER.SERVICE_UUID)
+          ? CONFIG.PRINTER.SERVICE_UUID
+          : '000018f0-0000-1000-8000-00805f9b34fb';
+
+        const characteristicUuid = (typeof CONFIG !== 'undefined' && CONFIG.PRINTER && CONFIG.PRINTER.CHARACTERISTIC_UUID)
+          ? CONFIG.PRINTER.CHARACTERISTIC_UUID
+          : '00002af1-0000-1000-8000-00805f9b34fb';
 
         if (!cachedBluetoothDevice && navigator.bluetooth.getDevices) {
           const pairedDevices = await navigator.bluetooth.getDevices();
@@ -833,19 +843,10 @@
         }
 
         const server = await cachedBluetoothDevice.gatt.connect();
-        let characteristic = null;
-        let primaryServices = await server.getPrimaryServices();
-
-        for (let service of primaryServices) {
-          let characteristics = await service.getCharacteristics();
-          for (let c of characteristics) {
-            if (c.properties.write || c.properties.writeWithoutResponse) {
-              characteristic = c;
-              break;
-            }
-          }
-          if (characteristic) break;
-        }
+        
+        // Membaca spesifik service & characteristic dari CONFIG
+        let service = await server.getPrimaryService(serviceUuid);
+        let characteristic = await service.getCharacteristic(characteristicUuid);
 
         if (!characteristic) return;
 
@@ -1052,7 +1053,7 @@
         return;
       }
 
-      // DIBALIKKAN (REVERSE) AGAR TRANSAKSI TERAKHIR MASUK DI ATAS
+      // REVERSE AGAR TRANSAKSI TERAKHIR TAMPIL DI PALING ATAS
       all.reverse();
 
       container.innerHTML = all.map((item) => {
@@ -1203,15 +1204,20 @@
     }
 
     async function triggerPrintCloseBook() {
-      if (!activeCloseBookData) return;
-      if (!navigator.bluetooth) return;
+      if (!activeCloseBookData || !navigator.bluetooth) return;
 
       try {
-        const optionalServicesList = (typeof CONFIG !== 'undefined' && CONFIG.PRINTER && CONFIG.PRINTER.OPTIONAL_SERVICES) ? CONFIG.PRINTER.OPTIONAL_SERVICES : [
-          '000018f0-0000-1000-8000-00805f9b34fb',
-          '0000e025-0000-1000-8000-00805f9b34fb',
-          '00001101-0000-1000-8000-00805f9b34fb'
-        ];
+        const optionalServicesList = (typeof CONFIG !== 'undefined' && CONFIG.PRINTER && CONFIG.PRINTER.OPTIONAL_SERVICES)
+          ? CONFIG.PRINTER.OPTIONAL_SERVICES
+          : ['000018f0-0000-1000-8000-00805f9b34fb'];
+
+        const serviceUuid = (typeof CONFIG !== 'undefined' && CONFIG.PRINTER && CONFIG.PRINTER.SERVICE_UUID)
+          ? CONFIG.PRINTER.SERVICE_UUID
+          : '000018f0-0000-1000-8000-00805f9b34fb';
+
+        const characteristicUuid = (typeof CONFIG !== 'undefined' && CONFIG.PRINTER && CONFIG.PRINTER.CHARACTERISTIC_UUID)
+          ? CONFIG.PRINTER.CHARACTERISTIC_UUID
+          : '00002af1-0000-1000-8000-00805f9b34fb';
 
         if (!cachedBluetoothDevice && navigator.bluetooth.getDevices) {
           const pairedDevices = await navigator.bluetooth.getDevices();
@@ -1228,19 +1234,9 @@
         }
 
         const server = await cachedBluetoothDevice.gatt.connect();
-        let characteristic = null;
-        let primaryServices = await server.getPrimaryServices();
-
-        for (let service of primaryServices) {
-          let characteristics = await service.getCharacteristics();
-          for (let c of characteristics) {
-            if (c.properties.write || c.properties.writeWithoutResponse) {
-              characteristic = c;
-              break;
-            }
-          }
-          if (characteristic) break;
-        }
+        
+        let service = await server.getPrimaryService(serviceUuid);
+        let characteristic = await service.getCharacteristic(characteristicUuid);
 
         if (!characteristic) return;
 
