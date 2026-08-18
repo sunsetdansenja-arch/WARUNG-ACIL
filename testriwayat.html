@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Riwayat Transaksi - Warung Acil</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .glass-card {
+      background: rgba(255, 255, 255, 0.75);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    /* Smooth Transition untuk Navigasi */
+    body {
+      transition: opacity 0.25s ease-in-out;
+    }
+  </style>
+</head>
+<body class="bg-slate-100 min-h-screen text-slate-800 font-sans pb-12">
+
+  <header class="sticky top-0 z-30 glass-card bg-white/80 border-b border-slate-200 shadow-sm">
+    <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <a href="test.html" id="btnBack" class="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+        </a>
+        <div>
+          <h1 class="font-bold text-lg leading-tight">Riwayat & Log</h1>
+          <p id="branchBadge" class="text-xs text-slate-500">Cabang --</p>
+        </div>
+      </div>
+
+      <button onclick="fetchHistoryData()" class="p-2 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors">
+        <svg id="refreshIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <main class="max-w-4xl mx-auto px-4 mt-6">
+
+    <div class="flex bg-slate-200/80 p-1 rounded-2xl mb-6">
+      <button id="tabTxBtn" onclick="switchTab('tx')" class="flex-1 py-2 rounded-xl font-medium text-sm transition-all bg-white shadow-sm text-slate-800">
+        Riwayat Sesi
+      </button>
+      <button id="tabBookBtn" onclick="switchTab('book')" class="flex-1 py-2 rounded-xl font-medium text-sm transition-all text-slate-500 hover:text-slate-800">
+        Log Tutup Buku
+      </button>
+    </div>
+
+    <section id="txView" class="space-y-4">
+      <div id="sessionInfo" class="glass-card p-4 rounded-2xl bg-white/60 text-xs text-slate-500 flex justify-between items-center">
+        <span>Tutup Buku Terakhir:</span>
+        <span id="lastBookTime" class="font-semibold text-slate-700">--</span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="glass-card bg-white/80 p-4 rounded-3xl shadow-sm">
+          <div class="flex items-center justify-between mb-3 border-b pb-2">
+            <h2 class="font-semibold text-emerald-600 flex items-center gap-1.5 text-sm">
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Uang Masuk
+            </h2>
+            <span id="totalInBadge" class="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-lg">Rp 0</span>
+          </div>
+          <div id="listIn" class="space-y-2 max-h-[380px] overflow-y-auto pr-1">
+            <p class="text-xs text-slate-400 text-center py-6">Memuat data...</p>
+          </div>
+        </div>
+
+        <div class="glass-card bg-white/80 p-4 rounded-3xl shadow-sm">
+          <div class="flex items-center justify-between mb-3 border-b pb-2">
+            <h2 class="font-semibold text-rose-600 flex items-center gap-1.5 text-sm">
+              <span class="w-2 h-2 rounded-full bg-rose-500"></span> Uang Keluar
+            </h2>
+            <span id="totalOutBadge" class="text-xs font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-lg">Rp 0</span>
+          </div>
+          <div id="listOut" class="space-y-2 max-h-[380px] overflow-y-auto pr-1">
+            <p class="text-xs text-slate-400 text-center py-6">Memuat data...</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="bookView" class="hidden space-y-3">
+      <div class="glass-card bg-white/80 p-4 rounded-3xl shadow-sm">
+        <h2 class="font-semibold text-slate-700 text-sm mb-3">Catatan Riwayat Tutup Buku</h2>
+        <div id="listBook" class="space-y-2">
+          <p class="text-xs text-slate-400 text-center py-6">Memuat data log...</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // Ambil Session User
+    const userSession = JSON.parse(sessionStorage.getItem('user_session') || localStorage.getItem('user_session') || '{}');
+    const userCabang = userSession.cabang || userSession.akses || '1';
+    
+    // Config Webhook Endpoint (Samakan dengan config.js kamu)
+    const N8N_WEBHOOK_URL = 'https://n8n-mzbmiib3etk4.kangkung.sumopod.my.id/webhook/0c2f335e-543b-4f3e-968e-f70d412f194b';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('branchBadge').innerText = `Cabang: ${userCabang}`;
+      fetchHistoryData();
+    });
+
+    // Handle Tab Switch
+    function switchTab(tab) {
+      const txView = document.getElementById('txView');
+      const bookView = document.getElementById('bookView');
+      const tabTxBtn = document.getElementById('tabTxBtn');
+      const tabBookBtn = document.getElementById('tabBookBtn');
+
+      if (tab === 'tx') {
+        txView.classList.remove('hidden');
+        bookView.classList.add('hidden');
+        tabTxBtn.className = "flex-1 py-2 rounded-xl font-medium text-sm transition-all bg-white shadow-sm text-slate-800";
+        tabBookBtn.className = "flex-1 py-2 rounded-xl font-medium text-sm transition-all text-slate-500 hover:text-slate-800";
+      } else {
+        txView.classList.add('hidden');
+        bookView.classList.remove('hidden');
+        tabBookBtn.className = "flex-1 py-2 rounded-xl font-medium text-sm transition-all bg-white shadow-sm text-slate-800";
+        tabTxBtn.className = "flex-1 py-2 rounded-xl font-medium text-sm transition-all text-slate-500 hover:text-slate-800";
+        fetchBookLogs();
+      }
+    }
+
+    // Format Rupiah
+    function formatRp(val) {
+      return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(val || 0);
+    }
+
+    // Format Tanggal
+    function formatDate(dateStr) {
+      if(!dateStr) return '--';
+      const d = new Date(dateStr);
+      return isNaN(d.getTime()) ? dateStr : d.toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
+    }
+
+    // Fetch Data Riwayat Sesi Aktif
+    async function fetchHistoryData() {
+      const icon = document.getElementById('refreshIcon');
+      icon.classList.add('animate-spin');
+
+      try {
+        const response = await fetch(N8N_WEBHOOK_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'get_data', cabang: userCabang })
+        });
+
+        const result = await response.json();
+        
+        if (result.success || result.status === 'success') {
+          const dataIn = result.data?.money_in || result.data_in || [];
+          const dataOut = result.data?.money_out || result.data_out || [];
+          const lastBook = result.last_close_book;
+
+          document.getElementById('lastBookTime').innerText = formatDate(lastBook);
+
+          renderList('listIn', dataIn, 'in');
+          renderList('listOut', dataOut, 'out');
+        }
+      } catch (err) {
+        console.error("Gagal menarik data riwayat:", err);
+      } finally {
+        icon.classList.remove('animate-spin');
+      }
+    }
+
+    // Fetch Log Pembukuan
+    async function fetchBookLogs() {
+      const listBook = document.getElementById('listBook');
+      try {
+        const response = await fetch(N8N_WEBHOOK_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'close_book_read', cabang: userCabang })
+        });
+        const result = await response.json();
+        
+        // Logika penanganan array pembukuan
+        const books = Array.isArray(result) ? result : (result.data || []);
+        
+        if (books.length === 0) {
+          listBook.innerHTML = `<p class="text-xs text-slate-400 text-center py-6">Belum ada catatan tutup buku.</p>`;
+          return;
+        }
+
+        listBook.innerHTML = books.map(item => `
+          <div class="p-3 bg-slate-50 border border-slate-100 rounded-2xl flex justify-between items-center text-xs">
+            <div>
+              <p class="font-semibold text-slate-700">${item.USER || item.user || 'Kasir'}</p>
+              <p class="text-slate-400 text-[10px]">Cabang ${item.CABANG || item.cabang || '-'}</p>
+            </div>
+            <div class="text-right">
+              <span class="font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md">
+                ${formatDate(item.WAKTU_TUTUP_BUKU || item.waktu_tutup_buku)}
+              </span>
+            </div>
+          </div>
+        `).join('');
+
+      } catch (err) {
+        listBook.innerHTML = `<p class="text-xs text-rose-400 text-center py-6">Gagal memuat log tutup buku.</p>`;
+      }
+    }
+
+    // Render Items
+    function renderList(targetId, items, type) {
+      const container = document.getElementById(targetId);
+      let total = 0;
+
+      if (!items || items.length === 0) {
+        container.innerHTML = `<p class="text-xs text-slate-400 text-center py-6">Tidak ada transaksi</p>`;
+        document.getElementById(type === 'in' ? 'totalInBadge' : 'totalOutBadge').innerText = formatRp(0);
+        return;
+      }
+
+      container.innerHTML = items.map(item => {
+        const nominal = Number(item.NOMINAL || item.nominal || 0);
+        total += nominal;
+        const txType = (item.TRANSAKSI || item.transaksi || 'CASH').toUpperCase();
+        
+        return `
+          <div class="p-3 bg-slate-50/80 border border-slate-100 rounded-2xl flex items-center justify-between text-xs">
+            <div>
+              <p class="font-semibold text-slate-700">${formatRp(nominal)}</p>
+              <p class="text-[10px] text-slate-400">${item.KASIR || item.kasir || 'Kasir'} • <span class="uppercase">${txType}</span></p>
+            </div>
+            <span class="text-[10px] px-2 py-0.5 rounded-lg font-medium ${txType === 'CASH' ? 'bg-amber-50 text-amber-600' : 'bg-indigo-50 text-indigo-600'}">
+              ${txType}
+            </span>
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById(type === 'in' ? 'totalInBadge' : 'totalOutBadge').innerText = formatRp(total);
+    }
+  </script>
+</body>
+</html>
