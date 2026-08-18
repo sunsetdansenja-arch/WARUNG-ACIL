@@ -842,7 +842,7 @@
     async function loadDashboardData() {
       try {
         const payload = {
-          action: 'read_pembukuan',
+          action: 'get_data',
           cabang: isSuperUser ? 'ALL' : (session.isOwner ? 'ALL' : getSelectedTargetBranch())
         };
 
