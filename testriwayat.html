@@ -847,6 +847,9 @@
       return isNaN(parsed) ? 0 : parsed;
     }
 
+    // =========================================================================
+    // PERBAIKAN LOGIKA PARSING WEBHOOK N8N
+    // =========================================================================
     async function loadDashboardData() {
       try {
         const payload = {
@@ -864,10 +867,36 @@
 
         const result = await response.json();
         
-        // Peringkasan data berdasar parser n8n
+        let extractedIn = [];
+        let extractedOut = [];
+
+        // Penjelajah Objek Dinamis (Mampu masuk ke array / json / data n8n)
+        const searchData = (obj) => {
+          if (!obj || typeof obj !== 'object') return;
+
+          if (Array.isArray(obj)) {
+            obj.forEach(searchData);
+            return;
+          }
+
+          if (obj.money_in || obj.money_out || obj.in || obj.out) {
+            if (Array.isArray(obj.money_in)) extractedIn = obj.money_in;
+            else if (Array.isArray(obj.in)) extractedIn = obj.in;
+
+            if (Array.isArray(obj.money_out)) extractedOut = obj.money_out;
+            else if (Array.isArray(obj.out)) extractedOut = obj.out;
+            return;
+          }
+
+          if (obj.data) searchData(obj.data);
+          if (obj.json) searchData(obj.json);
+        };
+
+        searchData(result);
+
         globalRawData = {
-          money_in: result.money_in || result.in || [],
-          money_out: result.money_out || result.out || []
+          money_in: extractedIn,
+          money_out: extractedOut
         };
 
         calculateLaciTotals();
@@ -924,14 +953,16 @@
       const targetBranch = getSelectedTargetBranch();
 
       const filterFn = (item) => {
-        const matchesBranch = (targetBranch === 'ALL' || isSuperUser) ? true : (item.cabang === targetBranch);
-        const matchesDate = isDateInPeriod(item.timestamp || item.tanggal || item.date, activePeriod);
+        const branchVal = item.CABANG || item.cabang || item.branch || '';
+        const matchesBranch = (targetBranch === 'ALL' || isSuperUser) ? true : (String(branchVal).toUpperCase() === String(targetBranch).toUpperCase());
+        const timestamp = getItemTimestamp(item);
+        const matchesDate = isDateInPeriod(timestamp || item.timestamp || item.tanggal || item.date, activePeriod);
         return matchesBranch && matchesDate;
       };
 
       return {
-        inList: globalRawData.money_in.filter(filterFn),
-        outList: globalRawData.money_out.filter(filterFn)
+        inList: (globalRawData.money_in || []).filter(filterFn),
+        outList: (globalRawData.money_out || []).filter(filterFn)
       };
     }
 
@@ -944,15 +975,15 @@
       let expenseTotal = 0;
 
       inList.forEach(item => {
-        const nom = parseFloat(item.nominal || 0);
-        const method = String(item.metode || '').toUpperCase();
+        const nom = parseFloat(item.NOMINAL || item.nominal || 0);
+        const method = String(item.TRANSAKSI || item.transaksi || item.METODE || item.metode || '').toUpperCase();
         if (method === 'CASH') cashTotal += nom;
         else if (method === 'QRIS') qrisTotal += nom;
         else if (method === 'TRANSFER') transferTotal += nom;
       });
 
       outList.forEach(item => {
-        expenseTotal += parseFloat(item.nominal || 0);
+        expenseTotal += parseFloat(item.NOMINAL || item.nominal || 0);
       });
 
       const netTotal = (cashTotal + qrisTotal + transferTotal) - expenseTotal;
@@ -974,8 +1005,8 @@
       let listOut = (globalRawData.money_out || []).map(o => ({ ...o, type: 'OUT', timestamp: getItemTimestamp(o) }));
       let all = [...listIn, ...listOut];
 
-      // 2. Filter berdasarkan cabang jika login bukan sebagai Owner
-      if (!session.isOwner) {
+      // 2. Filter berdasarkan cabang jika login bukan sebagai Owner/SuperUser
+      if (!session.isOwner && !isSuperUser) {
         all = all.filter(item => String(item.CABANG || item.cabang || '').toUpperCase() === currentBranchName.toUpperCase());
       }
 
@@ -984,8 +1015,8 @@
         return;
       }
 
-      // 3. MEMBALIKKAN URUTAN AGAR TRANSAKSI TERAKHIR MASUK DI ATAS
-      all.reverse();
+      // 3. Urutkan berdasarkan waktu paling baru ke lama
+      all.sort((a, b) => b.timestamp - a.timestamp);
 
       // 4. Render elemen HTML daftar transaksi
       container.innerHTML = all.map((item) => {
@@ -993,7 +1024,7 @@
         const badgeColor = isIn ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800';
         
         const nominal = item.NOMINAL || item.nominal || 0;
-        const metode = item.TRANSAKSI || item.transaksi || '-';
+        const metode = item.TRANSAKSI || item.transaksi || item.METODE || item.metode || '-';
         const kasir = item.KASIR || item.kasir || '-';
         const cabang = item.CABANG || item.cabang || currentBranchName;
         
