@@ -6,7 +6,6 @@
   <title>Dashboard Kasir - Kasir Warung Acil</title>
   
   <script src="config.js"></script>
-  
   <script src="https://cdn.tailwindcss.com"></script>
 
   <style>
@@ -733,16 +732,18 @@
       document.getElementById('paymentModal').classList.add('hidden');
     }
 
+    // =========================================================================
+    // SUBMIT TRANSAKSI BERDASARKAN PAYLOAD BACKEND
+    // =========================================================================
     async function submitTransaction(metode) {
       closePaymentModal();
       
       const payload = {
-        action: 'write_pembukuan',
-        type: finalActionType,
-        nominal: finalCalculatedNominal,
-        metode: metode,
-        cabang: getSelectedTargetBranch(),
-        kasir: session.user || 'KASIR1'
+        action: finalActionType,                       // "in" atau "out"
+        nominal: String(finalCalculatedNominal),       // Nominal dalam format String
+        transaksi: String(metode).toUpperCase(),      // "CASH", "QRIS", atau "TRANSFER"
+        kasir: session.user || 'KASIR1',               // Identifier kasir aktif
+        cabang: getSelectedTargetBranch()              // Nama/akses cabang tujuan
       };
 
       try {
@@ -752,13 +753,13 @@
           body: JSON.stringify(payload)
         });
 
-        if (!response.ok) throw new Error('Gagal mengirim ke server');
+        if (!response.ok) throw new Error('Gagal mengirim data ke server');
 
         activeReceiptData = {
           branch: payload.cabang,
           kasir: payload.kasir,
-          type: payload.type === 'in' ? 'UANG MASUK' : 'PENGELUARAN',
-          method: payload.metode,
+          type: payload.action === 'in' ? 'UANG MASUK' : 'PENGELUARAN',
+          method: payload.transaksi,
           nominal: `Rp ${formatRupiah(payload.nominal)}`,
           date: new Date().toLocaleString('id-ID')
         };
@@ -841,21 +842,18 @@
 
     function getItemTimestamp(item) {
       if (!item) return 0;
-      const raw = item.TIMESTAMP || item.timestamp || item.TANGGAL || item.tanggal || item.DATE || item.date;
+      const raw = item.TIMESTAMP || item.timestamp || item.TANGGAL || item.tanggal || item.DATE || item.date || item.createdAt || item.created_at;
       if (!raw) return 0;
       const parsed = new Date(raw).getTime();
       return isNaN(parsed) ? 0 : parsed;
     }
 
     // =========================================================================
-    // PERBAIKAN LOGIKA PARSING WEBHOOK N8N
+    // FETCH HISTORY DATA DARI WEBHOOK N8N
     // =========================================================================
     async function loadDashboardData() {
       try {
-        const payload = {
-          action: 'get_data',
-          cabang: isSuperUser ? 'ALL' : (session.isOwner ? 'ALL' : getSelectedTargetBranch())
-        };
+        const payload = { action: 'get_data' };
 
         const response = await fetch(WEBHOOK_URL, {
           method: 'POST',
@@ -870,7 +868,7 @@
         let extractedIn = [];
         let extractedOut = [];
 
-        // Penjelajah Objek Dinamis (Mampu masuk ke array / json / data n8n)
+        // Penjelajah Objek Dinamis
         const searchData = (obj) => {
           if (!obj || typeof obj !== 'object') return;
 
@@ -1000,12 +998,10 @@
       const container = document.getElementById('historyList');
       if (!container) return;
 
-      // 1. Mengambil & menandai jenis transaksi (IN/OUT) beserta timestamp
       let listIn = (globalRawData.money_in || []).map(i => ({ ...i, type: 'IN', timestamp: getItemTimestamp(i) }));
       let listOut = (globalRawData.money_out || []).map(o => ({ ...o, type: 'OUT', timestamp: getItemTimestamp(o) }));
       let all = [...listIn, ...listOut];
 
-      // 2. Filter berdasarkan cabang jika login bukan sebagai Owner/SuperUser
       if (!session.isOwner && !isSuperUser) {
         all = all.filter(item => String(item.CABANG || item.cabang || '').toUpperCase() === currentBranchName.toUpperCase());
       }
@@ -1015,10 +1011,8 @@
         return;
       }
 
-      // 3. Urutkan berdasarkan waktu paling baru ke lama
       all.sort((a, b) => b.timestamp - a.timestamp);
 
-      // 4. Render elemen HTML daftar transaksi
       container.innerHTML = all.map((item) => {
         const isIn = item.type === 'IN';
         const badgeColor = isIn ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800';
