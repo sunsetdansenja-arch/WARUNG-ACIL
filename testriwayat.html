@@ -5,9 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Dashboard Kasir - Kasir Warung Acil</title>
   
+  <!-- Panggil config.js paling atas jika ada -->
   <script src="config.js"></script>
+  
   <script src="https://cdn.tailwindcss.com"></script>
-
   <style>
     .no-select {
       -webkit-touch-callout: none;
@@ -15,23 +16,18 @@
       user-select: none;
     }
 
-    /* Custom Scrollbar */
     .custom-scroll::-webkit-scrollbar {
       width: 6px;
     }
     .custom-scroll::-webkit-scrollbar-track {
       background: #f1f5f9;
-      border-radius: 9999px;
+      border-radius: 8px;
     }
     .custom-scroll::-webkit-scrollbar-thumb {
       background: #cbd5e1;
-      border-radius: 9999px;
-    }
-    .custom-scroll::-webkit-scrollbar-thumb:hover {
-      background: #94a3b8;
+      border-radius: 8px;
     }
 
-    /* Fast Mode Theme Adjustments */
     body.fast-mode {
       background-color: #0f172a !important;
     }
@@ -63,7 +59,6 @@
       border-color: #047857 !important;
     }
 
-    /* Thermal Printing Styles (58mm) */
     @media print {
       @page {
         margin: 0;
@@ -78,10 +73,10 @@
       body * {
         visibility: hidden;
       }
-      #receiptModal, #receiptModal *, #closeBookReceiptModal, #closeBookReceiptModal * {
+      #receiptModal, #receiptModal * {
         visibility: visible;
       }
-      #receiptModal, #closeBookReceiptModal {
+      #receiptModal {
         position: absolute;
         left: 0;
         top: 0;
@@ -90,14 +85,14 @@
         margin: 0 !important;
         background: transparent !important;
       }
-      #receiptCard, #closeBookReceiptCard {
+      #receiptCard {
         box-shadow: none !important;
         padding: 2mm 3mm !important;
         width: 58mm !important;
         border: none !important;
         margin: 0 !important;
       }
-      #receiptSection, #closeBookReceiptSection {
+      #receiptSection {
         width: 100% !important;
         font-family: 'Courier New', Courier, monospace;
         font-size: 10px;
@@ -110,128 +105,131 @@
     }
   </style>
 </head>
-<body class="bg-slate-100 min-h-screen flex flex-col no-select transition-colors duration-300 antialiased" id="bodyApp">
+<body class="bg-slate-100 min-h-screen flex flex-col no-select transition-colors duration-300" id="bodyApp">
 
-  <nav class="bg-emerald-600 text-white shadow-sm sticky top-0 z-30 no-print flex-none transition-colors duration-300" id="mainNav">
-    <div class="max-w-5xl mx-auto px-4 py-3 flex justify-between items-center gap-3">
-      <div class="flex items-center gap-2.5 min-w-0">
-        <a id="btnBackToMaster" href="master.html" class="hidden bg-emerald-700/80 hover:bg-emerald-800 text-xs md:text-sm px-3 py-1.5 rounded-xl border border-emerald-500/50 font-bold cursor-pointer flex items-center gap-1.5 shrink-0 transition">
+  <!-- Header Navbar -->
+  <nav class="bg-emerald-600 text-white shadow-md sticky top-0 z-30 no-print flex-none transition-colors duration-300" id="mainNav">
+    <div class="max-w-5xl mx-auto px-4 py-3 flex justify-between items-center gap-2">
+      <div class="flex items-center gap-2 min-w-0">
+        <a id="btnBackToMaster" href="master.html" class="hidden bg-emerald-700 hover:bg-emerald-800 text-xs md:text-sm px-2.5 py-1.5 rounded-xl border border-emerald-500 font-bold cursor-pointer flex items-center gap-1 shrink-0">
           ⬅️ Master
         </a>
         <div class="min-w-0">
-          <h1 class="font-extrabold text-base md:text-lg leading-tight truncate tracking-tight">Kasir Warung Acil</h1>
+          <h1 class="font-extrabold text-base md:text-lg leading-tight truncate">Kasir Warung Acil</h1>
           <p class="text-[11px] md:text-xs text-emerald-100 font-medium truncate" id="userInfo">Loading...</p>
         </div>
       </div>
 
       <div class="flex items-center gap-2 shrink-0">
-        <button onclick="toggleFastMode()" id="fastModeBtn" class="flex items-center gap-1.5 bg-amber-500 hover:bg-amber-600 text-slate-900 text-xs px-3 py-1.5 rounded-xl font-bold shadow-xs transition active:scale-95 cursor-pointer">
+        <button onclick="toggleFastMode()" id="fastModeBtn" class="flex items-center gap-1 bg-amber-500 hover:bg-amber-600 text-slate-900 text-xs px-2.5 py-1.5 rounded-xl font-bold shadow-xs transition cursor-pointer">
           <span>⚡</span>
           <span id="fastModeText">Mode Cepat</span>
         </button>
 
-        <button onclick="logout()" class="bg-emerald-700/80 hover:bg-emerald-800 text-xs md:text-sm px-3.5 py-1.5 rounded-xl border border-emerald-500/50 font-bold cursor-pointer active:scale-95 transition">
+        <button onclick="logout()" class="bg-emerald-700 hover:bg-emerald-800 text-xs md:text-sm px-3 py-1.5 rounded-xl border border-emerald-500 font-bold cursor-pointer">
           Logout
         </button>
       </div>
     </div>
   </nav>
 
+  <!-- Container Utama -->
   <main class="max-w-5xl w-full mx-auto p-3 md:p-5 flex-1 flex flex-col no-print">
 
-    <div id="fastModeBanner" class="hidden bg-amber-500/10 border border-amber-500/30 text-amber-400 p-3 rounded-2xl text-xs mb-3 flex justify-between items-center shadow-xs">
+    <!-- FAST MODE INDICATOR BANNER -->
+    <div id="fastModeBanner" class="hidden bg-amber-500/10 border border-amber-500/30 text-amber-400 p-2.5 rounded-2xl text-xs mb-3 flex justify-between items-center">
       <div class="flex items-center gap-2">
-        <span class="animate-pulse text-base">⚡</span>
+        <span class="animate-pulse">⚡</span>
         <span><b>MODE CEPAT AKTIF:</b> Angka otomatis x1000 (misal tekan 15 = 15.000), kecuali operasi kali (×) & bagi (÷).</span>
       </div>
     </div>
 
-    <div class="lg:hidden bg-white rounded-2xl shadow-sm p-1.5 flex mb-3 border border-slate-200/80 fast-card">
-      <button id="tabCalc" onclick="switchNav('calc')" class="flex-1 py-2.5 font-extrabold text-xs md:text-sm rounded-xl bg-emerald-600 text-white shadow-sm transition">
+    <!-- Tab Navigasi HP/Mobile -->
+    <div class="lg:hidden bg-white rounded-2xl shadow-sm p-1.5 flex mb-3 border border-slate-200 fast-card">
+      <button id="tabCalc" onclick="switchNav('calc')" class="flex-1 py-3 font-black text-xs md:text-sm rounded-xl bg-emerald-600 text-white shadow-sm transition">
         🧮 KALKULATOR
       </button>
-      <button id="tabHistory" onclick="switchNav('history')" class="flex-1 py-2.5 font-extrabold text-xs md:text-sm rounded-xl text-slate-500 transition">
+      <button id="tabHistory" onclick="switchNav('history')" class="flex-1 py-3 font-black text-xs md:text-sm rounded-xl text-slate-500 transition">
         📜 RIWAYAT LACI
       </button>
     </div>
 
+    <!-- Dropdown Pilih Cabang (Akses Owner) -->
     <div id="ownerBranchContainer" class="hidden mb-3">
-      <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Pilih Cabang Transaksi</label>
-      <select id="selectBranch" class="w-full px-4 py-2.5 text-sm font-bold rounded-2xl border border-slate-300/80 bg-amber-50/50 text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-400 shadow-xs transition" onchange="calculateLaciTotals(); renderHistoryList();">
+      <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Pilih Cabang Transaksi</label>
+      <select id="selectBranch" class="w-full px-4 py-2.5 text-sm font-bold rounded-2xl border border-slate-300 bg-amber-50 text-slate-800 focus:outline-none shadow-xs">
       </select>
     </div>
 
+    <!-- WRAPPER UTAMA -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 flex-1">
       
-      <div id="secCalc" class="lg:col-span-7 flex-1 flex flex-col gap-3.5">
+      <!-- SEKSI 1: KALKULATOR KASIR -->
+      <div id="secCalc" class="lg:col-span-7 flex-1 flex flex-col gap-3">
         
-        <div class="bg-slate-900 text-white rounded-3xl p-5 md:p-6 border-4 border-slate-800 shadow-xl text-right flex flex-col justify-end min-h-[140px] md:min-h-[160px] fast-input">
-          <div id="calcFormula" class="text-lg md:text-xl font-bold text-emerald-400/90 min-h-[28px] overflow-x-auto tracking-wider mb-1 font-mono">0</div>
-          <div id="calcDisplay" class="text-4xl md:text-5xl font-black text-white overflow-x-auto whitespace-nowrap tracking-tight">0</div>
+        <div class="bg-slate-900 text-white rounded-3xl p-4 md:p-6 border-4 border-slate-700 shadow-2xl text-right flex flex-col justify-end min-h-[140px] md:min-h-[160px] fast-input">
+          <div id="calcFormula" class="text-xl md:text-2xl font-black text-emerald-400 min-h-[32px] overflow-x-auto tracking-wider mb-1">0</div>
+          <div id="calcDisplay" class="text-5xl md:text-6xl font-black text-white overflow-x-auto whitespace-nowrap tracking-tight">0</div>
         </div>
 
         <div class="grid grid-cols-4 gap-2.5 md:gap-3 flex-1 my-auto">
-          <button onclick="pressNum('7')" class="bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-900 text-2xl md:text-3xl font-black rounded-2xl md:rounded-3xl p-4 md:p-5 shadow-xs border border-slate-200 active:scale-95 transition fast-btn-num">7</button>
-          <button onclick="pressNum('8')" class="bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-900 text-2xl md:text-3xl font-black rounded-2xl md:rounded-3xl p-4 md:p-5 shadow-xs border border-slate-200 active:scale-95 transition fast-btn-num">8</button>
-          <button onclick="pressNum('9')" class="bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-900 text-2xl md:text-3xl font-black rounded-2xl md:rounded-3xl p-4 md:p-5 shadow-xs border border-slate-200 active:scale-95 transition fast-btn-num">9</button>
-          <button onclick="pressOp('/')" class="bg-amber-100/80 hover:bg-amber-200 active:bg-amber-300 text-amber-900 text-2xl md:text-3xl font-black rounded-2xl md:rounded-3xl p-4 md:p-5 shadow-xs border border-amber-200 active:scale-95 transition fast-btn-op">÷</button>
+          <!-- Keypad -->
+          <button onclick="pressNum('7')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition fast-btn-num">7</button>
+          <button onclick="pressNum('8')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition fast-btn-num">8</button>
+          <button onclick="pressNum('9')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition fast-btn-num">9</button>
+          <button onclick="pressOp('/')" class="bg-amber-100 hover:bg-amber-200 active:bg-amber-300 text-amber-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-amber-200 active:scale-95 transition fast-btn-op">÷</button>
 
-          <button onclick="pressNum('4')" class="bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-900 text-2xl md:text-3xl font-black rounded-2xl md:rounded-3xl p-4 md:p-5 shadow-xs border border-slate-200 active:scale-95 transition fast-btn-num">4</button>
-          <button onclick="pressNum('5')" class="bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-900 text-2xl md:text-3xl font-black rounded-2xl md:rounded-3xl p-4 md:p-5 shadow-xs border border-slate-200 active:scale-95 transition fast-btn-num">5</button>
-          <button onclick="pressNum('6')" class="bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-900 text-2xl md:text-3xl font-black rounded-2xl md:rounded-3xl p-4 md:p-5 shadow-xs border border-slate-200 active:scale-95 transition fast-btn-num">6</button>
-          <button onclick="pressOp('*')" class="bg-amber-100/80 hover:bg-amber-200 active:bg-amber-300 text-amber-900 text-2xl md:text-3xl font-black rounded-2xl md:rounded-3xl p-4 md:p-5 shadow-xs border border-amber-200 active:scale-95 transition fast-btn-op">×</button>
+          <button onclick="pressNum('4')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition fast-btn-num">4</button>
+          <button onclick="pressNum('5')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition fast-btn-num">5</button>
+          <button onclick="pressNum('6')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition fast-btn-num">6</button>
+          <button onclick="pressOp('*')" class="bg-amber-100 hover:bg-amber-200 active:bg-amber-300 text-amber-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-amber-200 active:scale-95 transition fast-btn-op">×</button>
 
-          <button onclick="pressNum('1')" class="bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-900 text-2xl md:text-3xl font-black rounded-2xl md:rounded-3xl p-4 md:p-5 shadow-xs border border-slate-200 active:scale-95 transition fast-btn-num">1</button>
-          <button onclick="pressNum('2')" class="bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-900 text-2xl md:text-3xl font-black rounded-2xl md:rounded-3xl p-4 md:p-5 shadow-xs border border-slate-200 active:scale-95 transition fast-btn-num">2</button>
-          <button onclick="pressNum('3')" class="bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-900 text-2xl md:text-3xl font-black rounded-2xl md:rounded-3xl p-4 md:p-5 shadow-xs border border-slate-200 active:scale-95 transition fast-btn-num">3</button>
-          <button onclick="pressOp('-')" class="bg-amber-100/80 hover:bg-amber-200 active:bg-amber-300 text-amber-900 text-2xl md:text-3xl font-black rounded-2xl md:rounded-3xl p-4 md:p-5 shadow-xs border border-amber-200 active:scale-95 transition fast-btn-op">-</button>
+          <button onclick="pressNum('1')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition fast-btn-num">1</button>
+          <button onclick="pressNum('2')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition fast-btn-num">2</button>
+          <button onclick="pressNum('3')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition fast-btn-num">3</button>
+          <button onclick="pressOp('-')" class="bg-amber-100 hover:bg-amber-200 active:bg-amber-300 text-amber-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-amber-200 active:scale-95 transition fast-btn-op">-</button>
 
-          <button onclick="pressNum('0')" class="bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-900 text-2xl md:text-3xl font-black rounded-2xl md:rounded-3xl p-4 md:p-5 shadow-xs border border-slate-200 active:scale-95 transition fast-btn-num">0</button>
-          <button onclick="press000()" class="bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-900 text-lg md:text-xl font-black rounded-2xl md:rounded-3xl p-4 md:p-5 shadow-xs border border-slate-300/70 active:scale-95 transition fast-btn-num">000</button>
-          <button onclick="pressDot()" class="bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-900 text-2xl md:text-3xl font-black rounded-2xl md:rounded-3xl p-4 md:p-5 shadow-xs border border-slate-200 active:scale-95 transition fast-btn-num">.</button>
-          <button onclick="pressOp('+')" class="bg-amber-100/80 hover:bg-amber-200 active:bg-amber-300 text-amber-900 text-2xl md:text-3xl font-black rounded-2xl md:rounded-3xl p-4 md:p-5 shadow-xs border border-amber-200 active:scale-95 transition fast-btn-op">+</button>
+          <button onclick="pressNum('0')" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition fast-btn-num">0</button>
+          <button onclick="press000()" class="bg-slate-200 hover:bg-slate-300 active:bg-slate-400 text-slate-900 text-xl md:text-2xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-300 active:scale-95 transition fast-btn-num">000</button>
+          <button onclick="pressDot()" class="bg-white hover:bg-slate-50 active:bg-slate-200 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-200 active:scale-95 transition fast-btn-num">.</button>
+          <button onclick="pressOp('+')" class="bg-amber-100 hover:bg-amber-200 active:bg-amber-300 text-amber-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-amber-200 active:scale-95 transition fast-btn-op">+</button>
 
-          <button onclick="clearCalc()" class="bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white text-xl md:text-2xl font-black rounded-2xl md:rounded-3xl p-4 md:p-5 shadow-md active:scale-95 transition" title="Clear All">C</button>
-          <button onclick="backspace()" class="bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white text-xl md:text-2xl font-black rounded-2xl md:rounded-3xl p-4 md:p-5 shadow-md active:scale-95 transition" title="Hapus 1 Karakter">⌫</button>
-          <button onclick="calculateResult()" class="bg-slate-200 hover:bg-slate-300 active:bg-slate-400 text-slate-900 text-2xl md:text-3xl font-black rounded-2xl md:rounded-3xl p-4 md:p-5 shadow-xs border border-slate-300 active:scale-95 transition fast-btn-num">=</button>
+          <button onclick="clearCalc()" class="bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white text-2xl md:text-3xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-md active:scale-95 transition" title="Clear All">C</button>
+          <button onclick="backspace()" class="bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white text-2xl md:text-3xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-md active:scale-95 transition" title="Hapus 1 Karakter">⌫</button>
+          <button onclick="calculateResult()" class="bg-slate-300 hover:bg-slate-400 active:bg-slate-500 text-slate-900 text-3xl md:text-4xl font-black rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border-2 border-slate-300 active:scale-95 transition fast-btn-num">=</button>
           
-          <button onclick="openPaymentModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-base md:text-xl font-black rounded-2xl md:rounded-3xl p-3 md:p-5 shadow-lg uppercase tracking-wider border-b-4 border-emerald-900 active:scale-95 transition flex items-center justify-center fast-btn-process">
+          <button onclick="openPaymentModal()" class="bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-lg md:text-2xl font-black rounded-2xl md:rounded-3xl p-3 md:p-6 shadow-lg uppercase tracking-wider border-b-4 border-emerald-900 active:scale-95 transition flex items-center justify-center fast-btn-process">
             <span class="truncate">PROSES ➔</span>
           </button>
         </div>
       </div>
 
-      <div id="secHistory" class="hidden lg:block lg:col-span-5 flex-1 flex flex-col gap-3.5">
-        <div class="bg-white rounded-3xl shadow-sm border border-slate-200/80 p-4 md:p-5 fast-card">
+      <!-- SEKSI 2: RIWAYAT TRANSAKSI -->
+      <div id="secHistory" class="hidden lg:block lg:col-span-5 flex-1 flex flex-col gap-3">
+        <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-4 md:p-5 fast-card">
           <div class="flex justify-between items-center mb-3">
-            <h2 class="font-extrabold text-slate-800 text-sm flex items-center gap-1.5">💵 Ringkasan Laci Kasir</h2>
-            <div class="flex gap-1.5">
-              <button onclick="loadDashboardData()" class="text-xs text-emerald-700 font-extrabold bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-xl border border-emerald-200/80 cursor-pointer active:scale-95 transition">🔄 Refresh</button>
-              <button onclick="openCloseBookConfirmation()" class="text-xs text-white font-extrabold bg-rose-600 hover:bg-rose-700 px-3 py-1.5 rounded-xl shadow-xs cursor-pointer active:scale-95 transition flex items-center gap-1">🔒 Tutup Buku</button>
-            </div>
+            <h2 class="font-extrabold text-slate-800 text-sm flex items-center gap-1">💵 Ringkasan Laci Kasir</h2>
+            <button onclick="loadDashboardData()" class="text-xs text-emerald-600 font-extrabold bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 cursor-pointer">🔄 Refresh</button>
           </div>
-          
-          <div class="flex bg-slate-100 p-1 rounded-2xl mb-3 text-xs font-bold text-slate-500 fast-input">
-            <button id="btnToday" onclick="switchPeriod('today')" class="flex-1 py-1.5 rounded-xl bg-white text-emerald-700 shadow-xs font-black transition">Hari Ini</button>
-            <button id="btnWeek" onclick="switchPeriod('week')" class="flex-1 py-1.5 rounded-xl transition">7 Hari</button>
-            <button id="btnMonth" onclick="switchPeriod('month')" class="flex-1 py-1.5 rounded-xl transition">Bulan Ini</button>
+          <div class="flex bg-slate-100 p-1.5 rounded-2xl mb-3 text-xs font-bold text-slate-500 fast-input">
+            <button id="btnToday" onclick="switchPeriod('today')" class="flex-1 py-1.5 rounded-xl bg-white text-emerald-700 shadow-xs">Hari Ini</button>
+            <button id="btnWeek" onclick="switchPeriod('week')" class="flex-1 py-1.5 rounded-xl">7 Hari</button>
+            <button id="btnMonth" onclick="switchPeriod('month')" class="flex-1 py-1.5 rounded-xl">Bulan Ini</button>
           </div>
-
           <div class="grid grid-cols-3 gap-2 text-center text-xs font-bold">
-            <div class="bg-emerald-50/80 p-2.5 rounded-2xl border border-emerald-100">
-              <p class="text-[10px] text-emerald-700 font-extrabold tracking-wider">CASH</p>
-              <p id="valCash" class="text-slate-800 mt-0.5 font-black text-xs md:text-sm truncate">Rp 0</p>
+            <div class="bg-emerald-50 p-2.5 rounded-2xl border border-emerald-100">
+              <p class="text-[10px] text-emerald-700 font-extrabold">CASH</p>
+              <p id="valCash" class="text-slate-800 mt-0.5 font-black text-xs md:text-sm">Rp 0</p>
             </div>
-            <div class="bg-blue-50/80 p-2.5 rounded-2xl border border-blue-100">
-              <p class="text-[10px] text-blue-700 font-extrabold tracking-wider">QRIS</p>
-              <p id="valQris" class="text-slate-800 mt-0.5 font-black text-xs md:text-sm truncate">Rp 0</p>
+            <div class="bg-blue-50 p-2.5 rounded-2xl border border-blue-100">
+              <p class="text-[10px] text-blue-700 font-extrabold">QRIS</p>
+              <p id="valQris" class="text-slate-800 mt-0.5 font-black text-xs md:text-sm">Rp 0</p>
             </div>
-            <div class="bg-purple-50/80 p-2.5 rounded-2xl border border-purple-100">
-              <p class="text-[10px] text-purple-700 font-extrabold tracking-wider">TRANSFER</p>
-              <p id="valTransfer" class="text-slate-800 mt-0.5 font-black text-xs md:text-sm truncate">Rp 0</p>
+            <div class="bg-purple-50 p-2.5 rounded-2xl border border-purple-100">
+              <p class="text-[10px] text-purple-700 font-extrabold">TRANSFER</p>
+              <p id="valTransfer" class="text-slate-800 mt-0.5 font-black text-xs md:text-sm">Rp 0</p>
             </div>
           </div>
-
           <div class="mt-3 pt-2.5 border-t border-dashed border-slate-200 flex justify-between items-center text-xs font-bold">
             <span class="text-slate-500 font-extrabold">Total Bersih:</span>
             <span class="text-emerald-600 text-base font-black" id="valTotalNet">Rp 0</span>
@@ -249,36 +247,39 @@
     </div>
   </main>
 
-  <div id="paymentModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4 no-print">
+  <!-- MODAL PILIH METODE PEMBAYARAN -->
+  <div id="paymentModal" class="fixed inset-0 bg-black/70 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4 no-print">
     <div class="bg-white rounded-[32px] p-6 md:p-8 max-w-md w-full shadow-2xl space-y-6 border border-slate-100 animate-in fade-in zoom-in duration-150">
       <div class="text-center space-y-2">
-        <p id="modalTypeBadge" class="inline-block text-xs font-black uppercase px-4 py-1.5 rounded-full bg-emerald-100 text-emerald-800 tracking-wider">UANG MASUK</p>
+        <p id="modalTypeBadge" class="inline-block text-xs md:text-sm font-black uppercase px-4 py-1.5 rounded-full bg-emerald-100 text-emerald-800 tracking-wider">UANG MASUK</p>
         <h3 class="font-black text-slate-800 text-xl md:text-2xl">Pilih Pembayaran</h3>
         <p class="text-xs md:text-sm text-slate-500 font-semibold" id="paymentStatusText">Klik metode untuk langsung menyimpan</p>
-        <div id="modalNominal" class="text-3xl md:text-4xl font-black text-emerald-600 pt-1 tracking-tight">Rp 0</div>
+        <div id="modalNominal" class="text-4xl md:text-5xl font-black text-emerald-600 pt-2 tracking-tight">Rp 0</div>
       </div>
 
-      <div class="grid grid-cols-1 gap-3 pt-1" id="paymentButtonsGroup">
-        <button onclick="submitTransaction('CASH')" class="w-full h-16 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black rounded-2xl text-xl shadow-lg flex items-center justify-center gap-3 cursor-pointer border-b-4 border-emerald-900 transition">
+      <!-- Opsi Pembayaran -->
+      <div class="grid grid-cols-1 gap-3.5 pt-2" id="paymentButtonsGroup">
+        <button onclick="submitTransaction('CASH')" class="w-full h-20 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black rounded-2xl md:rounded-3xl text-2xl shadow-xl flex items-center justify-center gap-3 cursor-pointer border-b-8 border-emerald-900 transition">
           💵 CASH
         </button>
-        <button onclick="submitTransaction('QRIS')" class="w-full h-16 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-black rounded-2xl text-xl shadow-lg flex items-center justify-center gap-3 cursor-pointer border-b-4 border-blue-900 transition">
+        <button onclick="submitTransaction('QRIS')" class="w-full h-20 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-black rounded-2xl md:rounded-3xl text-2xl shadow-xl flex items-center justify-center gap-3 cursor-pointer border-b-8 border-blue-900 transition">
           📱 QRIS
         </button>
-        <button onclick="submitTransaction('TRANSFER')" class="w-full h-16 bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black rounded-2xl text-xl shadow-lg flex items-center justify-center gap-3 cursor-pointer border-b-4 border-purple-900 transition">
+        <button onclick="submitTransaction('TRANSFER')" class="w-full h-20 bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black rounded-2xl md:rounded-3xl text-2xl shadow-xl flex items-center justify-center gap-3 cursor-pointer border-b-8 border-purple-900 transition">
           🏦 TRANSFER
         </button>
       </div>
 
-      <button id="btnCancelPayment" onclick="closePaymentModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-extrabold py-3 rounded-2xl text-xs cursor-pointer transition">
+      <button id="btnCancelPayment" onclick="closePaymentModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-extrabold py-3.5 rounded-2xl text-sm cursor-pointer">
         Batal / Kembali
       </button>
     </div>
   </div>
 
-  <div id="receiptModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-3">
+  <!-- MODAL STRUK CETAK THERMAL 58MM -->
+  <div id="receiptModal" class="fixed inset-0 bg-black/70 backdrop-blur-xs z-50 hidden flex items-center justify-center p-3">
     <div id="receiptCard" class="bg-white rounded-3xl p-5 w-[65mm] md:w-[70mm] shadow-2xl space-y-3">
-      <div id="receiptSection" class="text-center text-[10px] text-black leading-tight font-mono">
+      <div id="receiptSection" class="text-center text-[10px] text-black leading-tight">
         <h2 class="font-bold text-xs uppercase tracking-wider">WARUNG ACIL</h2>
         <p class="text-[9px] font-semibold" id="rBranch">-</p>
         <p class="text-[8px] border-b border-dashed border-black pb-1 mb-1" id="rDate">-</p>
@@ -297,85 +298,12 @@
         <p class="text-[8px] mt-1.5 italic">*** Terima Kasih ***</p>
       </div>
 
-      <div class="flex flex-col gap-2 no-print pt-2">
-        <button onclick="triggerPrint()" class="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black text-sm py-3 rounded-2xl shadow-md cursor-pointer border-b-4 border-emerald-900 flex items-center justify-center gap-2 transition">
+      <div class="flex flex-col gap-2.5 no-print pt-3">
+        <button onclick="triggerPrint()" class="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black text-base py-4 rounded-2xl shadow-lg cursor-pointer border-b-4 border-emerald-900 flex items-center justify-center gap-2 transition">
           🖨️ CETAK BLUETOOTH DIRECT
         </button>
-        <button onclick="closeReceiptModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs py-2.5 rounded-xl cursor-pointer transition">
+        <button onclick="closeReceiptModal()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold text-xs py-3 rounded-xl cursor-pointer">
           Tutup Window
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <div id="closeBookConfirmModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4 no-print">
-    <div class="bg-white rounded-[32px] p-6 md:p-7 max-w-md w-full shadow-2xl space-y-5 border border-slate-100 animate-in fade-in zoom-in duration-150">
-      <div class="text-center space-y-2">
-        <p class="inline-block text-xs font-black uppercase px-3.5 py-1 rounded-full bg-rose-100 text-rose-800 tracking-wider">KONFIRMASI AKHIR SESI</p>
-        <h3 class="font-black text-slate-800 text-xl md:text-2xl">🔒 Tutup Buku Sesi</h3>
-        <p class="text-xs text-slate-500 font-semibold">Tutup sesi kasir, simpan ke database, dan cetak rekap harian?</p>
-      </div>
-
-      <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200/80 text-xs space-y-2">
-        <div class="flex justify-between font-bold"><span class="text-slate-500">Cabang:</span><span id="cbBranchText" class="text-slate-800 font-black">-</span></div>
-        <div class="flex justify-between font-bold"><span class="text-slate-500">Kasir:</span><span id="cbKasirText" class="text-slate-800 font-black">-</span></div>
-        <div class="border-t border-slate-200/80 my-1"></div>
-        <div class="flex justify-between"><span class="text-slate-600">Total Cash:</span><span id="cbCashText" class="font-extrabold text-emerald-700">Rp 0</span></div>
-        <div class="flex justify-between"><span class="text-slate-600">Total QRIS:</span><span id="cbQrisText" class="font-extrabold text-blue-700">Rp 0</span></div>
-        <div class="flex justify-between"><span class="text-slate-600">Total Transfer:</span><span id="cbTransferText" class="font-extrabold text-purple-700">Rp 0</span></div>
-        <div class="flex justify-between"><span class="text-slate-600">Total Pengeluaran:</span><span id="cbExpenseText" class="font-extrabold text-rose-700">Rp 0</span></div>
-        <div class="border-t border-dashed border-slate-300 pt-2 flex justify-between font-black text-sm">
-          <span class="text-slate-800">Total Bersih (Net):</span>
-          <span id="cbNetText" class="text-emerald-600">Rp 0</span>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 gap-2 pt-1">
-        <button id="btnExecuteCloseBook" onclick="executeCloseBook()" class="w-full bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-black py-3 rounded-2xl text-sm shadow-md cursor-pointer border-b-4 border-rose-900 transition flex items-center justify-center gap-2">
-          🖨️ Ya, Simpan & Cetak Rekap
-        </button>
-        <button onclick="closeCloseBookConfirmModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-extrabold py-2.5 rounded-2xl text-xs cursor-pointer transition">
-          Batal / Kembali
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <div id="closeBookReceiptModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-3">
-    <div id="closeBookReceiptCard" class="bg-white rounded-3xl p-5 w-[65mm] md:w-[70mm] shadow-2xl space-y-3">
-      <div id="closeBookReceiptSection" class="text-center text-[10px] text-black leading-tight font-mono">
-        <h2 class="font-bold text-xs uppercase tracking-wider">WARUNG ACIL</h2>
-        <p class="text-[10px] font-bold uppercase tracking-wide">LAPORAN TUTUP BUKU</p>
-        <p class="text-[8px] border-b border-dashed border-black pb-1 mb-1" id="cbReceiptDate">-</p>
-
-        <div class="text-left space-y-0.5 my-1 text-[9px]">
-          <div class="flex justify-between"><span>Cabang:</span> <span id="cbReceiptBranch" class="font-bold uppercase">-</span></div>
-          <div class="flex justify-between"><span>Kasir:</span> <span id="cbReceiptKasir" class="font-bold uppercase">-</span></div>
-        </div>
-
-        <div class="border-t border-dashed border-black py-1 my-1 text-left text-[9px] space-y-0.5">
-          <p class="font-bold underline">PENDAPATAN (IN):</p>
-          <div class="flex justify-between"><span> - CASH</span><span id="cbReceiptCash">Rp 0</span></div>
-          <div class="flex justify-between"><span> - QRIS</span><span id="cbReceiptQris">Rp 0</span></div>
-          <div class="flex justify-between"><span> - TRANSFER</span><span id="cbReceiptTransfer">Rp 0</span></div>
-          <p class="font-bold underline pt-1">PENGELUARAN (OUT):</p>
-          <div class="flex justify-between"><span> - TOTAL OUT</span><span id="cbReceiptExpense">Rp 0</span></div>
-        </div>
-
-        <div class="border-t border-b border-dashed border-black py-1.5 my-1 flex justify-between items-center">
-          <span class="font-bold text-[10px]">TOTAL BERSIH (NET):</span>
-          <span class="font-extrabold text-xs" id="cbReceiptNet">Rp 0</span>
-        </div>
-
-        <p class="text-[8px] mt-1.5 italic">*** Sesi Ditutup ***</p>
-      </div>
-
-      <div class="flex flex-col gap-2 no-print pt-2">
-        <button onclick="triggerPrintCloseBook()" class="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black text-sm py-3 rounded-2xl shadow-md cursor-pointer border-b-4 border-emerald-900 flex items-center justify-center gap-2 transition">
-          🖨️ CETAK REKAP BLUETOOTH
-        </button>
-        <button onclick="closeCloseBookReceiptModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs py-2.5 rounded-xl cursor-pointer transition">
-          Selesai / Tutup Window
         </button>
       </div>
     </div>
@@ -387,14 +315,12 @@
 
     let inputTokens = []; 
     let isEvaluated = false;
-    let rawEvaluatedNumber = null; // Menyimpan angka murni hasil evaluasi terakhir
     let finalCalculatedNominal = 0;
     let finalActionType = 'in';
 
     let isFastMode = localStorage.getItem('warung_acil_fastmode') === 'true';
 
     let activeReceiptData = null;
-    let activeCloseBookData = null;
     let cachedBluetoothDevice = null;
 
     let activePeriod = 'today';
@@ -403,14 +329,11 @@
     // Validasi Sesi
     const session = JSON.parse(localStorage.getItem('warung_acil_session')) || { user: 'KASIR1', akses: 'CABANG 1', isOwner: false };
 
-    // Pengecekan Khusus User ACIL / LULU (Case-insensitive)
-    const currentUserUpper = String(session.user || '').trim().toUpperCase();
-    const isSuperUser = currentUserUpper === 'ACIL' || currentUserUpper === 'LULU';
-
     function initBranchOptions() {
       const selectBranch = document.getElementById('selectBranch');
       if (!selectBranch) return;
       selectBranch.innerHTML = '';
+
       if (typeof CONFIG !== 'undefined' && CONFIG.BRANCH_MAP) {
         Object.keys(CONFIG.BRANCH_MAP).forEach(code => {
           if (code !== 'ALL') {
@@ -429,12 +352,14 @@
       initBranchOptions();
     }
 
-    const currentBranchName = isSuperUser ? 'ALL BRANCHES (SUPER USER)' : (session.isOwner ? 'Master Owner / All Branches' : (typeof CONFIG !== 'undefined' ? CONFIG.getBranchName(session.akses) : (session.akses || 'CABANG 1')));
+    const currentBranchName = session.isOwner 
+      ? 'Master Owner / All Branches' 
+      : (typeof CONFIG !== 'undefined' ? CONFIG.getBranchName(session.akses) : (session.akses || 'CABANG 1'));
+
     document.getElementById('userInfo').innerText = `${session.user} | ${currentBranchName}`;
 
     document.addEventListener('DOMContentLoaded', () => {
       applyFastModeUI();
-      loadDashboardData();
     });
 
     function getSelectedTargetBranch() {
@@ -473,155 +398,77 @@
         document.getElementById('fastModeText').innerText = 'Mode Cepat';
         banner.classList.add('hidden');
       }
+      updateDisplay();
     }
 
-    function switchNav(tab) {
-      const secCalc = document.getElementById('secCalc');
-      const secHistory = document.getElementById('secHistory');
-      const tabCalc = document.getElementById('tabCalc');
-      const tabHistory = document.getElementById('tabHistory');
-
-      if (tab === 'calc') {
-        secCalc.classList.remove('hidden');
-        secHistory.classList.add('hidden', 'lg:block');
-        tabCalc.className = "flex-1 py-2.5 font-extrabold text-xs md:text-sm rounded-xl bg-emerald-600 text-white shadow-sm transition";
-        tabHistory.className = "flex-1 py-2.5 font-extrabold text-xs md:text-sm rounded-xl text-slate-500 transition";
-      } else {
-        secCalc.classList.add('hidden');
-        secHistory.classList.remove('hidden');
-        secHistory.classList.add('block');
-        tabCalc.className = "flex-1 py-2.5 font-extrabold text-xs md:text-sm rounded-xl text-slate-500 transition";
-        tabHistory.className = "flex-1 py-2.5 font-extrabold text-xs md:text-sm rounded-xl bg-emerald-600 text-white shadow-sm transition";
-      }
-    }
-
-    function updateCalcDisplay() {
-      const calcFormula = document.getElementById('calcFormula');
-      const calcDisplay = document.getElementById('calcDisplay');
-
-      if (inputTokens.length === 0) {
-        calcFormula.innerText = '0';
-        calcDisplay.innerText = '0';
-        return;
-      }
-
-      const formulaStr = inputTokens.map(t => {
-        if (t === '*') return '×';
-        if (t === '/') return '÷';
-        return t;
-      }).join(' ');
-
-      calcFormula.innerText = formulaStr;
-
-      const lastToken = inputTokens[inputTokens.length - 1];
-      if (!isNaN(lastToken)) {
-        calcDisplay.innerText = formatRupiahDisplay(lastToken);
-      } else {
-        calcDisplay.innerText = lastToken === '*' ? '×' : (lastToken === '/' ? '÷' : lastToken);
-      }
-    }
-
-    function formatRupiahDisplay(numStr) {
-      if (!numStr) return '0';
-      const parts = numStr.split('.');
-      parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-      return parts.join(',');
-    }
-
+    // ==========================================
+    // LOGIKA KALKULATOR
+    // ==========================================
     function pressNum(num) {
       if (isEvaluated) {
-        inputTokens = [];
+        inputTokens = [num];
         isEvaluated = false;
-        rawEvaluatedNumber = null;
-      }
-
-      if (inputTokens.length === 0) {
-        inputTokens.push(num);
       } else {
-        const lastIdx = inputTokens.length - 1;
-        const lastToken = inputTokens[lastIdx];
-        if (!isNaN(lastToken) || lastToken.includes('.')) {
-          if (lastToken === '0') {
-            inputTokens[lastIdx] = num;
-          } else {
-            inputTokens[lastIdx] = lastToken + num;
-          }
-        } else {
+        if (inputTokens.length === 0 || ['+', '-', '*', '/'].includes(inputTokens[inputTokens.length - 1])) {
           inputTokens.push(num);
+        } else {
+          inputTokens[inputTokens.length - 1] += num;
         }
       }
-      updateCalcDisplay();
+      updateDisplay();
     }
 
     function press000() {
       if (isEvaluated) {
         inputTokens = [];
         isEvaluated = false;
-        rawEvaluatedNumber = null;
-      }
-      if (inputTokens.length === 0) return;
-      const lastIdx = inputTokens.length - 1;
-      const lastToken = inputTokens[lastIdx];
-      if (!isNaN(lastToken) || lastToken.includes('.')) {
-        if (lastToken !== '0') {
-          inputTokens[lastIdx] = lastToken + '000';
+      } else {
+        if (inputTokens.length > 0 && !['+', '-', '*', '/'].includes(inputTokens[inputTokens.length - 1])) {
+          inputTokens[inputTokens.length - 1] += '000';
         }
       }
-      updateCalcDisplay();
+      updateDisplay();
     }
 
     function pressDot() {
       if (isEvaluated) {
-        inputTokens = [];
+        inputTokens = ['0.'];
         isEvaluated = false;
-        rawEvaluatedNumber = null;
-      }
-      if (inputTokens.length === 0) {
-        inputTokens.push('0.');
       } else {
-        const lastIdx = inputTokens.length - 1;
-        const lastToken = inputTokens[lastIdx];
-        if (!isNaN(lastToken)) {
-          if (!lastToken.includes('.')) {
-            inputTokens[lastIdx] = lastToken + '.';
-          }
-        } else {
+        if (inputTokens.length === 0 || ['+', '-', '*', '/'].includes(inputTokens[inputTokens.length - 1])) {
           inputTokens.push('0.');
+        } else if (!inputTokens[inputTokens.length - 1].includes('.')) {
+          inputTokens[inputTokens.length - 1] += '.';
         }
       }
-      updateCalcDisplay();
+      updateDisplay();
     }
 
     function pressOp(op) {
-      if (isEvaluated && rawEvaluatedNumber !== null) {
-        // Jika sudah di-evaluate (sudah ditekan '='), gunakan hasil angka murninya dalam mode standar
-        // agar tidak terkena penggandaan x1000 saat kalkulasi berlanjut
-        inputTokens = [(rawEvaluatedNumber / (isFastMode ? 1000 : 1)).toString()];
+      if (isEvaluated) {
         isEvaluated = false;
-        rawEvaluatedNumber = null;
       }
 
       if (inputTokens.length === 0) {
-        if (op === '-') inputTokens.push('0', '-');
-        return;
-      }
-
-      const lastIdx = inputTokens.length - 1;
-      const lastToken = inputTokens[lastIdx];
-
-      if (['+', '-', '*', '/'].includes(lastToken)) {
-        inputTokens[lastIdx] = op;
+        if (op === '-') {
+          inputTokens.push('0');
+          inputTokens.push('-');
+        }
       } else {
-        inputTokens.push(op);
+        const last = inputTokens[inputTokens.length - 1];
+        if (['+', '-', '*', '/'].includes(last)) {
+          inputTokens[inputTokens.length - 1] = op;
+        } else {
+          inputTokens.push(op);
+        }
       }
-      updateCalcDisplay();
+      updateDisplay();
     }
 
     function clearCalc() {
       inputTokens = [];
       isEvaluated = false;
-      rawEvaluatedNumber = null;
-      updateCalcDisplay();
+      updateDisplay();
     }
 
     function backspace() {
@@ -629,118 +476,166 @@
         clearCalc();
         return;
       }
-      if (inputTokens.length === 0) return;
 
-      const lastIdx = inputTokens.length - 1;
-      let lastToken = inputTokens[lastIdx];
-
-      if (lastToken.length > 1) {
-        inputTokens[lastIdx] = lastToken.slice(0, -1);
-      } else {
-        inputTokens.pop();
+      if (inputTokens.length > 0) {
+        let lastToken = inputTokens[inputTokens.length - 1];
+        if (['+', '-', '*', '/'].includes(lastToken)) {
+          inputTokens.pop();
+        } else {
+          lastToken = lastToken.slice(0, -1);
+          if (lastToken === '') {
+            inputTokens.pop();
+          } else {
+            inputTokens[inputTokens.length - 1] = lastToken;
+          }
+        }
       }
-      updateCalcDisplay();
+      updateDisplay();
     }
 
-    function evaluateTokens() {
-      if (inputTokens.length === 0) return 0;
+    function processTokenValue(token, prevOperator) {
+      let num = parseFloat(token);
+      if (isNaN(num)) return 0;
 
-      let tokensToEval = [...inputTokens];
-
-      if (['+', '-', '*', '/'].includes(tokensToEval[tokensToEval.length - 1])) {
-        tokensToEval.pop();
+      // Jika Mode Cepat ON & bukan setelah operator kali/bagi, otomatis dikali 1000
+      if (isFastMode && prevOperator !== '*' && prevOperator !== '/') {
+        num = num * 1000;
       }
-
-      if (isFastMode) {
-        tokensToEval = tokensToEval.map((t, index) => {
-          if (!isNaN(t) && t !== '') {
-            let val = parseFloat(t);
-            const prevOp = index > 0 ? tokensToEval[index - 1] : null;
-            const nextOp = index < tokensToEval.length - 1 ? tokensToEval[index + 1] : null;
-
-            // Jangan dikali 1000 jika angka ini bersebelahan dengan operator perkalian (*) atau pembagian (/)
-            if (prevOp === '*' || prevOp === '/' || nextOp === '*' || nextOp === '/') {
-              return val.toString();
-            }
-            return (val * 1000).toString();
-          }
-          return t;
-        });
-      }
-
-      try {
-        const expr = tokensToEval.join('');
-        const res = Function(`"use strict"; return (${expr})`)();
-        return isNaN(res) ? 0 : res;
-      } catch (e) {
-        console.error('Error Eval:', e);
-        return 0;
-      }
+      return num;
     }
 
     function calculateResult() {
-      const res = evaluateTokens();
-      rawEvaluatedNumber = res;
-      finalCalculatedNominal = Math.abs(res);
-      finalActionType = res < 0 ? 'out' : 'in';
+      if (inputTokens.length === 0) return 0;
 
-      inputTokens = [res.toString()];
-      isEvaluated = true;
-      
-      document.getElementById('calcFormula').innerText = 'TOTAL';
-      document.getElementById('calcDisplay').innerText = formatRupiahDisplay(res.toString());
-    }
-
-    function openPaymentModal() {
-      let nominal = 0;
-      if (!isEvaluated) {
-        nominal = evaluateTokens();
-      } else {
-        nominal = rawEvaluatedNumber !== null ? rawEvaluatedNumber : parseFloat(inputTokens[0] || '0');
+      const lastToken = inputTokens[inputTokens.length - 1];
+      if (['+', '-', '*', '/'].includes(lastToken)) {
+        inputTokens.pop();
       }
 
-      if (!nominal || nominal === 0) {
-        alert('Silakan masukkan nominal transaksi terlebih dahulu!');
+      let total = calculateDisplayVal();
+      isEvaluated = true;
+
+      inputTokens = [String(total)];
+
+      updateDisplay();
+      return total;
+    }
+
+    function updateDisplay() {
+      let currentVal = calculateDisplayVal();
+      
+      // Susun formula dengan format visual ribuan yang rapi di layar atas
+      let formattedFormula = [];
+      let lastOp = null;
+
+      for (let i = 0; i < inputTokens.length; i++) {
+        let t = inputTokens[i];
+        if (['+', '-', '*', '/'].includes(t)) {
+          lastOp = t;
+          let displayOp = t === '*' ? '×' : (t === '/' ? '÷' : t);
+          formattedFormula.push(displayOp);
+        } else {
+          if (isEvaluated) {
+            formattedFormula.push(new Intl.NumberFormat('id-ID').format(parseFloat(t)));
+          } else {
+            let val = processTokenValue(t, lastOp);
+            formattedFormula.push(new Intl.NumberFormat('id-ID').format(val));
+          }
+        }
+      }
+
+      const rawText = formattedFormula.join(' ') || '0';
+      document.getElementById('calcFormula').innerText = rawText;
+      document.getElementById('calcDisplay').innerText = new Intl.NumberFormat('id-ID').format(currentVal);
+    }
+
+    function calculateDisplayVal() {
+      if (inputTokens.length === 0) return 0;
+
+      if (isEvaluated && inputTokens.length === 1) {
+        return parseFloat(inputTokens[0]) || 0;
+      }
+
+      let tokens = [...inputTokens];
+      let evaluatedTokens = [];
+      let lastOp = null;
+
+      for (let i = 0; i < tokens.length; i++) {
+        let t = tokens[i];
+        if (['+', '-', '*', '/'].includes(t)) {
+          lastOp = t;
+          evaluatedTokens.push(t);
+        } else {
+          evaluatedTokens.push(processTokenValue(t, lastOp));
+        }
+      }
+
+      let pass1 = [];
+      let i = 0;
+      while (i < evaluatedTokens.length) {
+        let item = evaluatedTokens[i];
+        if (item === '*' || item === '/') {
+          let prevNum = pass1.pop();
+          let nextNum = evaluatedTokens[i + 1];
+          if (nextNum !== undefined && typeof nextNum === 'number') {
+            let res = item === '*' ? prevNum * nextNum : (nextNum !== 0 ? prevNum / nextNum : 0);
+            pass1.push(res);
+            i += 2;
+          } else {
+            pass1.push(prevNum);
+            i++;
+          }
+        } else {
+          pass1.push(item);
+          i++;
+        }
+      }
+
+      let total = typeof pass1[0] === 'number' ? pass1[0] : 0;
+      for (let j = 1; j < pass1.length; j += 2) {
+        let op = pass1[j];
+        let val = pass1[j + 1];
+        if (typeof val === 'number') {
+          if (op === '+') total += val;
+          if (op === '-') total -= val;
+        }
+      }
+
+      return total;
+    }
+
+    // ==========================================
+    // TRANSAKSI & PEMBAYARAN
+    // ==========================================
+    function openPaymentModal() {
+      let finalVal = calculateDisplayVal();
+      
+      if (finalVal === 0) {
+        alert('Nominal transaksi tidak boleh Rp 0!');
         return;
       }
 
-      finalCalculatedNominal = Math.abs(nominal);
-      finalActionType = nominal < 0 ? 'out' : 'in';
-
-      const modalTypeBadge = document.getElementById('modalTypeBadge');
-      const modalNominal = document.getElementById('modalNominal');
-      const paymentButtonsGroup = document.getElementById('paymentButtonsGroup');
-
-      if (finalActionType === 'out') {
-        modalTypeBadge.innerText = 'PENGELUARAN (OUT)';
-        modalTypeBadge.className = 'inline-block text-xs font-black uppercase px-4 py-1.5 rounded-full bg-rose-100 text-rose-800 tracking-wider';
-        modalNominal.innerText = `- Rp ${formatRupiah(finalCalculatedNominal)}`;
-        modalNominal.className = 'text-3xl md:text-4xl font-black text-rose-600 pt-1 tracking-tight';
-
-        paymentButtonsGroup.innerHTML = `
-          <button onclick="submitTransaction('CASH')" class="w-full h-16 bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-black rounded-2xl text-xl shadow-lg flex items-center justify-center gap-3 cursor-pointer border-b-4 border-rose-900 transition">
-            💸 SIMPAN PENGELUARAN (OUT)
-          </button>
-        `;
+      if (finalVal < 0) {
+        finalActionType = 'out';
+        finalCalculatedNominal = Math.abs(finalVal);
       } else {
-        modalTypeBadge.innerText = 'UANG MASUK (IN)';
-        modalTypeBadge.className = 'inline-block text-xs font-black uppercase px-4 py-1.5 rounded-full bg-emerald-100 text-emerald-800 tracking-wider';
-        modalNominal.innerText = `Rp ${formatRupiah(finalCalculatedNominal)}`;
-        modalNominal.className = 'text-3xl md:text-4xl font-black text-emerald-600 pt-1 tracking-tight';
-
-        paymentButtonsGroup.innerHTML = `
-          <button onclick="submitTransaction('CASH')" class="w-full h-16 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black rounded-2xl text-xl shadow-lg flex items-center justify-center gap-3 cursor-pointer border-b-4 border-emerald-900 transition">
-            💵 CASH
-          </button>
-          <button onclick="submitTransaction('QRIS')" class="w-full h-16 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-black rounded-2xl text-xl shadow-lg flex items-center justify-center gap-3 cursor-pointer border-b-4 border-blue-900 transition">
-            📱 QRIS
-          </button>
-          <button onclick="submitTransaction('TRANSFER')" class="w-full h-16 bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black rounded-2xl text-xl shadow-lg flex items-center justify-center gap-3 cursor-pointer border-b-4 border-purple-900 transition">
-            🏦 TRANSFER
-          </button>
-        `;
+        finalActionType = 'in';
+        finalCalculatedNominal = finalVal;
       }
 
+      const badge = document.getElementById('modalTypeBadge');
+      if (finalActionType === 'in') {
+        badge.innerText = 'UANG MASUK / PENJUALAN';
+        badge.className = 'inline-block text-xs md:text-sm font-black uppercase px-4 py-1.5 rounded-full bg-emerald-100 text-emerald-800 tracking-wider';
+      } else {
+        badge.innerText = 'UANG KELUAR / PENGELUARAN';
+        badge.className = 'inline-block text-xs md:text-sm font-black uppercase px-4 py-1.5 rounded-full bg-rose-100 text-rose-800 tracking-wider';
+      }
+
+      document.getElementById('modalNominal').innerText = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(finalCalculatedNominal);
+      document.getElementById('paymentStatusText').innerText = 'Klik metode untuk menyimpan transaksi';
+      document.getElementById('paymentButtonsGroup').style.pointerEvents = 'auto';
+      document.getElementById('paymentButtonsGroup').style.opacity = '1';
       document.getElementById('paymentModal').classList.remove('hidden');
     }
 
@@ -748,19 +643,25 @@
       document.getElementById('paymentModal').classList.add('hidden');
     }
 
-    // =========================================================================
-    // SUBMIT TRANSAKSI BERDASARKAN PAYLOAD BACKEND
-    // =========================================================================
-    async function submitTransaction(metode) {
-      closePaymentModal();
-      
+    async function submitTransaction(method) {
+      const targetBranch = getSelectedTargetBranch();
+      const transNominal = finalCalculatedNominal;
+      const transAction = finalActionType;
+      const transTime = new Date();
+
       const payload = {
-        action: finalActionType,                       // "in" atau "out"
-        nominal: String(finalCalculatedNominal),       // Nominal dalam format String
-        transaksi: String(metode).toUpperCase(),      // "CASH", "QRIS", atau "TRANSFER"
-        kasir: session.user || 'KASIR1',               // Identifier kasir aktif
-        cabang: getSelectedTargetBranch()              // Nama/akses cabang tujuan
+        action: transAction,
+        nominal: String(transNominal),
+        transaksi: method.toUpperCase(),
+        kasir: session.user,
+        cabang: targetBranch
       };
+
+      const statusText = document.getElementById('paymentStatusText');
+      const btnGroup = document.getElementById('paymentButtonsGroup');
+      statusText.innerText = '⏳ Memproses & Menyimpan Transaksi...';
+      btnGroup.style.pointerEvents = 'none';
+      btnGroup.style.opacity = '0.5';
 
       try {
         const response = await fetch(WEBHOOK_URL, {
@@ -769,144 +670,204 @@
           body: JSON.stringify(payload)
         });
 
-        if (!response.ok) throw new Error('Gagal mengirim data ke server');
+        const resData = await response.json();
 
-        activeReceiptData = {
-          branch: payload.cabang,
-          kasir: payload.kasir,
-          type: payload.action === 'in' ? 'UANG MASUK' : 'PENGELUARAN',
-          method: payload.transaksi,
-          nominal: `Rp ${formatRupiah(payload.nominal)}`,
-          date: new Date().toLocaleString('id-ID')
-        };
+        let isSuccess = false;
+        if (response.ok) {
+          if (Array.isArray(resData) && resData[0]?.json?.success !== undefined) {
+            isSuccess = resData[0].json.success;
+          } else if (resData?.success !== undefined) {
+            isSuccess = resData.success;
+          } else {
+            isSuccess = true; 
+          }
+        }
 
-        clearCalc();
-        openReceiptModal();
-        loadDashboardData();
-
-      } catch (error) {
-        alert('Terjadi kesalahan saat menyimpan transaksi: ' + error.message);
+        if (isSuccess) {
+          clearCalc();
+          loadDashboardData();
+          closePaymentModal();
+          openReceiptModal(transNominal, method, transAction === 'in', session.user, targetBranch, transTime);
+          setTimeout(() => { triggerPrint(); }, 200);
+        } else {
+          alert('Gagal menyimpan transaksi!');
+          statusText.innerText = 'Gagal menyimpan transaksi. Coba lagi.';
+          btnGroup.style.pointerEvents = 'auto';
+          btnGroup.style.opacity = '1';
+        }
+      } catch (err) {
+        console.error('Error koneksi webhook:', err);
+        alert('Gagal terhubung ke webhook/server.');
+        statusText.innerText = 'Koneksi terputus. Silakan coba lagi.';
+        btnGroup.style.pointerEvents = 'auto';
+        btnGroup.style.opacity = '1';
       }
     }
 
-    function openReceiptModal() {
-      if (!activeReceiptData) return;
-      document.getElementById('rBranch').innerText = activeReceiptData.branch;
-      document.getElementById('rDate').innerText = activeReceiptData.date;
-      document.getElementById('rType').innerText = activeReceiptData.type;
-      document.getElementById('rMethod').innerText = activeReceiptData.method;
-      document.getElementById('rKasir').innerText = activeReceiptData.kasir;
-      document.getElementById('rNominal').innerText = activeReceiptData.nominal;
+    function openReceiptModal(nominal, method, isMoneyIn, kasir, cabang, date) {
+      const formattedNominal = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(nominal);
+      const formattedDate = new Date(date || Date.now()).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' }) + ' WIB';
+      const typeText = isMoneyIn ? 'Penjualan' : 'Pengeluaran';
+
+      document.getElementById('rBranch').innerText = cabang || currentBranchName;
+      document.getElementById('rDate').innerText = formattedDate;
+      document.getElementById('rType').innerText = typeText;
+      document.getElementById('rMethod').innerText = method;
+      document.getElementById('rKasir').innerText = kasir || session.user;
+      document.getElementById('rNominal').innerText = formattedNominal;
+
+      activeReceiptData = {
+        branch: cabang || currentBranchName,
+        date: formattedDate,
+        type: typeText,
+        method: method,
+        kasir: kasir || session.user,
+        nominal: formattedNominal
+      };
+
       document.getElementById('receiptModal').classList.remove('hidden');
+    }
+
+    async function triggerPrint() {
+      if (!activeReceiptData) return;
+      if (!navigator.bluetooth) return;
+
+      try {
+        const optionalServicesList = (typeof CONFIG !== 'undefined' && CONFIG.PRINTER && CONFIG.PRINTER.OPTIONAL_SERVICES) ? CONFIG.PRINTER.OPTIONAL_SERVICES : [
+          '000018f0-0000-1000-8000-00805f9b34fb',
+          '0000e025-0000-1000-8000-00805f9b34fb',
+          '00001101-0000-1000-8000-00805f9b34fb'
+        ];
+
+        if (!cachedBluetoothDevice && navigator.bluetooth.getDevices) {
+          const pairedDevices = await navigator.bluetooth.getDevices();
+          if (pairedDevices.length > 0) {
+            cachedBluetoothDevice = pairedDevices.find(d => d.name && (d.name.includes('RPP02N') || d.name.includes('Printer'))) || pairedDevices[0];
+          }
+        }
+
+        if (!cachedBluetoothDevice) {
+          cachedBluetoothDevice = await navigator.bluetooth.requestDevice({
+            acceptAllDevices: true,
+            optionalServices: optionalServicesList
+          });
+        }
+
+        const server = await cachedBluetoothDevice.gatt.connect();
+        let characteristic = null;
+        let primaryServices = await server.getPrimaryServices();
+
+        for (let service of primaryServices) {
+          let characteristics = await service.getCharacteristics();
+          for (let c of characteristics) {
+            if (c.properties.write || c.properties.writeWithoutResponse) {
+              characteristic = c;
+              break;
+            }
+          }
+          if (characteristic) break;
+        }
+
+        if (!characteristic) return;
+
+        const encoder = new TextEncoder();
+        let commands = "";
+        commands += "\x1B\x40"; 
+        commands += "\x1B\x61\x01"; 
+        commands += "\x1B\x45\x01WARUNG ACIL\x1B\x45\x00\n";
+        commands += activeReceiptData.branch + "\n";
+        commands += activeReceiptData.date + "\n";
+        commands += "--------------------------------\n";
+        commands += "\x1B\x61\x00"; 
+        commands += "Jenis   : " + activeReceiptData.type.toUpperCase() + "\n";
+        commands += "Metode  : " + activeReceiptData.method.toUpperCase() + "\n";
+        commands += "Kasir   : " + activeReceiptData.kasir + "\n";
+        commands += "\x1B\x61\x01"; 
+        commands += "--------------------------------\n";
+        commands += "TOTAL   : \x1B\x45\x01" + activeReceiptData.nominal + "\x1B\x45\x00\n";
+        commands += "--------------------------------\n";
+        commands += "*** Terima Kasih ***\n\n\n\n";
+
+        await characteristic.writeValue(encoder.encode(commands));
+      } catch (error) {
+        console.error('Error Web Bluetooth:', error);
+        cachedBluetoothDevice = null;
+      }
     }
 
     function closeReceiptModal() {
       document.getElementById('receiptModal').classList.add('hidden');
     }
 
-    async function triggerPrint() {
-      if (!activeReceiptData) return;
-      
-      if ('bluetooth' in navigator) {
-        try {
-          if (!cachedBluetoothDevice || !cachedBluetoothDevice.gatt.connected) {
-            cachedBluetoothDevice = await navigator.bluetooth.requestDevice({
-              acceptAllDevices: true,
-              optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb', '49535343-fe7d-4ae5-8fa9-9fafd205e455']
-            });
-          }
+    // ==========================================
+    // PARSING DATA RESPONSE N8N SECARA ROBUST & REVERSE ORDER
+    // ==========================================
 
-          const server = await cachedBluetoothDevice.gatt.connect();
-          let service;
-          try {
-            service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
-          } catch (e) {
-            service = await server.getPrimaryService('49535343-fe7d-4ae5-8fa9-9fafd205e455');
-          }
+    function switchNav(tab) {
+      const btnCalc = document.getElementById('tabCalc');
+      const btnHist = document.getElementById('tabHistory');
+      const secCalc = document.getElementById('secCalc');
+      const secHistory = document.getElementById('secHistory');
 
-          const characteristics = await service.getCharacteristics();
-          const characteristic = characteristics[0];
-
-          let encoder = new TextEncoder();
-          let commands = "";
-          
-          commands += "\x1B\x40"; 
-          commands += "\x1B\x61\x01"; 
-          commands += "\x1B\x45\x01WARUNG ACIL\x1B\x45\x00\n";
-          commands += activeReceiptData.branch + "\n";
-          commands += activeReceiptData.date + "\n";
-          commands += "--------------------------------\n";
-          commands += "\x1B\x61\x00"; 
-          commands += "Jenis   : " + activeReceiptData.type + "\n";
-          commands += "Metode  : " + activeReceiptData.method + "\n";
-          commands += "Kasir   : " + activeReceiptData.kasir + "\n";
-          commands += "--------------------------------\n";
-          commands += "TOTAL   : \x1B\x45\x01" + activeReceiptData.nominal + "\x1B\x45\x00\n";
-          commands += "\x1B\x61\x01";
-          commands += "================================\n";
-          commands += "*** Terima Kasih ***\n\n\n\n";
-
-          await characteristic.writeValue(encoder.encode(commands));
-          return;
-        } catch (error) {
-          console.warn('Web Bluetooth gagal/dibatalkan, fallback ke window.print():', error);
-        }
+      if (tab === 'calc') {
+        btnCalc.className = 'flex-1 py-3 font-black text-xs md:text-sm rounded-xl bg-emerald-600 text-white shadow-sm transition';
+        btnHist.className = 'flex-1 py-3 font-black text-xs md:text-sm rounded-xl text-slate-500 transition';
+        secCalc.classList.remove('hidden');
+        secHistory.classList.add('hidden');
+      } else {
+        btnHist.className = 'flex-1 py-3 font-black text-xs md:text-sm rounded-xl bg-emerald-600 text-white shadow-sm transition';
+        btnCalc.className = 'flex-1 py-3 font-black text-xs md:text-sm rounded-xl text-slate-500 transition';
+        secHistory.classList.remove('hidden');
+        secHistory.classList.remove('lg:block');
+        secCalc.classList.add('hidden');
+        loadDashboardData();
       }
-
-      window.print();
     }
 
     function getItemTimestamp(item) {
-      if (!item) return 0;
-      const raw = item.TIMESTAMP || item.timestamp || item.TANGGAL || item.tanggal || item.DATE || item.date || item.createdAt || item.created_at;
-      if (!raw) return 0;
-      const parsed = new Date(raw).getTime();
-      return isNaN(parsed) ? 0 : parsed;
+      const rawDate = item.createdAt || item.created_at || item.tanggal || item.TANGGAL;
+      if (rawDate) {
+        const parsed = new Date(rawDate).getTime();
+        if (!isNaN(parsed)) return parsed;
+      }
+      if (item.id && !isNaN(Number(item.id))) {
+        return Number(item.id);
+      }
+      return 0;
     }
 
-    // =========================================================================
-    // FETCH HISTORY DATA DARI WEBHOOK N8N
-    // =========================================================================
     async function loadDashboardData() {
-      try {
-        const payload = { action: 'get_data' };
+      const container = document.getElementById('historyList');
+      if (container) container.innerHTML = `<p class="text-xs text-center text-slate-400 py-6">Memuat riwayat...</p>`;
 
+      try {
         const response = await fetch(WEBHOOK_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
+          body: JSON.stringify({ action: 'get_data' })
         });
-
-        if (!response.ok) throw new Error('Gagal mengambil data riwayat');
-
-        const result = await response.json();
+        
+        const resData = await response.json();
         
         let extractedIn = [];
         let extractedOut = [];
 
-        // Penjelajah Objek Dinamis
         const searchData = (obj) => {
           if (!obj || typeof obj !== 'object') return;
-
           if (Array.isArray(obj)) {
             obj.forEach(searchData);
             return;
           }
-
-          if (obj.money_in || obj.money_out || obj.in || obj.out) {
+          if (obj.money_in || obj.money_out) {
             if (Array.isArray(obj.money_in)) extractedIn = obj.money_in;
-            else if (Array.isArray(obj.in)) extractedIn = obj.in;
-
             if (Array.isArray(obj.money_out)) extractedOut = obj.money_out;
-            else if (Array.isArray(obj.out)) extractedOut = obj.out;
             return;
           }
-
           if (obj.data) searchData(obj.data);
           if (obj.json) searchData(obj.json);
         };
 
-        searchData(result);
+        searchData(resData);
 
         globalRawData = {
           money_in: extractedIn,
@@ -915,99 +876,74 @@
 
         calculateLaciTotals();
         renderHistoryList();
-
-      } catch (error) {
-        console.error('Error load dashboard:', error);
-        document.getElementById('historyList').innerHTML = `<p class="text-xs text-center text-rose-500 py-6">Gagal memuat data laci kasir.</p>`;
+      } catch (err) {
+        console.error('Gagal memuat data:', err);
+        if (container) container.innerHTML = `<p class="text-xs text-center text-rose-500 py-6">Gagal memuat riwayat. Periksa koneksi/n8n.</p>`;
       }
     }
 
     function switchPeriod(period) {
       activePeriod = period;
-      
-      const btnToday = document.getElementById('btnToday');
-      const btnWeek = document.getElementById('btnWeek');
-      const btnMonth = document.getElementById('btnMonth');
-
-      [btnToday, btnWeek, btnMonth].forEach(b => {
-        b.className = "flex-1 py-1.5 rounded-xl transition";
+      ['today', 'week', 'month'].forEach(p => {
+        const btn = document.getElementById('btn' + p.charAt(0).toUpperCase() + p.slice(1));
+        if (btn) {
+          btn.className = (p === period) 
+            ? 'flex-1 py-1.5 rounded-xl bg-white text-emerald-700 shadow-xs font-black' 
+            : 'flex-1 py-1.5 rounded-xl font-bold';
+        }
       });
-
-      if (period === 'today') {
-        btnToday.className = "flex-1 py-1.5 rounded-xl bg-white text-emerald-700 shadow-xs font-black transition";
-      } else if (period === 'week') {
-        btnWeek.className = "flex-1 py-1.5 rounded-xl bg-white text-emerald-700 shadow-xs font-black transition";
-      } else {
-        btnMonth.className = "flex-1 py-1.5 rounded-xl bg-white text-emerald-700 shadow-xs font-black transition";
-      }
-
       calculateLaciTotals();
-      renderHistoryList();
-    }
-
-    function isDateInPeriod(dateStr, period) {
-      if (!dateStr) return true;
-      const tDate = new Date(dateStr);
-      if (isNaN(tDate.getTime())) return true;
-
-      const now = new Date();
-      if (period === 'today') {
-        return tDate.toDateString() === now.toDateString();
-      } else if (period === 'week') {
-        const sevenDaysAgo = new Date();
-        sevenDaysAgo.setDate(now.getDate() - 7);
-        return tDate >= sevenDaysAgo;
-      } else if (period === 'month') {
-        return tDate.getMonth() === now.getMonth() && tDate.getFullYear() === now.getFullYear();
-      }
-      return true;
-    }
-
-    function getFilteredData() {
-      const targetBranch = getSelectedTargetBranch();
-
-      const filterFn = (item) => {
-        const branchVal = item.CABANG || item.cabang || item.branch || '';
-        const matchesBranch = (targetBranch === 'ALL' || isSuperUser) ? true : (String(branchVal).toUpperCase() === String(targetBranch).toUpperCase());
-        const timestamp = getItemTimestamp(item);
-        const matchesDate = isDateInPeriod(timestamp || item.timestamp || item.tanggal || item.date, activePeriod);
-        return matchesBranch && matchesDate;
-      };
-
-      return {
-        inList: (globalRawData.money_in || []).filter(filterFn),
-        outList: (globalRawData.money_out || []).filter(filterFn)
-      };
     }
 
     function calculateLaciTotals() {
-      const { inList, outList } = getFilteredData();
+      const now = new Date();
+      let listIn = [...(globalRawData.money_in || [])];
+      let listOut = [...(globalRawData.money_out || [])];
 
-      let cashTotal = 0;
-      let qrisTotal = 0;
-      let transferTotal = 0;
-      let expenseTotal = 0;
+      if (!session.isOwner) {
+        listIn = listIn.filter(i => String(i.CABANG || i.cabang || '').toUpperCase() === currentBranchName.toUpperCase());
+        listOut = listOut.filter(o => String(o.CABANG || o.cabang || '').toUpperCase() === currentBranchName.toUpperCase());
+      }
 
-      inList.forEach(item => {
-        const nom = parseFloat(item.NOMINAL || item.nominal || 0);
-        const method = String(item.TRANSAKSI || item.transaksi || item.METODE || item.metode || '').toUpperCase();
-        if (method === 'CASH') cashTotal += nom;
-        else if (method === 'QRIS') qrisTotal += nom;
-        else if (method === 'TRANSFER') transferTotal += nom;
+      const filterByDate = (item) => {
+        const ts = getItemTimestamp(item);
+        if (!ts) return true;
+        
+        const d = new Date(ts);
+        if (activePeriod === 'today') {
+          return d.getFullYear() === now.getFullYear() && 
+                 d.getMonth() === now.getMonth() && 
+                 d.getDate() === now.getDate();
+        }
+        if (activePeriod === 'week') return Math.floor((now - d) / (1000 * 60 * 60 * 24)) < 7;
+        if (activePeriod === 'month') return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+        return true;
+      };
+
+      const filteredIn = listIn.filter(filterByDate);
+      const filteredOut = listOut.filter(filterByDate);
+
+      let totals = { cash: 0, qris: 0, transfer: 0 };
+
+      filteredIn.forEach(i => {
+        const m = String(i.TRANSAKSI || i.transaksi || '').toLowerCase();
+        const nom = Number(i.NOMINAL || i.nominal || 0);
+        if (totals[m] !== undefined) totals[m] += nom;
       });
 
-      outList.forEach(item => {
-        expenseTotal += parseFloat(item.NOMINAL || item.nominal || 0);
+      filteredOut.forEach(o => {
+        const m = String(o.TRANSAKSI || o.transaksi || '').toLowerCase();
+        const nom = Number(o.NOMINAL || o.nominal || 0);
+        if (totals[m] !== undefined) totals[m] -= nom;
       });
 
-      const netTotal = (cashTotal + qrisTotal + transferTotal) - expenseTotal;
+      const totalNet = totals.cash + totals.qris + totals.transfer;
+      const formatCurrency = (val) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(val);
 
-      document.getElementById('valCash').innerText = `Rp ${formatRupiah(cashTotal)}`;
-      document.getElementById('valQris').innerText = `Rp ${formatRupiah(qrisTotal)}`;
-      document.getElementById('valTransfer').innerText = `Rp ${formatRupiah(transferTotal)}`;
-      document.getElementById('valTotalNet').innerText = `Rp ${formatRupiah(netTotal)}`;
-
-      return { cashTotal, qrisTotal, transferTotal, expenseTotal, netTotal };
+      document.getElementById('valCash').innerText = formatCurrency(totals.cash);
+      document.getElementById('valQris').innerText = formatCurrency(totals.qris);
+      document.getElementById('valTransfer').innerText = formatCurrency(totals.transfer);
+      document.getElementById('valTotalNet').innerText = formatCurrency(totalNet);
     }
 
     function renderHistoryList() {
@@ -1018,7 +954,7 @@
       let listOut = (globalRawData.money_out || []).map(o => ({ ...o, type: 'OUT', timestamp: getItemTimestamp(o) }));
       let all = [...listIn, ...listOut];
 
-      if (!session.isOwner && !isSuperUser) {
+      if (!session.isOwner) {
         all = all.filter(item => String(item.CABANG || item.cabang || '').toUpperCase() === currentBranchName.toUpperCase());
       }
 
@@ -1027,14 +963,14 @@
         return;
       }
 
-      all.sort((a, b) => b.timestamp - a.timestamp);
+      all.reverse();
 
       container.innerHTML = all.map((item) => {
         const isIn = item.type === 'IN';
         const badgeColor = isIn ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800';
         
         const nominal = item.NOMINAL || item.nominal || 0;
-        const metode = item.TRANSAKSI || item.transaksi || item.METODE || item.metode || '-';
+        const metode = item.TRANSAKSI || item.transaksi || '-';
         const kasir = item.KASIR || item.kasir || '-';
         const cabang = item.CABANG || item.cabang || currentBranchName;
         
@@ -1064,157 +1000,17 @@
       }).join('');
     }
 
-    function reprintReceipt(nominal, metode, isIn, kasir, cabang, timestamp) {
-      activeReceiptData = {
-        branch: cabang,
-        kasir: kasir,
-        type: isIn ? 'UANG MASUK' : 'PENGELUARAN',
-        method: metode,
-        nominal: `Rp ${formatRupiah(nominal)}`,
-        date: timestamp ? new Date(timestamp).toLocaleString('id-ID') : new Date().toLocaleString('id-ID')
-      };
-      openReceiptModal();
-    }
-
-    function openCloseBookConfirmation() {
-      const totals = calculateLaciTotals();
-      
-      activeCloseBookData = {
-        branch: getSelectedTargetBranch(),
-        kasir: session.user || 'KASIR1',
-        cash: `Rp ${formatRupiah(totals.cashTotal)}`,
-        qris: `Rp ${formatRupiah(totals.qrisTotal)}`,
-        transfer: `Rp ${formatRupiah(totals.transferTotal)}`,
-        expense: `Rp ${formatRupiah(totals.expenseTotal)}`,
-        net: `Rp ${formatRupiah(totals.netTotal)}`,
-        date: new Date().toLocaleString('id-ID')
-      };
-
-      document.getElementById('cbBranchText').innerText = activeCloseBookData.branch;
-      document.getElementById('cbKasirText').innerText = activeCloseBookData.kasir;
-      document.getElementById('cbCashText').innerText = activeCloseBookData.cash;
-      document.getElementById('cbQrisText').innerText = activeCloseBookData.qris;
-      document.getElementById('cbTransferText').innerText = activeCloseBookData.transfer;
-      document.getElementById('cbExpenseText').innerText = activeCloseBookData.expense;
-      document.getElementById('cbNetText').innerText = activeCloseBookData.net;
-
-      document.getElementById('closeBookConfirmModal').classList.remove('hidden');
-    }
-
-    function closeCloseBookConfirmModal() {
-      document.getElementById('closeBookConfirmModal').classList.add('hidden');
-    }
-
-    async function executeCloseBook() {
-      closeCloseBookConfirmModal();
-
-      try {
-        const payload = {
-          action: 'close_book',
-          cabang: activeCloseBookData.branch,
-          kasir: activeCloseBookData.kasir,
-          totals: activeCloseBookData
-        };
-
-        await fetch(WEBHOOK_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-
-      } catch (e) {
-        console.warn('Close book log offline / webhook notice:', e);
-      }
-
-      openCloseBookReceiptModal();
-    }
-
-    function openCloseBookReceiptModal() {
-      if (!activeCloseBookData) return;
-      document.getElementById('cbReceiptBranch').innerText = activeCloseBookData.branch;
-      document.getElementById('cbReceiptKasir').innerText = activeCloseBookData.kasir;
-      document.getElementById('cbReceiptDate').innerText = activeCloseBookData.date;
-      document.getElementById('cbReceiptCash').innerText = activeCloseBookData.cash;
-      document.getElementById('cbReceiptQris').innerText = activeCloseBookData.qris;
-      document.getElementById('cbReceiptTransfer').innerText = activeCloseBookData.transfer;
-      document.getElementById('cbReceiptExpense').innerText = activeCloseBookData.expense;
-      document.getElementById('cbReceiptNet').innerText = activeCloseBookData.net;
-
-      document.getElementById('closeBookReceiptModal').classList.remove('hidden');
-    }
-
-    function closeCloseBookReceiptModal() {
-      document.getElementById('closeBookReceiptModal').classList.add('hidden');
-    }
-
-    async function triggerPrintCloseBook() {
-      if (!activeCloseBookData) return;
-
-      if ('bluetooth' in navigator) {
-        try {
-          if (!cachedBluetoothDevice || !cachedBluetoothDevice.gatt.connected) {
-            cachedBluetoothDevice = await navigator.bluetooth.requestDevice({
-              acceptAllDevices: true,
-              optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb', '49535343-fe7d-4ae5-8fa9-9fafd205e455']
-            });
-          }
-
-          const server = await cachedBluetoothDevice.gatt.connect();
-          let service;
-          try {
-            service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
-          } catch (e) {
-            service = await server.getPrimaryService('49535343-fe7d-4ae5-8fa9-9fafd205e455');
-          }
-
-          const characteristics = await service.getCharacteristics();
-          const characteristic = characteristics[0];
-
-          let encoder = new TextEncoder();
-          let commands = "";
-
-          commands += "\x1B\x40";
-          commands += "\x1B\x61\x01";
-          commands += "\x1B\x45\x01WARUNG ACIL\x1B\x45\x00\n";
-          commands += "LAPORAN TUTUP BUKU\n";
-          commands += activeCloseBookData.date + "\n";
-          commands += "--------------------------------\n";
-          commands += "\x1B\x61\x00"; 
-          commands += "Cabang  : " + activeCloseBookData.branch + "\n";
-          commands += "Kasir   : " + activeCloseBookData.kasir + "\n";
-          commands += "--------------------------------\n";
-          commands += "PENDAPATAN (IN):\n";
-          commands += " - CASH     : " + activeCloseBookData.cash + "\n";
-          commands += " - QRIS     : " + activeCloseBookData.qris + "\n";
-          commands += " - TRANSFER : " + activeCloseBookData.transfer + "\n\n";
-          commands += "PENGELUARAN (OUT):\n";
-          commands += "            : " + activeCloseBookData.expense + "\n";
-          commands += "--------------------------------\n";
-          commands += "TOTAL BERSIH (NET):\n";
-          commands += "\x1B\x61\x01\x1B\x45\x01" + activeCloseBookData.net + "\x1B\x45\x00\n";
-          commands += "\x1B\x61\x01";
-          commands += "================================\n";
-          commands += "*** Sesi Ditutup ***\n\n\n\n";
-
-          await characteristic.writeValue(encoder.encode(commands));
-          return;
-        } catch (error) {
-          console.error('Error Web Bluetooth Rekap:', error);
-          cachedBluetoothDevice = null;
-        }
-      }
-
-      window.print();
-    }
-
-    function formatRupiah(val) {
-      return Number(val || 0).toLocaleString('id-ID');
+    function reprintReceipt(nominal, method, isIn, kasir, cabang, dateStr) {
+      openReceiptModal(nominal, method, isIn, kasir, cabang, dateStr);
+      setTimeout(() => { triggerPrint(); }, 200);
     }
 
     function logout() {
       localStorage.removeItem('warung_acil_session');
       window.location.href = 'index.html';
     }
+
+    loadDashboardData();
   </script>
 </body>
 </html>
