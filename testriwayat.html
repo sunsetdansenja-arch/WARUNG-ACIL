@@ -640,14 +640,17 @@
       }
 
       if (isFastMode) {
-        let hasMultiplyOrDivide = tokensToEval.some(t => t === '*' || t === '/');
-        tokensToEval = tokensToEval.map(t => {
+        tokensToEval = tokensToEval.map((t, index) => {
           if (!isNaN(t) && t !== '') {
             let val = parseFloat(t);
-            if (!hasMultiplyOrDivide) {
-              val = val * 1000;
+            const prevOp = index > 0 ? tokensToEval[index - 1] : null;
+            const nextOp = index < tokensToEval.length - 1 ? tokensToEval[index + 1] : null;
+
+            // Jangan dikali 1000 jika angka ini bersebelahan dengan operator perkalian (*) atau pembagian (/)
+            if (prevOp === '*' || prevOp === '/' || nextOp === '*' || nextOp === '/') {
+              return val.toString();
             }
-            return val.toString();
+            return (val * 1000).toString();
           }
           return t;
         });
