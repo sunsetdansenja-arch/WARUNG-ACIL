@@ -142,7 +142,7 @@
     <div id="fastModeBanner" class="hidden bg-amber-500/10 border border-amber-500/30 text-amber-400 p-3 rounded-2xl text-xs mb-3 flex justify-between items-center shadow-xs">
       <div class="flex items-center gap-2">
         <span class="animate-pulse text-base">⚡</span>
-        <span><b>MODE CEPAT AKTIF:</b> Angka ketik manual otomatis x1000 (misal tekan 15 = 15.000), kecuali hasil tombol (=), perkalian (×) & pembagian (÷).</span>
+        <span><b>MODE CEPAT AKTIF:</b> Angka ketik manual otomatis x1000 (misal tekan 2 = 2.000, 15 = 15.000), kecuali hasil tombol (=), perkalian (×) & pembagian (÷).</span>
       </div>
     </div>
 
@@ -447,6 +447,7 @@
       isFastMode = !isFastMode;
       localStorage.setItem('warung_acil_fastmode', isFastMode);
       applyFastModeUI();
+      updateCalcDisplay();
     }
 
     function applyFastModeUI() {
@@ -494,6 +495,9 @@
       }
     }
 
+    // =========================================================================
+    // UPDATE DISPLAY: SEGERA TAMPILKAN PREVIEW X1000 SAAT MODE CEPAT AKTIF
+    // =========================================================================
     function updateCalcDisplay() {
       const calcFormula = document.getElementById('calcFormula');
       const calcDisplay = document.getElementById('calcDisplay');
@@ -512,9 +516,23 @@
 
       calcFormula.innerText = formulaStr;
 
-      const lastToken = inputTokens[inputTokens.length - 1];
+      const lastIdx = inputTokens.length - 1;
+      const lastToken = inputTokens[lastIdx];
+
       if (!isNaN(lastToken)) {
-        calcDisplay.innerText = formatRupiahDisplay(lastToken);
+        let displayVal = parseFloat(lastToken);
+
+        // Jika Mode Cepat aktif, bukan hasil '=', dan angka belum bernilai ribuan (misal kasir ketik '2')
+        // Maka langsung tampilkan preview '2.000' secara real-time
+        if (isFastMode && !isEvaluated) {
+          const prevOp = lastIdx > 0 ? inputTokens[lastIdx - 1] : null;
+          
+          if (prevOp !== '*' && prevOp !== '/' && displayVal < 1000 && displayVal % 1 === 0) {
+            displayVal = displayVal * 1000;
+          }
+        }
+
+        calcDisplay.innerText = formatRupiahDisplay(displayVal.toString());
       } else {
         calcDisplay.innerText = lastToken === '*' ? '×' : (lastToken === '/' ? '÷' : lastToken);
       }
@@ -589,8 +607,6 @@
     }
 
     function pressOp(op) {
-      // Jika tombol operator ditekan setelah sama dengan (=), 
-      // simpan hasil angka sebelumnya sebagai angka utuh dan lanjutkan operasi baru.
       isEvaluated = false;
       if (inputTokens.length === 0) {
         if (op === '-') inputTokens.push('0', '-');
@@ -632,9 +648,6 @@
       updateCalcDisplay();
     }
 
-    // =========================================================================
-    // PERBAIKAN LOGIKA EVALUASI MODE CEPAT
-    // =========================================================================
     function evaluateTokens() {
       if (inputTokens.length === 0) return 0;
 
@@ -651,18 +664,14 @@
             const prevOp = index > 0 ? tokensToEval[index - 1] : null;
             const nextOp = index < tokensToEval.length - 1 ? tokensToEval[index + 1] : null;
 
-            // 1. Pengecualian Perkalian & Pembagian
             if (prevOp === '*' || prevOp === '/' || nextOp === '*' || nextOp === '/') {
               return val.toString();
             }
 
-            // 2. Pengecualian Hasil Kalkulasi yang Sudah Bernilai Utuh (Misal >= 1000 atau nominal murni)
-            // Angka hasil tombol '=' yang sudah bernilai puluhan/ratusan ribu tidak dikali 1000 lagi
             if (val >= 1000 || val % 1 !== 0) {
               return val.toString();
             }
 
-            // 3. Hanya angka input manual kasir biasa yang dikali 1000
             return (val * 1000).toString();
           }
           return t;
@@ -748,9 +757,6 @@
       document.getElementById('paymentModal').classList.add('hidden');
     }
 
-    // =========================================================================
-    // SUBMIT TRANSAKSI BERDASARKAN PAYLOAD BACKEND
-    // =========================================================================
     async function submitTransaction(metode) {
       closePaymentModal();
       
@@ -864,9 +870,6 @@
       return isNaN(parsed) ? 0 : parsed;
     }
 
-    // =========================================================================
-    // FETCH HISTORY DATA DARI WEBHOOK N8N
-    // =========================================================================
     async function loadDashboardData() {
       try {
         const payload = { action: 'get_data' };
@@ -884,7 +887,6 @@
         let extractedIn = [];
         let extractedOut = [];
 
-        // Penjelajah Objek Dinamis
         const searchData = (obj) => {
           if (!obj || typeof obj !== 'object') return;
 
