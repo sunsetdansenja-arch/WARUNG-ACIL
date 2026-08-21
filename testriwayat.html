@@ -402,7 +402,7 @@
     }
 
     // ==========================================
-    // LOGIKA KALKULATOR
+    // LOGIKA KALKULATOR (TELAH DIPERBAIKI)
     // ==========================================
     function pressNum(num) {
       if (isEvaluated) {
@@ -493,9 +493,15 @@
       updateDisplay();
     }
 
-    function processTokenValue(token, prevOperator) {
+    function processTokenValue(token, prevOperator, index) {
       let num = parseFloat(token);
       if (isNaN(num)) return 0;
+
+      // PERBAIKAN: Jika token adalah operand pertama DAN baru saja selesai dihitung (isEvaluated),
+      // nilainya sudah dalam skala riil (ribuan), jangan dikalikan 1000 lagi.
+      if (isEvaluated && index === 0) {
+        return num;
+      }
 
       // Jika Mode Cepat ON & bukan setelah operator kali/bagi, otomatis dikali 1000
       if (isFastMode && prevOperator !== '*' && prevOperator !== '/') {
@@ -524,7 +530,6 @@
     function updateDisplay() {
       let currentVal = calculateDisplayVal();
       
-      // Susun formula dengan format visual ribuan yang rapi di layar atas
       let formattedFormula = [];
       let lastOp = null;
 
@@ -535,12 +540,8 @@
           let displayOp = t === '*' ? '×' : (t === '/' ? '÷' : t);
           formattedFormula.push(displayOp);
         } else {
-          if (isEvaluated) {
-            formattedFormula.push(new Intl.NumberFormat('id-ID').format(parseFloat(t)));
-          } else {
-            let val = processTokenValue(t, lastOp);
-            formattedFormula.push(new Intl.NumberFormat('id-ID').format(val));
-          }
+          let val = processTokenValue(t, lastOp, i);
+          formattedFormula.push(new Intl.NumberFormat('id-ID').format(val));
         }
       }
 
@@ -552,10 +553,6 @@
     function calculateDisplayVal() {
       if (inputTokens.length === 0) return 0;
 
-      if (isEvaluated && inputTokens.length === 1) {
-        return parseFloat(inputTokens[0]) || 0;
-      }
-
       let tokens = [...inputTokens];
       let evaluatedTokens = [];
       let lastOp = null;
@@ -566,7 +563,7 @@
           lastOp = t;
           evaluatedTokens.push(t);
         } else {
-          evaluatedTokens.push(processTokenValue(t, lastOp));
+          evaluatedTokens.push(processTokenValue(t, lastOp, i));
         }
       }
 
