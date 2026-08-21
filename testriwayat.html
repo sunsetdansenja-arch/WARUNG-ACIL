@@ -142,7 +142,7 @@
     <div id="fastModeBanner" class="hidden bg-amber-500/10 border border-amber-500/30 text-amber-400 p-3 rounded-2xl text-xs mb-3 flex justify-between items-center shadow-xs">
       <div class="flex items-center gap-2">
         <span class="animate-pulse text-base">⚡</span>
-        <span><b>MODE CEPAT AKTIF:</b> Angka otomatis x1000 (misal tekan 15 = 15.000), kecuali operasi kali (×) & bagi (÷).</span>
+        <span><b>MODE CEPAT AKTIF:</b> Angka ketik manual otomatis x1000 (misal tekan 15 = 15.000), kecuali hasil tombol (=), perkalian (×) & pembagian (÷).</span>
       </div>
     </div>
 
@@ -589,6 +589,8 @@
     }
 
     function pressOp(op) {
+      // Jika tombol operator ditekan setelah sama dengan (=), 
+      // simpan hasil angka sebelumnya sebagai angka utuh dan lanjutkan operasi baru.
       isEvaluated = false;
       if (inputTokens.length === 0) {
         if (op === '-') inputTokens.push('0', '-');
@@ -630,6 +632,9 @@
       updateCalcDisplay();
     }
 
+    // =========================================================================
+    // PERBAIKAN LOGIKA EVALUASI MODE CEPAT
+    // =========================================================================
     function evaluateTokens() {
       if (inputTokens.length === 0) return 0;
 
@@ -646,10 +651,18 @@
             const prevOp = index > 0 ? tokensToEval[index - 1] : null;
             const nextOp = index < tokensToEval.length - 1 ? tokensToEval[index + 1] : null;
 
-            // Jangan dikali 1000 jika angka ini bersebelahan dengan operator perkalian (*) atau pembagian (/)
+            // 1. Pengecualian Perkalian & Pembagian
             if (prevOp === '*' || prevOp === '/' || nextOp === '*' || nextOp === '/') {
               return val.toString();
             }
+
+            // 2. Pengecualian Hasil Kalkulasi yang Sudah Bernilai Utuh (Misal >= 1000 atau nominal murni)
+            // Angka hasil tombol '=' yang sudah bernilai puluhan/ratusan ribu tidak dikali 1000 lagi
+            if (val >= 1000 || val % 1 !== 0) {
+              return val.toString();
+            }
+
+            // 3. Hanya angka input manual kasir biasa yang dikali 1000
             return (val * 1000).toString();
           }
           return t;
