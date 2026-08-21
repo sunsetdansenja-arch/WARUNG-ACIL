@@ -97,7 +97,7 @@
 
   <main class="max-w-4xl mx-auto px-4 py-6 space-y-6">
 
-    <!-- Navigasi Cepat Ke Seluruh Modul (Opsi Kasir Dihapus) -->
+    <!-- Navigasi Cepat Ke Seluruh Modul -->
     <div class="bg-[#1C1D21] rounded-xl p-4 shadow-xl border border-[#2A2B30]">
       <h2 class="text-xs font-bold text-[#8E929B] uppercase tracking-widest font-mono-tech mb-3 flex items-center gap-2">
         <i class="fa-solid fa-compass text-[#53627D]"></i> NAVIGASI MODUL APLIKASI
@@ -205,7 +205,7 @@
     <div class="bg-[#1C1D21] rounded-xl p-4 shadow-xl border border-[#2A2B30] space-y-3">
       <div class="flex justify-between items-center border-b border-[#2A2B30] pb-2">
         <h3 class="font-bold text-xs text-white font-mono-tech uppercase tracking-wider flex items-center gap-2">
-          <i class="fa-solid fa-[#53627D] fa-chart-pie text-emerald-400"></i> PERFORMA CABANG (BUKU BARU - PASCA TUTUP BUKU)
+          <i class="fa-solid fa-chart-pie text-emerald-400"></i> PERFORMA CABANG (BUKU BARU - PASCA TUTUP BUKU)
         </h3>
         <span class="text-[10px] text-[#8E929B] font-mono-tech">6 Cabang Active</span>
       </div>
@@ -234,7 +234,7 @@
               <th class="p-2.5">Cabang</th>
               <th class="p-2.5">Pemasukan</th>
               <th class="p-2.5">Pengeluaran</th>
-              <th class="p-2.5">Laba Bersih</th>
+              <th class="p-2.5">Laba / Omset</th>
             </tr>
           </thead>
           <tbody id="branchRankTable" class="divide-y divide-[#2A2B30]">
@@ -275,7 +275,7 @@
     const notificationQueue = [];
     let isProcessingQueue = false;
 
-    const fmt = (v) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(v);
+    const fmt = (v) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(v || 0);
 
     function parseBranchName(rawCabang) {
       if (!rawCabang) return "Cabang Tidak Terdaftar";
@@ -292,7 +292,7 @@
     }
 
     function getUniqueKey(item) {
-      return item.id || `${item.createdAt}_${item.NOMINAL}_${item.CABANG}_${item.KASIR}`;
+      return item.id || `${item.createdAt || item.TANGGAL}_${item.NOMINAL || item.nominal}_${item.CABANG || item.cabang}_${item.KASIR || item.kasir}`;
     }
 
     async function loadMasterData() {
@@ -300,15 +300,16 @@
         const res = await fetch(WEBHOOK_URL, {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({ action: 'get_data' })
+          body: JSON.stringify({ action: 'get_master' })
         });
         const resData = await res.json();
         const raw = Array.isArray(resData) ? resData[0] : resData;
+        const payload = raw?.json?.data || raw?.data || raw;
 
-        if (raw && raw.success) {
-          processOmsetAndBranch(raw.data);
-          processShiftLogs(raw.data.pembukuan || []);
-          processNewBookPerBranch(raw.data);
+        if (payload) {
+          processOmsetAndBranch(payload);
+          processShiftLogs(payload.pembukuan || []);
+          processNewBookPerBranch(payload);
         }
       } catch (err) {
         console.error('Gagal mengambil data master:', err);
@@ -325,10 +326,11 @@
         });
         const resData = await res.json();
         const raw = Array.isArray(resData) ? resData[0] : resData;
+        const payload = raw?.json?.data || raw?.data || raw;
 
-        if (raw && raw.success && raw.data) {
-          const recentIn = raw.data.recent_in || [];
-          const recentOut = raw.data.recent_out || [];
+        if (payload) {
+          const recentIn = payload.recent_in || payload.money_in || [];
+          const recentOut = payload.recent_out || payload.money_out || [];
 
           let hasNew = false;
 
@@ -339,11 +341,11 @@
               hasNew = true;
               notificationQueue.push({
                 type: 'IN',
-                branch: parseBranchName(item.CABANG),
-                nominal: fmt(item.NOMINAL || 0),
-                kasir: item.KASIR || 'Kasir',
-                metode: item.TRANSAKSI || 'Cash',
-                time: item.createdAt ? new Date(item.createdAt).toLocaleTimeString('id-ID') : new Date().toLocaleTimeString('id-ID')
+                branch: parseBranchName(item.CABANG || item.cabang),
+                nominal: fmt(item.NOMINAL || item.nominal || 0),
+                kasir: item.KASIR || item.kasir || 'Kasir',
+                metode: item.TRANSAKSI || item.kategori || item.METODE || item.metode || 'Cash',
+                time: item.createdAt || item.TANGGAL ? new Date(item.createdAt || item.TANGGAL).toLocaleTimeString('id-ID') : new Date().toLocaleTimeString('id-ID')
               });
             }
           });
@@ -355,11 +357,11 @@
               hasNew = true;
               notificationQueue.push({
                 type: 'OUT',
-                branch: parseBranchName(item.CABANG),
-                nominal: fmt(item.NOMINAL || 0),
-                kasir: item.KASIR || 'Kasir',
+                branch: parseBranchName(item.CABANG || item.cabang),
+                nominal: fmt(item.NOMINAL || item.nominal || 0),
+                kasir: item.KASIR || item.kasir || 'Kasir',
                 metode: 'Pengeluaran',
-                time: item.createdAt ? new Date(item.createdAt).toLocaleTimeString('id-ID') : new Date().toLocaleTimeString('id-ID')
+                time: item.createdAt || item.TANGGAL ? new Date(item.createdAt || item.TANGGAL).toLocaleTimeString('id-ID') : new Date().toLocaleTimeString('id-ID')
               });
             }
           });
@@ -446,8 +448,8 @@
       shiftContainer.innerHTML = sorted.map(item => {
         const timeStr = item.createdAt || item.WAKTU_TUTUP_BUKU || item.TANGGAL;
         const formattedDate = timeStr ? new Date(timeStr).toLocaleString('id-ID') : '-';
-        const branchName = parseBranchName(item.CABANG);
-        const kasir = item.KASIR || item.ADMIN || 'Kasir';
+        const branchName = parseBranchName(item.CABANG || item.cabang);
+        const kasir = item.KASIR || item.ADMIN || item.kasir || 'Kasir';
         
         const totalMasuk = Number(item.TOTAL_MASUK || item.total_masuk || 0);
         const totalKeluar = Number(item.TOTAL_KELUAR || item.total_keluar || 0);
@@ -485,7 +487,7 @@
       MASTER_BRANCHES.forEach(b => branchLastCloseMap[b] = new Date(0));
 
       allPembukuan.forEach(p => {
-        const bName = parseBranchName(p.CABANG);
+        const bName = parseBranchName(p.CABANG || p.cabang);
         const rawDate = p.createdAt || p.WAKTU_TUTUP_BUKU || p.TANGGAL;
         if (rawDate) {
           const d = new Date(rawDate);
@@ -502,24 +504,24 @@
       });
 
       allIn.forEach(i => {
-        const bName = parseBranchName(i.CABANG);
+        const bName = parseBranchName(i.CABANG || i.cabang);
         const rawDate = i.createdAt || i.TANGGAL;
         if (branchStats[bName] && rawDate) {
           const d = new Date(rawDate);
           if (!isNaN(d.getTime()) && d >= branchStats[bName].lastClose) {
-            const nom = Number(i.NOMINAL || 0);
+            const nom = Number(i.NOMINAL || i.nominal || 0);
             branchStats[bName].masuk += nom;
           }
         }
       });
 
       allOut.forEach(o => {
-        const bName = parseBranchName(o.CABANG);
+        const bName = parseBranchName(o.CABANG || o.cabang);
         const rawDate = o.createdAt || o.TANGGAL;
         if (branchStats[bName] && rawDate) {
           const d = new Date(rawDate);
           if (!isNaN(d.getTime()) && d >= branchStats[bName].lastClose) {
-            const nom = Number(o.NOMINAL || 0);
+            const nom = Number(o.NOMINAL || o.nominal || 0);
             branchStats[bName].keluar += nom;
           }
         }
@@ -550,7 +552,7 @@
                 <span class="font-bold text-rose-400">${fmt(stat.keluar)}</span>
               </div>
               <div class="flex justify-between border-t border-[#2A2B30] pt-1.5 text-white">
-                <span class="font-bold">Omset / Laba:</span>
+                <span class="font-bold">Laba / Omset:</span>
                 <span class="font-bold text-emerald-300">${fmt(omsetBersih)}</span>
               </div>
             </div>
@@ -571,10 +573,13 @@
       };
 
       listIn.forEach(i => {
-        if (!i.createdAt) return;
-        const d = new Date(i.createdAt);
-        const nom = Number(i.NOMINAL || 0);
-        const method = String(i.TRANSAKSI || '').toLowerCase();
+        const rawDate = i.createdAt || i.TANGGAL;
+        if (!rawDate) return;
+        const d = new Date(rawDate);
+        if (isNaN(d.getTime())) return;
+
+        const nom = Number(i.NOMINAL || i.nominal || 0);
+        const method = String(i.TRANSAKSI || i.kategori || i.METODE || i.metode || '').toLowerCase();
 
         if (d.toDateString() === now.toDateString()) {
           stats.hariIni.total += nom;
@@ -618,15 +623,15 @@
       MASTER_BRANCHES.forEach(b => branchStats[b] = { masuk: 0, keluar: 0 });
 
       listIn.forEach(i => {
-        const branchName = parseBranchName(i.CABANG);
+        const branchName = parseBranchName(i.CABANG || i.cabang);
         if (!branchStats[branchName]) branchStats[branchName] = { masuk: 0, keluar: 0 };
-        branchStats[branchName].masuk += Number(i.NOMINAL || 0);
+        branchStats[branchName].masuk += Number(i.NOMINAL || i.nominal || 0);
       });
 
       listOut.forEach(o => {
-        const branchName = parseBranchName(o.CABANG);
+        const branchName = parseBranchName(o.CABANG || o.cabang);
         if (!branchStats[branchName]) branchStats[branchName] = { masuk: 0, keluar: 0 };
-        branchStats[branchName].keluar += Number(o.NOMINAL || 0);
+        branchStats[branchName].keluar += Number(o.NOMINAL || o.nominal || 0);
       });
 
       const sortedBranches = Object.keys(branchStats).map(name => ({
