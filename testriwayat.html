@@ -387,6 +387,7 @@
 
     let inputTokens = []; 
     let isEvaluated = false;
+    let rawEvaluatedNumber = null; // Menyimpan angka murni hasil evaluasi terakhir
     let finalCalculatedNominal = 0;
     let finalActionType = 'in';
 
@@ -531,6 +532,7 @@
       if (isEvaluated) {
         inputTokens = [];
         isEvaluated = false;
+        rawEvaluatedNumber = null;
       }
 
       if (inputTokens.length === 0) {
@@ -555,6 +557,7 @@
       if (isEvaluated) {
         inputTokens = [];
         isEvaluated = false;
+        rawEvaluatedNumber = null;
       }
       if (inputTokens.length === 0) return;
       const lastIdx = inputTokens.length - 1;
@@ -571,6 +574,7 @@
       if (isEvaluated) {
         inputTokens = [];
         isEvaluated = false;
+        rawEvaluatedNumber = null;
       }
       if (inputTokens.length === 0) {
         inputTokens.push('0.');
@@ -589,7 +593,14 @@
     }
 
     function pressOp(op) {
-      isEvaluated = false;
+      if (isEvaluated && rawEvaluatedNumber !== null) {
+        // Jika sudah di-evaluate (sudah ditekan '='), gunakan hasil angka murninya dalam mode standar
+        // agar tidak terkena penggandaan x1000 saat kalkulasi berlanjut
+        inputTokens = [(rawEvaluatedNumber / (isFastMode ? 1000 : 1)).toString()];
+        isEvaluated = false;
+        rawEvaluatedNumber = null;
+      }
+
       if (inputTokens.length === 0) {
         if (op === '-') inputTokens.push('0', '-');
         return;
@@ -609,6 +620,7 @@
     function clearCalc() {
       inputTokens = [];
       isEvaluated = false;
+      rawEvaluatedNumber = null;
       updateCalcDisplay();
     }
 
@@ -668,6 +680,7 @@
 
     function calculateResult() {
       const res = evaluateTokens();
+      rawEvaluatedNumber = res;
       finalCalculatedNominal = Math.abs(res);
       finalActionType = res < 0 ? 'out' : 'in';
 
@@ -683,7 +696,7 @@
       if (!isEvaluated) {
         nominal = evaluateTokens();
       } else {
-        nominal = parseFloat(inputTokens[0] || '0');
+        nominal = rawEvaluatedNumber !== null ? rawEvaluatedNumber : parseFloat(inputTokens[0] || '0');
       }
 
       if (!nominal || nominal === 0) {
