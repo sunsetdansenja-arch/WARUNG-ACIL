@@ -495,9 +495,6 @@
       }
     }
 
-    // =========================================================================
-    // UPDATE DISPLAY: SEGERA TAMPILKAN PREVIEW X1000 SAAT MODE CEPAT AKTIF
-    // =========================================================================
     function updateCalcDisplay() {
       const calcFormula = document.getElementById('calcFormula');
       const calcDisplay = document.getElementById('calcDisplay');
@@ -522,8 +519,6 @@
       if (!isNaN(lastToken)) {
         let displayVal = parseFloat(lastToken);
 
-        // Jika Mode Cepat aktif, bukan hasil '=', dan angka belum bernilai ribuan (misal kasir ketik '2')
-        // Maka langsung tampilkan preview '2.000' secara real-time
         if (isFastMode && !isEvaluated) {
           const prevOp = lastIdx > 0 ? inputTokens[lastIdx - 1] : null;
           
@@ -757,15 +752,18 @@
       document.getElementById('paymentModal').classList.add('hidden');
     }
 
+    // =========================================================================
+    // SUBMIT TRANSACTION DENGAN ALUR CETAK OTOMATIS RESI
+    // =========================================================================
     async function submitTransaction(metode) {
       closePaymentModal();
       
       const payload = {
-        action: finalActionType,                       // "in" atau "out"
-        nominal: String(finalCalculatedNominal),       // Nominal dalam format String
-        transaksi: String(metode).toUpperCase(),      // "CASH", "QRIS", atau "TRANSFER"
-        kasir: session.user || 'KASIR1',               // Identifier kasir aktif
-        cabang: getSelectedTargetBranch()              // Nama/akses cabang tujuan
+        action: finalActionType,                       
+        nominal: String(finalCalculatedNominal),       
+        transaksi: String(metode).toUpperCase(),      
+        kasir: session.user || 'KASIR1',               
+        cabang: getSelectedTargetBranch()              
       };
 
       try {
@@ -790,6 +788,11 @@
         openReceiptModal();
         loadDashboardData();
 
+        // ALUR CETAK OTOMATIS: Langsung memicu percetakan tanpa klik tombol manual tambahan
+        setTimeout(() => {
+          triggerPrint();
+        }, 200);
+
       } catch (error) {
         alert('Terjadi kesalahan saat menyimpan transaksi: ' + error.message);
       }
@@ -810,6 +813,9 @@
       document.getElementById('receiptModal').classList.add('hidden');
     }
 
+    // =========================================================================
+    // CETAK BLUETOOTH DIRECT
+    // =========================================================================
     async function triggerPrint() {
       if (!activeReceiptData) return;
       
@@ -1066,6 +1072,9 @@
       }).join('');
     }
 
+    // =========================================================================
+    // FITUR CETAK ULANG STRUK (REPRINT RECEIPT)
+    // =========================================================================
     function reprintReceipt(nominal, metode, isIn, kasir, cabang, timestamp) {
       activeReceiptData = {
         branch: cabang,
@@ -1129,6 +1138,11 @@
       }
 
       openCloseBookReceiptModal();
+      
+      // Auto print rekap saat tutup buku
+      setTimeout(() => {
+        triggerPrintCloseBook();
+      }, 200);
     }
 
     function openCloseBookReceiptModal() {
