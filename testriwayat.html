@@ -813,6 +813,35 @@
       document.getElementById('receiptModal').classList.add('hidden');
     }
 
+    // Helper untuk koneksi & reconnect Web Bluetooth
+    async function getBluetoothCharacteristic() {
+      const services = ['000018f0-0000-1000-8000-00805f9b34fb', '49535343-fe7d-4ae5-8fa9-9fafd205e455'];
+      
+      // Minta izin ke user jika perangkat belum tersimpan
+      if (!cachedBluetoothDevice) {
+        cachedBluetoothDevice = await navigator.bluetooth.requestDevice({
+          acceptAllDevices: true,
+          optionalServices: services
+        });
+      }
+
+      // Reconnect otomatis jika koneksi terputus
+      if (!cachedBluetoothDevice.gatt.connected) {
+        await cachedBluetoothDevice.gatt.connect();
+      }
+
+      const server = cachedBluetoothDevice.gatt;
+      let service;
+      try {
+        service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
+      } catch (e) {
+        service = await server.getPrimaryService('49535343-fe7d-4ae5-8fa9-9fafd205e455');
+      }
+
+      const characteristics = await service.getCharacteristics();
+      return characteristics[0];
+    }
+
     // =========================================================================
     // CETAK BLUETOOTH DIRECT
     // =========================================================================
@@ -821,23 +850,7 @@
       
       if ('bluetooth' in navigator) {
         try {
-          if (!cachedBluetoothDevice || !cachedBluetoothDevice.gatt.connected) {
-            cachedBluetoothDevice = await navigator.bluetooth.requestDevice({
-              acceptAllDevices: true,
-              optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb', '49535343-fe7d-4ae5-8fa9-9fafd205e455']
-            });
-          }
-
-          const server = await cachedBluetoothDevice.gatt.connect();
-          let service;
-          try {
-            service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
-          } catch (e) {
-            service = await server.getPrimaryService('49535343-fe7d-4ae5-8fa9-9fafd205e455');
-          }
-
-          const characteristics = await service.getCharacteristics();
-          const characteristic = characteristics[0];
+          const characteristic = await getBluetoothCharacteristic();
 
           let encoder = new TextEncoder();
           let commands = "";
@@ -862,6 +875,7 @@
           return;
         } catch (error) {
           console.warn('Web Bluetooth gagal/dibatalkan, fallback ke window.print():', error);
+          cachedBluetoothDevice = null;
         }
       }
 
@@ -1174,23 +1188,7 @@
 
       if ('bluetooth' in navigator) {
         try {
-          if (!cachedBluetoothDevice || !cachedBluetoothDevice.gatt.connected) {
-            cachedBluetoothDevice = await navigator.bluetooth.requestDevice({
-              acceptAllDevices: true,
-              optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb', '49535343-fe7d-4ae5-8fa9-9fafd205e455']
-            });
-          }
-
-          const server = await cachedBluetoothDevice.gatt.connect();
-          let service;
-          try {
-            service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
-          } catch (e) {
-            service = await server.getPrimaryService('49535343-fe7d-4ae5-8fa9-9fafd205e455');
-          }
-
-          const characteristics = await service.getCharacteristics();
-          const characteristic = characteristics[0];
+          const characteristic = await getBluetoothCharacteristic();
 
           let encoder = new TextEncoder();
           let commands = "";
