@@ -1119,12 +1119,18 @@
     async function executeCloseBook() {
       closeCloseBookConfirmModal();
 
+      const totals = calculateLaciTotals();
+
       try {
         const payload = {
           action: 'close_book',
           cabang: activeCloseBookData.branch,
           kasir: activeCloseBookData.kasir,
-          totals: activeCloseBookData
+          totals: {
+            ...activeCloseBookData,
+            money_in: totals.cashTotal + totals.qrisTotal + totals.transferTotal,
+            money_out: totals.expenseTotal
+          }
         };
 
         await fetch(WEBHOOK_URL, {
