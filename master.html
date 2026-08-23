@@ -3,230 +3,356 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Aplikasi Web</title>
+  <title>Master Dashboard - Warung Acil</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- External Config Script -->
+  <script src="config.js"></script>
+
   <style>
-    /* Root Variables & Reset */
-    :root {
-      --bg-color: #f5f5f7;
-      --card-bg: rgba(255, 255, 255, 0.8);
-      --accent-color: #0071e3;
-      --accent-hover: #0077ed;
-      --text-color: #1d1d1f;
-      --secondary-text: #86868b;
-      --border-radius: 18px;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    }
-
     body {
-      background-color: var(--bg-color);
-      color: var(--text-color);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      padding: 16px;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #f8fafc;
+      color: #0f172a;
     }
 
-    /* Loading Screen Overlay */
-    #loading-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(245, 245, 247, 0.85);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      z-index: 9999;
-      opacity: 1;
-      transition: opacity 0.4s ease-out, visibility 0.4s;
+    .glass-card {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(226, 232, 240, 0.8);
     }
 
-    #loading-overlay.hidden {
+    .apple-shadow {
+      box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.04), 0 4px 12px -2px rgba(0, 0, 0, 0.02);
+    }
+
+    /* Loading Overlay Glassmorphism Animation */
+    #loadingOverlay {
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+    #loadingOverlay.hidden-overlay {
       opacity: 0;
       visibility: hidden;
+      pointer-events: none;
     }
-
+    
     .spinner {
-      width: 44px;
-      height: 44px;
-      border: 3px solid rgba(0, 0, 0, 0.1);
-      border-top-color: var(--accent-color);
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
+      border-top-color: #0f172a;
+      animation: spinner 0.8s linear infinite;
     }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    .loading-text {
-      margin-top: 16px;
-      font-size: 0.95rem;
-      color: var(--secondary-text);
-      font-weight: 500;
-    }
-
-    /* Layout Container & Responsiveness */
-    .container {
-      width: 100%;
-      max-width: 600px;
-      background: var(--card-bg);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border-radius: var(--border-radius);
-      padding: 24px;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
-      border: 1px solid rgba(255, 255, 255, 0.4);
-    }
-
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 24px;
-      flex-wrap: wrap;
-      gap: 12px;
-    }
-
-    .title {
-      font-size: 1.5rem;
-      font-weight: 600;
-      letter-spacing: -0.02em;
-    }
-
-    /* Primary & Admin Button Styling */
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 10px 18px;
-      font-size: 0.9rem;
-      font-weight: 500;
-      border-radius: 12px;
-      border: none;
-      cursor: pointer;
-      text-decoration: none;
-      transition: all 0.2s ease;
-    }
-
-    .btn-admin {
-      background-color: rgba(0, 0, 0, 0.05);
-      color: var(--text-color);
-      border: 1px solid rgba(0, 0, 0, 0.1);
-    }
-
-    .btn-admin:hover {
-      background-color: rgba(0, 0, 0, 0.1);
-    }
-
-    .btn-primary {
-      background-color: var(--accent-color);
-      color: #ffffff;
-      width: 100%;
-      padding: 14px;
-      margin-top: 16px;
-      font-size: 1rem;
-    }
-
-    .btn-primary:hover {
-      background-color: var(--accent-hover);
-    }
-
-    .content-box {
-      background: rgba(255, 255, 255, 0.6);
-      padding: 20px;
-      border-radius: 14px;
-      border: 1px solid rgba(0, 0, 0, 0.04);
-      margin-bottom: 16px;
-    }
-
-    /* Mobile & Tablet Specific Queries */
-    @media (max-width: 768px) {
-      .container {
-        padding: 20px;
-        border-radius: 14px;
-      }
-
-      .title {
-        font-size: 1.3rem;
-      }
-
-      .header {
-        align-items: flex-start;
-      }
-    }
-
-    @media (max-width: 480px) {
-      body {
-        padding: 12px;
-      }
-
-      .header {
-        flex-direction: column;
-        align-items: stretch;
-      }
-
-      .btn-admin {
-        width: 100%;
-        text-align: center;
-      }
+    @keyframes spinner {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
   </style>
 </head>
-<body>
+<body class="min-h-screen pb-16 relative">
 
-  <!-- Loading Overlay -->
-  <div id="loading-overlay">
-    <div class="spinner"></div>
-    <div class="loading-text">Memuat halaman...</div>
+  <!-- LOADING OVERLAY ANIMATION -->
+  <div id="loadingOverlay" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-900/20 backdrop-blur-md hidden-overlay">
+    <div class="glass-card p-6 rounded-3xl apple-shadow flex flex-col items-center space-y-3">
+      <div class="w-10 h-10 border-4 border-slate-200 rounded-full spinner"></div>
+      <p class="text-xs font-semibold text-slate-700">Memuat Data Master...</p>
+    </div>
   </div>
 
-  <!-- Main Container -->
-  <div class="container">
-    <div class="header">
-      <h1 class="title">Dashboard Utama</h1>
-      <!-- Tombol Navigasi ke admin.html -->
-      <a href="admin.html" class="btn btn-admin">Panel Admin</a>
-    </div>
+  <!-- TOP BAR / HEADER -->
+  <header class="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-200/80">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-2xl bg-slate-900 text-white flex items-center justify-center font-bold text-lg shadow-sm">
+          WA
+        </div>
+        <div>
+          <h1 class="font-bold text-base text-slate-900 leading-tight">Master Dashboard</h1>
+          <p class="text-xs text-slate-500 font-medium">Warung Acil Group</p>
+        </div>
+      </div>
 
-    <div class="content-box">
-      <p style="color: var(--secondary-text); font-size: 0.95rem; line-height: 1.5;">
-        Sistem telah dikonfigurasi untuk menyesuaikan tata letak pada perangkat seluler dan tablet secara otomatis.
-      </p>
-    </div>
+      <!-- ACTION BUTTONS -->
+      <div class="flex items-center space-x-2 sm:space-x-3">
+        <!-- Button Navigasi ke admin.html -->
+        <a href="admin.html" class="flex items-center space-x-1.5 px-3 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800 transition text-xs font-semibold shadow-sm">
+          <i data-lucide="shield" class="w-4 h-4"></i>
+          <span class="hidden sm:inline">Panel Admin</span>
+        </a>
 
-    <button class="btn btn-primary" onclick="triggerLoading()">Proses Data</button>
-  </div>
+        <!-- Button Refresh Data -->
+        <button onclick="fetchMasterData()" class="p-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition" title="Refresh Data">
+          <i data-lucide="refresh-cw" class="w-5 h-5"></i>
+        </button>
+
+        <!-- Button Keluar -->
+        <button onclick="logout()" class="flex items-center space-x-1.5 px-3 py-2 rounded-xl bg-slate-100 text-slate-700 hover:bg-red-50 hover:text-red-600 transition text-xs font-semibold">
+          <i data-lucide="log-out" class="w-4 h-4"></i>
+          <span class="hidden sm:inline">Keluar</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6 sm:space-y-8">
+
+    <!-- GLOBAL SUMMARY CARDS -->
+    <section class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+      <div class="glass-card rounded-2xl p-3.5 sm:p-4 apple-shadow">
+        <p class="text-[11px] sm:text-xs font-semibold text-slate-500 mb-1">Total Pemasukan</p>
+        <h3 id="statTotalIn" class="text-base sm:text-xl font-bold text-emerald-600">Rp 0</h3>
+      </div>
+      <div class="glass-card rounded-2xl p-3.5 sm:p-4 apple-shadow">
+        <p class="text-[11px] sm:text-xs font-semibold text-slate-500 mb-1">Total Pengeluaran</p>
+        <h3 id="statTotalOut" class="text-base sm:text-xl font-bold text-rose-600">Rp 0</h3>
+      </div>
+      <div class="glass-card rounded-2xl p-3.5 sm:p-4 apple-shadow">
+        <p class="text-[11px] sm:text-xs font-semibold text-slate-500 mb-1">Total Cash</p>
+        <h3 id="statTotalCash" class="text-base sm:text-xl font-bold text-slate-800">Rp 0</h3>
+      </div>
+      <div class="glass-card rounded-2xl p-3.5 sm:p-4 apple-shadow">
+        <p class="text-[11px] sm:text-xs font-semibold text-slate-500 mb-1">Total Non-Cash</p>
+        <h3 id="statTotalNonCash" class="text-base sm:text-xl font-bold text-slate-800">Rp 0</h3>
+      </div>
+    </section>
+
+    <!-- SECTION: TRAY PERFORMA CABANG -->
+    <section class="space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h2 class="text-base sm:text-lg font-bold text-slate-900">Performa Cabang</h2>
+          <p class="text-xs text-slate-500">Ringkasan transaksi dan omset di 6 cabang resmi</p>
+        </div>
+
+        <!-- FILTER TAB (Mobile Responsive) -->
+        <div class="inline-flex p-1 bg-slate-200/80 rounded-xl self-start sm:self-auto w-full sm:w-auto justify-between sm:justify-start">
+          <button onclick="setBranchFilter('shift_baru')" id="btnFilterShift" class="flex-1 sm:flex-none px-3 py-1.5 text-xs font-bold rounded-lg transition bg-white text-slate-900 shadow-sm text-center">
+            Shift Baru
+          </button>
+          <button onclick="setBranchFilter('minggu_ini')" id="btnFilterMinggu" class="flex-1 sm:flex-none px-3 py-1.5 text-xs font-medium rounded-lg transition text-slate-600 hover:text-slate-900 text-center">
+            Minggu Ini
+          </button>
+          <button onclick="setBranchFilter('bulan_ini')" id="btnFilterBulan" class="flex-1 sm:flex-none px-3 py-1.5 text-xs font-medium rounded-lg transition text-slate-600 hover:text-slate-900 text-center">
+            Bulan Ini
+          </button>
+        </div>
+      </div>
+
+      <!-- GRID TRAY 6 CABANG -->
+      <div id="branchTrayContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Rendered via JavaScript -->
+      </div>
+    </section>
+
+    <!-- SECTION: LOG TUTUP BUKU TERAKHIR -->
+    <section class="glass-card rounded-2xl p-4 sm:p-5 apple-shadow space-y-4">
+      <div class="flex items-center justify-between">
+        <h2 class="font-bold text-slate-900 text-sm sm:text-base">Riwayat Tutup Buku Kasir</h2>
+        <span class="text-xs text-slate-400">10 Data Terakhir</span>
+      </div>
+
+      <!-- TABLE CONTAINER WITH SCROLL FOR MOBILE -->
+      <div class="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
+        <table class="w-full text-left border-collapse text-xs min-w-[500px] sm:min-w-full">
+          <thead>
+            <tr class="border-b border-slate-200 text-slate-400 font-semibold uppercase tracking-wider">
+              <th class="py-2.5 px-3">Waktu</th>
+              <th class="py-2.5 px-3">Cabang</th>
+              <th class="py-2.5 px-3">Kasir</th>
+              <th class="py-2.5 px-3 text-right">Uang Masuk</th>
+              <th class="py-2.5 px-3 text-right">Uang Keluar</th>
+            </tr>
+          </thead>
+          <tbody id="tableCloseBookBody" class="divide-y divide-slate-100 text-slate-700">
+            <!-- Rendered via JavaScript -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
 
   <script>
-    // Menyembunyikan loading screen setelah halaman selesai dimuat
-    window.addEventListener('load', () => {
-      const overlay = document.getElementById('loading-overlay');
-      setTimeout(() => {
-        overlay.classList.add('hidden');
-      }, 300); // Penundaan halus
-    });
+    let masterDataCache = null;
+    let activeFilter = 'shift_baru';
 
-    // Fungsi simulasi loading manual untuk aksi tombol
-    function triggerLoading() {
-      const overlay = document.getElementById('loading-overlay');
-      overlay.classList.remove('hidden');
-      
-      setTimeout(() => {
-        overlay.classList.add('hidden');
-      }, 1200);
+    const WEBHOOK_URL = 'https://n8n-mzbmiib3etk4.kangkung.sumopod.my.id/webhook/0c2f335e-543b-4f3e-968e-f70d412f194b';
+
+    // Show/Hide Loading Overlay
+    function showLoading(show) {
+      const overlay = document.getElementById('loadingOverlay');
+      if (show) {
+        overlay.classList.remove('hidden-overlay');
+      } else {
+        overlay.classList.add('hidden-overlay');
+      }
     }
+
+    function formatRupiah(val) {
+      const num = Number(val) || 0;
+      return 'Rp ' + num.toLocaleString('id-ID');
+    }
+
+    function formatDate(isoStr) {
+      if (!isoStr) return 'Belum Pernah';
+      const d = new Date(isoStr);
+      if (isNaN(d.getTime())) return 'Belum Pernah';
+      return d.toLocaleString('id-ID', {
+        day: '2-digit', month: 'short', year: 'numeric',
+        hour: '2-digit', minute: '2-digit'
+      });
+    }
+
+    async function fetchMasterData() {
+      showLoading(true);
+      try {
+        const response = await fetch(WEBHOOK_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'get_master' })
+        });
+
+        const result = await response.json();
+        const payload = Array.isArray(result) ? result[0] : result;
+
+        if (payload && payload.json && payload.json.data) {
+          masterDataCache = payload.json.data;
+        } else if (payload && payload.data) {
+          masterDataCache = payload.data;
+        }
+
+        if (masterDataCache) {
+          renderGlobalSummary();
+          renderBranchTrays();
+          renderCloseBookTable();
+        }
+      } catch (err) {
+        console.error('Gagal mengambil master data:', err);
+      } finally {
+        setTimeout(() => showLoading(false), 300);
+      }
+    }
+
+    function renderGlobalSummary() {
+      if (!masterDataCache || !masterDataCache.summary) return;
+      const s = masterDataCache.summary;
+
+      document.getElementById('statTotalIn').innerText = formatRupiah(s.total_in);
+      document.getElementById('statTotalOut').innerText = formatRupiah(s.total_out);
+      document.getElementById('statTotalCash').innerText = formatRupiah(s.total_cash);
+      document.getElementById('statTotalNonCash').innerText = formatRupiah((s.total_qris || 0) + (s.total_transfer || 0));
+    }
+
+    function setBranchFilter(filterType) {
+      activeFilter = filterType;
+
+      const btnShift = document.getElementById('btnFilterShift');
+      const btnMinggu = document.getElementById('btnFilterMinggu');
+      const btnBulan = document.getElementById('btnFilterBulan');
+
+      [btnShift, btnMinggu, btnBulan].forEach(btn => {
+        btn.className = 'flex-1 sm:flex-none px-3 py-1.5 text-xs font-medium rounded-lg transition text-slate-600 hover:text-slate-900 text-center';
+      });
+
+      if (filterType === 'shift_baru') {
+        btnShift.className = 'flex-1 sm:flex-none px-3 py-1.5 text-xs font-bold rounded-lg transition bg-white text-slate-900 shadow-sm text-center';
+      } else if (filterType === 'minggu_ini') {
+        btnMinggu.className = 'flex-1 sm:flex-none px-3 py-1.5 text-xs font-bold rounded-lg transition bg-white text-slate-900 shadow-sm text-center';
+      } else if (filterType === 'bulan_ini') {
+        btnBulan.className = 'flex-1 sm:flex-none px-3 py-1.5 text-xs font-bold rounded-lg transition bg-white text-slate-900 shadow-sm text-center';
+      }
+
+      renderBranchTrays();
+    }
+
+    function renderBranchTrays() {
+      const container = document.getElementById('branchTrayContainer');
+      container.innerHTML = '';
+
+      if (!masterDataCache || !masterDataCache.summary || !masterDataCache.summary.branch_performance) {
+        container.innerHTML = `<div class="col-span-full text-center py-6 text-xs text-slate-400">Tidak ada data performa cabang.</div>`;
+        return;
+      }
+
+      const branches = masterDataCache.summary.branch_performance;
+
+      branches.forEach(b => {
+        const perf = b[activeFilter] || { pemasukan: 0, pengeluaran: 0, omset: 0 };
+        const lastCloseText = formatDate(b.last_close_book);
+
+        const cardHtml = `
+          <div class="glass-card rounded-2xl p-4 sm:p-5 apple-shadow flex flex-col justify-between space-y-4 hover:border-slate-300 transition">
+            <div class="flex items-start justify-between">
+              <div>
+                <h3 class="font-bold text-slate-900 text-sm sm:text-base">${b.cabang}</h3>
+                <p class="text-[11px] text-slate-400 mt-0.5">Tutup Buku: <span class="font-medium text-slate-600">${lastCloseText}</span></p>
+              </div>
+              <span class="p-2 rounded-xl bg-slate-100 text-slate-600">
+                <i data-lucide="store" class="w-4 h-4"></i>
+              </span>
+            </div>
+
+            <div class="space-y-1.5">
+              <div class="flex justify-between text-xs">
+                <span class="text-slate-500">Pemasukan</span>
+                <span class="font-semibold text-emerald-600">${formatRupiah(perf.pemasukan)}</span>
+              </div>
+              <div class="flex justify-between text-xs">
+                <span class="text-slate-500">Pengeluaran</span>
+                <span class="font-semibold text-rose-600">${formatRupiah(perf.pengeluaran)}</span>
+              </div>
+              <div class="pt-2 border-t border-slate-100 flex justify-between items-center">
+                <span class="text-xs font-bold text-slate-700">Omset Bersih</span>
+                <span class="text-sm font-extrabold text-slate-900">${formatRupiah(perf.omset)}</span>
+              </div>
+            </div>
+          </div>
+        `;
+        container.insertAdjacentHTML('beforeend', cardHtml);
+      });
+
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function renderCloseBookTable() {
+      const tbody = document.getElementById('tableCloseBookBody');
+      tbody.innerHTML = '';
+
+      if (!masterDataCache || !masterDataCache.pembukuan_logs || masterDataCache.pembukuan_logs.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-slate-400">Belum ada riwayat tutup buku</td></tr>`;
+        return;
+      }
+
+      masterDataCache.pembukuan_logs.forEach(log => {
+        const trHtml = `
+          <tr class="hover:bg-slate-50/80 transition">
+            <td class="py-2.5 px-3 whitespace-nowrap text-slate-500">${formatDate(log.waktu)}</td>
+            <td class="py-2.5 px-3 font-semibold text-slate-800">${log.cabang}</td>
+            <td class="py-2.5 px-3 text-slate-600">${log.user}</td>
+            <td class="py-2.5 px-3 text-right font-medium text-emerald-600">${formatRupiah(log.uang_masuk)}</td>
+            <td class="py-2.5 px-3 text-right font-medium text-rose-600">${formatRupiah(log.uang_keluar)}</td>
+          </tr>
+        `;
+        tbody.insertAdjacentHTML('beforeend', trHtml);
+      });
+    }
+
+    function logout() {
+      localStorage.clear();
+      window.location.href = 'index.html';
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      fetchMasterData();
+      if (window.lucide) lucide.createIcons();
+    });
   </script>
 </body>
 </html>
