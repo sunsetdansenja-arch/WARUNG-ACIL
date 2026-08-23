@@ -67,14 +67,14 @@
       <div class="flex justify-between items-center mb-2 pb-2 border-b border-[#2A2B30]">
         <div class="flex items-center space-x-2">
           <span class="text-xs text-amber-400"><i class="fa-solid fa-book"></i></span>
-          <h3 class="font-bold text-xs uppercase tracking-widest text-white font-mono-tech">Log Tutup Buku Antar Shift</h3>
+          <h3 class="font-bold text-xs uppercase tracking-widest text-white font-mono-tech">Log Tutup Buku Terakhir</h3>
         </div>
-        <span class="text-[10px] bg-[#121316] text-[#8E929B] border border-[#2A2B30] px-2 py-0.5 rounded font-mono-tech" id="shiftCount">0 Record</span>
+        <span class="text-[10px] bg-[#121316] text-[#8E929B] border border-[#2A2B30] px-2 py-0.5 rounded font-mono-tech" id="lastCloseBookText">Status Tutup Buku</span>
       </div>
 
       <div id="shiftTrayContainer" class="space-y-2 max-h-48 overflow-y-auto pr-1">
         <div id="emptyShiftTrayState" class="text-center py-4 text-[#8E929B] text-xs font-mono-tech">
-          Belum ada rekaman tutup buku shift...
+          Memuat data tutup buku...
         </div>
       </div>
     </div>
@@ -261,7 +261,6 @@
       document.getElementById('userInfo').innerText = `Owner Panel (${currentUserId.toUpperCase()})`;
     }
 
-    // Daftar 6 Cabang Hardcoded
     const MASTER_BRANCHES = [
       "Warung Acil 2",
       "Warung Acil 3",
@@ -303,12 +302,14 @@
           body: JSON.stringify({ action: 'get_master' })
         });
         const resData = await res.json();
-        const raw = Array.isArray(resData) ? resData[0] : resData;
-        const payload = raw?.json?.data || raw?.data || raw;
+        
+        // Handling array response dari n8n: [{ status, action, data }]
+        const item = Array.isArray(resData) ? resData[0] : resData;
+        const payload = item?.data || item;
 
         if (payload) {
           processOmsetAndBranch(payload);
-          processShiftLogs(payload.pembukuan || []);
+          processShiftLogs(payload);
           processNewBookPerBranch(payload);
         }
       } catch (err) {
@@ -316,58 +317,58 @@
       }
     }
 
-    // Polling Data Terbaru
     async function checkRecentTransactions() {
       try {
         const res = await fetch(WEBHOOK_URL, {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({ action: 'get_recent_data' })
+          body: JSON.stringify({ action: 'get_master' })
         });
         const resData = await res.json();
-        const raw = Array.isArray(resData) ? resData[0] : resData;
-        const payload = raw?.json?.data || raw?.data || raw;
+        const item = Array.isArray(resData) ? resData[0] : resData;
+        const payload = item?.data || item;
 
         if (payload) {
-          const recentIn = payload.recent_in || payload.money_in || [];
-          const recentOut = payload.recent_out || payload.money_out || [];
+          const recentIn = payload.money_in || [];
+          const recentOut = payload.money_out || [];
 
           let hasNew = false;
 
-          [...recentIn].reverse().forEach(item => {
-            const uniqueKey = getUniqueKey(item);
+          [...recentIn].reverse().forEach(trx => {
+            const uniqueKey = getUniqueKey(trx);
             if (!processedTrxIds.has(uniqueKey)) {
               processedTrxIds.add(uniqueKey);
               hasNew = true;
               notificationQueue.push({
                 type: 'IN',
-                branch: parseBranchName(item.CABANG || item.cabang),
-                nominal: fmt(item.NOMINAL || item.nominal || 0),
-                kasir: item.KASIR || item.kasir || 'Kasir',
-                metode: item.TRANSAKSI || item.kategori || item.METODE || item.metode || 'Cash',
-                time: item.createdAt || item.TANGGAL ? new Date(item.createdAt || item.TANGGAL).toLocaleTimeString('id-ID') : new Date().toLocaleTimeString('id-ID')
+                branch: parseBranchName(trx.CABANG || trx.cabang),
+                nominal: fmt(trx.NOMINAL || trx.nominal || 0),
+                kasir: trx.KASIR || trx.kasir || 'Kasir',
+                metode: trx.TRANSAKSI || trx.kategori || trx.METODE || trx.metode || 'Cash',
+                time: trx.createdAt || trx.TANGGAL ? new Date(trx.createdAt || trx.TANGGAL).toLocaleTimeString('id-ID') : new Date().toLocaleTimeString('id-ID')
               });
             }
           });
 
-          [...recentOut].reverse().forEach(item => {
-            const uniqueKey = getUniqueKey(item);
+          [...recentOut].reverse().forEach(trx => {
+            const uniqueKey = getUniqueKey(trx);
             if (!processedTrxIds.has(uniqueKey)) {
               processedTrxIds.add(uniqueKey);
               hasNew = true;
               notificationQueue.push({
                 type: 'OUT',
-                branch: parseBranchName(item.CABANG || item.cabang),
-                nominal: fmt(item.NOMINAL || item.nominal || 0),
-                kasir: item.KASIR || item.kasir || 'Kasir',
+                branch: parseBranchName(trx.CABANG || trx.cabang),
+                nominal: fmt(trx.NOMINAL || trx.nominal || 0),
+                kasir: trx.KASIR || trx.kasir || 'Kasir',
                 metode: 'Pengeluaran',
-                time: item.createdAt || item.TANGGAL ? new Date(item.createdAt || item.TANGGAL).toLocaleTimeString('id-ID') : new Date().toLocaleTimeString('id-ID')
+                time: trx.createdAt || trx.TANGGAL ? new Date(trx.createdAt || trx.TANGGAL).toLocaleTimeString('id-ID') : new Date().toLocaleTimeString('id-ID')
               });
             }
           });
 
           if (hasNew) {
-            loadMasterData();
+            processOmsetAndBranch(payload);
+            processNewBookPerBranch(payload);
             processNotificationQueue();
           }
         }
@@ -432,112 +433,79 @@
       isProcessingQueue = false;
     }
 
-    // Render Tray Log Tutup Buku Antar Shift
-    function processShiftLogs(pembukuanList) {
+    // Render Tray Log Tutup Buku Terakhir
+    function processShiftLogs(payload) {
       const shiftContainer = document.getElementById('shiftTrayContainer');
-      const shiftCount = document.getElementById('shiftCount');
+      const lastCloseText = document.getElementById('lastCloseBookText');
 
-      shiftCount.innerText = `${pembukuanList.length} Record`;
+      const rawLastClose = payload.last_close_book;
+      const summary = payload.summary || {};
 
-      if (!pembukuanList || pembukuanList.length === 0) {
-        shiftContainer.innerHTML = `<div id="emptyShiftTrayState" class="text-center py-4 text-[#8E929B] text-xs font-mono-tech">Belum ada rekaman tutup buku shift...</div>`;
+      if (!rawLastClose || rawLastClose === "1970-01-01T00:00:00.000Z") {
+        shiftContainer.innerHTML = `<div id="emptyShiftTrayState" class="text-center py-4 text-[#8E929B] text-xs font-mono-tech">Belum ada rekaman tutup buku...</div>`;
         return;
       }
 
-      const sorted = [...pembukuanList].reverse();
-      shiftContainer.innerHTML = sorted.map(item => {
-        const timeStr = item.createdAt || item.WAKTU_TUTUP_BUKU || item.TANGGAL;
-        const formattedDate = timeStr ? new Date(timeStr).toLocaleString('id-ID') : '-';
-        const branchName = parseBranchName(item.CABANG || item.cabang);
-        const kasir = item.KASIR || item.ADMIN || item.kasir || 'Kasir';
-        
-        const totalMasuk = Number(item.TOTAL_MASUK || item.total_masuk || 0);
-        const totalKeluar = Number(item.TOTAL_KELUAR || item.total_keluar || 0);
-        const saldoAkhir = Number(item.SALDO_AKHIR || item.saldo_akhir || (totalMasuk - totalKeluar));
+      const formattedDate = new Date(rawLastClose).toLocaleString('id-ID');
+      lastCloseText.innerText = "Terakhir Tutup Buku";
 
-        return `
-          <div class="p-3 bg-[#121316] border border-[#2A2B30] rounded-lg font-mono-tech text-xs flex justify-between items-center hover:border-amber-500/30 transition">
-            <div class="space-y-1">
-              <div class="flex items-center space-x-2">
-                <span class="font-bold text-amber-300">${branchName}</span>
-                <span class="text-[10px] bg-[#1C1D21] border border-[#2A2B30] px-1.5 py-0.5 rounded text-[#8E929B]">${kasir}</span>
-              </div>
-              <div class="text-[10px] text-[#8E929B]">
-                Waktu: <span class="text-white font-bold">${formattedDate}</span>
-              </div>
+      shiftContainer.innerHTML = `
+        <div class="p-3 bg-[#121316] border border-[#2A2B30] rounded-lg font-mono-tech text-xs flex justify-between items-center hover:border-amber-500/30 transition">
+          <div class="space-y-1">
+            <div class="flex items-center space-x-2">
+              <span class="font-bold text-amber-300">SISTEM UTAMA (ALL CABANG)</span>
+              <span class="text-[10px] bg-[#1C1D21] border border-[#2A2B30] px-1.5 py-0.5 rounded text-[#8E929B]">CLOSED BOOK</span>
             </div>
-            <div class="text-right space-y-0.5">
-              <div class="text-[10px] text-[#8E929B]">In: <span class="text-[#4E9F79] font-bold">${fmt(totalMasuk)}</span> | Out: <span class="text-rose-400 font-bold">${fmt(totalKeluar)}</span></div>
-              <div class="text-xs font-bold text-white">Saldo: ${fmt(saldoAkhir)}</div>
+            <div class="text-[10px] text-[#8E929B]">
+              Waktu: <span class="text-white font-bold">${formattedDate}</span>
             </div>
           </div>
-        `;
-      }).join('');
+          <div class="text-right space-y-0.5">
+            <div class="text-[10px] text-[#8E929B]">In: <span class="text-[#4E9F79] font-bold">${fmt(summary.total_in)}</span> | Out: <span class="text-rose-400 font-bold">${fmt(summary.total_out)}</span></div>
+            <div class="text-xs font-bold text-white">Saldo Akhir: ${fmt(summary.saldo_akhir)}</div>
+          </div>
+        </div>
+      `;
     }
 
-    // Render Performa 6 Cabang (Buku Baru / Pasca Tutup Buku)
-    function processNewBookPerBranch(data) {
+    // Render Performa 6 Cabang Pasca Tutup Buku
+    function processNewBookPerBranch(payload) {
       const container = document.getElementById('branchNewBookContainer');
-      const allIn = data.money_in || [];
-      const allOut = data.money_out || [];
-      const allPembukuan = data.pembukuan || [];
+      const allIn = payload.money_in || [];
+      const allOut = payload.money_out || [];
+      const lastCloseDate = payload.last_close_book ? new Date(payload.last_close_book) : new Date(0);
 
-      // Peta Timestamp Tutup Buku Terakhir per Cabang
-      const branchLastCloseMap = {};
-      MASTER_BRANCHES.forEach(b => branchLastCloseMap[b] = new Date(0));
-
-      allPembukuan.forEach(p => {
-        const bName = parseBranchName(p.CABANG || p.cabang);
-        const rawDate = p.createdAt || p.WAKTU_TUTUP_BUKU || p.TANGGAL;
-        if (rawDate) {
-          const d = new Date(rawDate);
-          if (!isNaN(d.getTime()) && d > branchLastCloseMap[bName]) {
-            branchLastCloseMap[bName] = d;
-          }
-        }
-      });
-
-      // Hitung Transaksi Setelah Timestamp Tutup Buku Masing-Masing Cabang
       const branchStats = {};
       MASTER_BRANCHES.forEach(b => {
-        branchStats[b] = { masuk: 0, keluar: 0, omset: 0, lastClose: branchLastCloseMap[b] };
+        branchStats[b] = { masuk: 0, keluar: 0 };
       });
 
       allIn.forEach(i => {
         const bName = parseBranchName(i.CABANG || i.cabang);
-        const rawDate = i.createdAt || i.TANGGAL;
-        if (branchStats[bName] && rawDate) {
-          const d = new Date(rawDate);
-          if (!isNaN(d.getTime()) && d >= branchStats[bName].lastClose) {
-            const nom = Number(i.NOMINAL || i.nominal || 0);
-            branchStats[bName].masuk += nom;
-          }
+        if (branchStats[bName]) {
+          branchStats[bName].masuk += Number(i.NOMINAL || i.nominal || 0);
         }
       });
 
       allOut.forEach(o => {
         const bName = parseBranchName(o.CABANG || o.cabang);
-        const rawDate = o.createdAt || o.TANGGAL;
-        if (branchStats[bName] && rawDate) {
-          const d = new Date(rawDate);
-          if (!isNaN(d.getTime()) && d >= branchStats[bName].lastClose) {
-            const nom = Number(o.NOMINAL || o.nominal || 0);
-            branchStats[bName].keluar += nom;
-          }
+        if (branchStats[bName]) {
+          branchStats[bName].keluar += Number(o.NOMINAL || o.nominal || 0);
         }
       });
+
+      const lastCloseText = lastCloseDate.getTime() === 0 ? 'Belum Tutup Buku' : lastCloseDate.toLocaleString('id-ID');
 
       container.innerHTML = MASTER_BRANCHES.map(bName => {
         const stat = branchStats[bName];
         const omsetBersih = stat.masuk - stat.keluar;
-        const lastCloseText = stat.lastClose.getTime() === 0 ? 'Belum Tutup Buku' : stat.lastClose.toLocaleString('id-ID');
 
         return `
           <div class="bg-[#121316] border border-[#2A2B30] p-3.5 rounded-xl space-y-2 hover:border-[#53627D] transition">
             <div class="flex justify-between items-start border-b border-[#2A2B30] pb-2">
               <div>
                 <h4 class="font-bold text-xs text-white font-mono-tech">${bName}</h4>
-                <p class="text-[9px] text-[#8E929B] font-mono-tech">Buku Sejak: ${lastCloseText}</p>
+                <p class="text-[9px] text-[#8E929B] font-mono-tech">Sejak: ${lastCloseText}</p>
               </div>
               <span class="text-[9px] bg-[#1C1D21] text-[#4E9F79] border border-[#2A2B30] px-1.5 py-0.5 rounded font-mono-tech font-bold">BUKU BARU</span>
             </div>
@@ -561,10 +529,11 @@
       }).join('');
     }
 
-    function processOmsetAndBranch(data) {
+    function processOmsetAndBranch(payload) {
       const now = new Date();
-      const listIn = data.money_in || [];
-      const listOut = data.money_out || [];
+      const listIn = payload.money_in || [];
+      const listOut = payload.money_out || [];
+      const summary = payload.summary || {};
 
       const stats = {
         hariIni: { total: 0, trx: 0, cash: 0, qris: 0, transfer: 0 },
@@ -600,23 +569,24 @@
         }
       });
 
-      document.getElementById('omsetHariIni').innerText = fmt(stats.hariIni.total);
-      document.getElementById('trxHariIni').innerText = `${stats.hariIni.trx} Trx`;
-      document.getElementById('cashHariIni').innerText = fmt(stats.hariIni.cash);
-      document.getElementById('qrisHariIni').innerText = fmt(stats.hariIni.qris);
-      document.getElementById('transferHariIni').innerText = fmt(stats.hariIni.transfer);
+      // Update UI Omset Global Pasca Tutup Buku
+      document.getElementById('omsetHariIni').innerText = fmt(stats.hariIni.total || summary.total_in || 0);
+      document.getElementById('trxHariIni').innerText = `${stats.hariIni.trx || listIn.length} Trx`;
+      document.getElementById('cashHariIni').innerText = fmt(stats.hariIni.cash || summary.total_cash || 0);
+      document.getElementById('qrisHariIni').innerText = fmt(stats.hariIni.qris || summary.total_qris || 0);
+      document.getElementById('transferHariIni').innerText = fmt(stats.hariIni.transfer || summary.total_transfer || 0);
 
-      document.getElementById('omsetMingguIni').innerText = fmt(stats.mingguIni.total);
-      document.getElementById('trxMingguIni').innerText = `${stats.mingguIni.trx} Trx`;
-      document.getElementById('cashMingguIni').innerText = fmt(stats.mingguIni.cash);
-      document.getElementById('qrisMingguIni').innerText = fmt(stats.mingguIni.qris);
-      document.getElementById('transferMingguIni').innerText = fmt(stats.mingguIni.transfer);
+      document.getElementById('omsetMingguIni').innerText = fmt(stats.mingguIni.total || summary.total_in || 0);
+      document.getElementById('trxMingguIni').innerText = `${stats.mingguIni.trx || listIn.length} Trx`;
+      document.getElementById('cashMingguIni').innerText = fmt(stats.mingguIni.cash || summary.total_cash || 0);
+      document.getElementById('qrisMingguIni').innerText = fmt(stats.mingguIni.qris || summary.total_qris || 0);
+      document.getElementById('transferMingguIni').innerText = fmt(stats.mingguIni.transfer || summary.total_transfer || 0);
 
-      document.getElementById('omsetBulanIni').innerText = fmt(stats.bulanIni.total);
-      document.getElementById('trxBulanIni').innerText = `${stats.bulanIni.trx} Trx`;
-      document.getElementById('cashBulanIni').innerText = fmt(stats.bulanIni.cash);
-      document.getElementById('qrisBulanIni').innerText = fmt(stats.bulanIni.qris);
-      document.getElementById('transferBulanIni').innerText = fmt(stats.bulanIni.transfer);
+      document.getElementById('omsetBulanIni').innerText = fmt(stats.bulanIni.total || summary.total_in || 0);
+      document.getElementById('trxBulanIni').innerText = `${stats.bulanIni.trx || listIn.length} Trx`;
+      document.getElementById('cashBulanIni').innerText = fmt(stats.bulanIni.cash || summary.total_cash || 0);
+      document.getElementById('qrisBulanIni').innerText = fmt(stats.bulanIni.qris || summary.total_qris || 0);
+      document.getElementById('transferBulanIni').innerText = fmt(stats.bulanIni.transfer || summary.total_transfer || 0);
 
       // Peringkat Cabang Overall
       const branchStats = {};
