@@ -8,8 +8,10 @@
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- Google Fonts: Plus Jakarta Sans -->
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -18,24 +20,47 @@
   <script src="config.js"></script>
 
   <style>
+    :root {
+      --bg-main: #121316;
+      --card-bg: #1B1C20;
+      --card-steel: #5C6C8F;
+      --card-sand: #C7C5B8;
+      --text-main: #EAEAEA;
+      --text-muted: #7B7F8D;
+      --border-hairline: rgba(255, 255, 255, 0.08);
+    }
+
     body {
-      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-      background-color: #f8fafc;
-      color: #0f172a;
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-main);
+      color: var(--text-main);
     }
 
-    .glass-card {
-      background: rgba(255, 255, 255, 0.85);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(226, 232, 240, 0.8);
+    .font-mono-num {
+      font-family: 'JetBrains Mono', monospace;
     }
 
-    .apple-shadow {
-      box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.04), 0 4px 12px -2px rgba(0, 0, 0, 0.02);
+    .bento-card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-hairline);
+      border-radius: 12px;
     }
 
-    /* Loading Overlay Glassmorphism Animation */
+    .bento-card-steel {
+      background-color: var(--card-steel);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 12px;
+      color: #FFFFFF;
+    }
+
+    .bento-card-sand {
+      background-color: var(--card-sand);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      color: #121316;
+    }
+
+    /* Loading Overlay Animation */
     #loadingOverlay {
       transition: opacity 0.3s ease, visibility 0.3s ease;
     }
@@ -46,54 +71,68 @@
     }
     
     .spinner {
-      border-top-color: #0f172a;
+      border: 3px solid rgba(255, 255, 255, 0.1);
+      border-top-color: #EAEAEA;
       animation: spinner 0.8s linear infinite;
     }
     @keyframes spinner {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #121316;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #2D3039;
+      border-radius: 4px;
+    }
   </style>
 </head>
-<body class="min-h-screen pb-16 relative">
+<body class="min-h-screen pb-16 relative antialiased selection:bg-[#5C6C8F] selection:text-white">
 
   <!-- LOADING OVERLAY ANIMATION -->
-  <div id="loadingOverlay" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-900/20 backdrop-blur-md hidden-overlay">
-    <div class="glass-card p-6 rounded-3xl apple-shadow flex flex-col items-center space-y-3">
-      <div class="w-10 h-10 border-4 border-slate-200 rounded-full spinner"></div>
-      <p class="text-xs font-semibold text-slate-700">Memuat Data Master...</p>
+  <div id="loadingOverlay" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#121316]/80 backdrop-blur-md hidden-overlay">
+    <div class="bento-card p-6 flex flex-col items-center space-y-3 shadow-2xl">
+      <div class="w-8 h-8 rounded-full spinner"></div>
+      <p class="text-xs font-mono-num tracking-wider text-[#7B7F8D] uppercase">Memuat Data Master...</p>
     </div>
   </div>
 
   <!-- TOP BAR / HEADER -->
-  <header class="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-200/80">
+  <header class="sticky top-0 z-30 bg-[#121316]/90 backdrop-blur-md border-b border-white/[0.08]">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
       <div class="flex items-center space-x-3">
-        <div class="w-10 h-10 rounded-2xl bg-slate-900 text-white flex items-center justify-center font-bold text-lg shadow-sm">
+        <div class="w-8 h-8 rounded-lg bg-[#5C6C8F] text-white flex items-center justify-center font-bold text-xs tracking-wider">
           WA
         </div>
         <div>
-          <h1 class="font-bold text-base text-slate-900 leading-tight">Master Dashboard</h1>
-          <p class="text-xs text-slate-500 font-medium">Warung Acil Group</p>
+          <h1 class="font-bold text-sm tracking-wide text-[#EAEAEA] uppercase">Master Dashboard</h1>
+          <p class="text-[11px] text-[#7B7F8D] font-medium tracking-wide uppercase">Warung Acil Group</p>
         </div>
       </div>
 
       <!-- ACTION BUTTONS -->
       <div class="flex items-center space-x-2 sm:space-x-3">
         <!-- Button Navigasi ke admin.html -->
-        <a href="admin.html" class="flex items-center space-x-1.5 px-3 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800 transition text-xs font-semibold shadow-sm">
-          <i data-lucide="shield" class="w-4 h-4"></i>
+        <a href="admin.html" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[#EAEAEA] hover:bg-white/10 transition text-xs tracking-wide uppercase font-medium">
+          <i data-lucide="shield" class="w-3.5 h-3.5 text-[#5C6C8F]"></i>
           <span class="hidden sm:inline">Panel Admin</span>
         </a>
 
         <!-- Button Refresh Data -->
-        <button onclick="fetchMasterData()" class="p-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition" title="Refresh Data">
-          <i data-lucide="refresh-cw" class="w-5 h-5"></i>
+        <button onclick="fetchMasterData()" class="p-1.5 rounded-lg bg-white/5 border border-white/10 text-[#7B7F8D] hover:text-[#EAEAEA] hover:bg-white/10 transition" title="Refresh Data">
+          <i data-lucide="refresh-cw" class="w-4 h-4"></i>
         </button>
 
         <!-- Button Keluar -->
-        <button onclick="logout()" class="flex items-center space-x-1.5 px-3 py-2 rounded-xl bg-slate-100 text-slate-700 hover:bg-red-50 hover:text-red-600 transition text-xs font-semibold">
-          <i data-lucide="log-out" class="w-4 h-4"></i>
+        <button onclick="logout()" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 transition text-xs tracking-wide uppercase font-medium">
+          <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
           <span class="hidden sm:inline">Keluar</span>
         </button>
       </div>
@@ -103,23 +142,38 @@
   <!-- MAIN CONTAINER -->
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6 sm:space-y-8">
 
-    <!-- GLOBAL SUMMARY CARDS -->
+    <!-- GLOBAL SUMMARY CARDS (BENTO GRID REFACTOR) -->
     <section class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-      <div class="glass-card rounded-2xl p-3.5 sm:p-4 apple-shadow">
-        <p class="text-[11px] sm:text-xs font-semibold text-slate-500 mb-1">Total Pemasukan</p>
-        <h3 id="statTotalIn" class="text-base sm:text-xl font-bold text-emerald-600">Rp 0</h3>
+      <div class="bento-card-steel p-4 flex flex-col justify-between space-y-3">
+        <div class="flex items-center justify-between">
+          <p class="text-[10px] font-bold tracking-wider text-white/70 uppercase">Total Pemasukan</p>
+          <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+        </div>
+        <h3 id="statTotalIn" class="text-lg sm:text-2xl font-bold font-mono-num text-white tracking-tight">Rp 0</h3>
       </div>
-      <div class="glass-card rounded-2xl p-3.5 sm:p-4 apple-shadow">
-        <p class="text-[11px] sm:text-xs font-semibold text-slate-500 mb-1">Total Pengeluaran</p>
-        <h3 id="statTotalOut" class="text-base sm:text-xl font-bold text-rose-600">Rp 0</h3>
+
+      <div class="bento-card p-4 flex flex-col justify-between space-y-3">
+        <div class="flex items-center justify-between">
+          <p class="text-[10px] font-bold tracking-wider text-[#7B7F8D] uppercase">Total Pengeluaran</p>
+          <span class="w-2 h-2 rounded-full bg-rose-400"></span>
+        </div>
+        <h3 id="statTotalOut" class="text-lg sm:text-2xl font-bold font-mono-num text-[#EAEAEA] tracking-tight">Rp 0</h3>
       </div>
-      <div class="glass-card rounded-2xl p-3.5 sm:p-4 apple-shadow">
-        <p class="text-[11px] sm:text-xs font-semibold text-slate-500 mb-1">Total Cash</p>
-        <h3 id="statTotalCash" class="text-base sm:text-xl font-bold text-slate-800">Rp 0</h3>
+
+      <div class="bento-card p-4 flex flex-col justify-between space-y-3">
+        <div class="flex items-center justify-between">
+          <p class="text-[10px] font-bold tracking-wider text-[#7B7F8D] uppercase">Total Cash</p>
+          <i data-lucide="wallet" class="w-3.5 h-3.5 text-[#7B7F8D]"></i>
+        </div>
+        <h3 id="statTotalCash" class="text-lg sm:text-2xl font-bold font-mono-num text-[#EAEAEA] tracking-tight">Rp 0</h3>
       </div>
-      <div class="glass-card rounded-2xl p-3.5 sm:p-4 apple-shadow">
-        <p class="text-[11px] sm:text-xs font-semibold text-slate-500 mb-1">Total Non-Cash</p>
-        <h3 id="statTotalNonCash" class="text-base sm:text-xl font-bold text-slate-800">Rp 0</h3>
+
+      <div class="bento-card-sand p-4 flex flex-col justify-between space-y-3">
+        <div class="flex items-center justify-between">
+          <p class="text-[10px] font-bold tracking-wider text-[#121316]/70 uppercase">Total Non-Cash</p>
+          <i data-lucide="credit-card" class="w-3.5 h-3.5 text-[#121316]"></i>
+        </div>
+        <h3 id="statTotalNonCash" class="text-lg sm:text-2xl font-bold font-mono-num text-[#121316] tracking-tight">Rp 0</h3>
       </div>
     </section>
 
@@ -127,19 +181,19 @@
     <section class="space-y-4">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 class="text-base sm:text-lg font-bold text-slate-900">Performa Cabang</h2>
-          <p class="text-xs text-slate-500">Ringkasan transaksi dan omset di 6 cabang resmi</p>
+          <h2 class="text-xs font-bold tracking-wider text-[#EAEAEA] uppercase">Performa Cabang</h2>
+          <p class="text-[11px] text-[#7B7F8D]">Ringkasan transaksi dan omset di 6 cabang resmi</p>
         </div>
 
-        <!-- FILTER TAB (Mobile Responsive) -->
-        <div class="inline-flex p-1 bg-slate-200/80 rounded-xl self-start sm:self-auto w-full sm:w-auto justify-between sm:justify-start">
-          <button onclick="setBranchFilter('shift_baru')" id="btnFilterShift" class="flex-1 sm:flex-none px-3 py-1.5 text-xs font-bold rounded-lg transition bg-white text-slate-900 shadow-sm text-center">
+        <!-- FILTER TAB -->
+        <div class="inline-flex p-1 bg-[#1B1C20] border border-white/[0.08] rounded-lg self-start sm:self-auto w-full sm:w-auto justify-between sm:justify-start">
+          <button onclick="setBranchFilter('shift_baru')" id="btnFilterShift" class="flex-1 sm:flex-none px-3 py-1 text-[11px] font-bold tracking-wider rounded transition bg-[#5C6C8F] text-white text-center uppercase">
             Shift Baru
           </button>
-          <button onclick="setBranchFilter('minggu_ini')" id="btnFilterMinggu" class="flex-1 sm:flex-none px-3 py-1.5 text-xs font-medium rounded-lg transition text-slate-600 hover:text-slate-900 text-center">
+          <button onclick="setBranchFilter('minggu_ini')" id="btnFilterMinggu" class="flex-1 sm:flex-none px-3 py-1 text-[11px] font-medium tracking-wider rounded transition text-[#7B7F8D] hover:text-[#EAEAEA] text-center uppercase">
             Minggu Ini
           </button>
-          <button onclick="setBranchFilter('bulan_ini')" id="btnFilterBulan" class="flex-1 sm:flex-none px-3 py-1.5 text-xs font-medium rounded-lg transition text-slate-600 hover:text-slate-900 text-center">
+          <button onclick="setBranchFilter('bulan_ini')" id="btnFilterBulan" class="flex-1 sm:flex-none px-3 py-1 text-[11px] font-medium tracking-wider rounded transition text-[#7B7F8D] hover:text-[#EAEAEA] text-center uppercase">
             Bulan Ini
           </button>
         </div>
@@ -152,17 +206,17 @@
     </section>
 
     <!-- SECTION: LOG TUTUP BUKU TERAKHIR -->
-    <section class="glass-card rounded-2xl p-4 sm:p-5 apple-shadow space-y-4">
-      <div class="flex items-center justify-between">
-        <h2 class="font-bold text-slate-900 text-sm sm:text-base">Riwayat Tutup Buku Kasir</h2>
-        <span class="text-xs text-slate-400">10 Data Terakhir</span>
+    <section class="bento-card p-4 sm:p-5 space-y-4">
+      <div class="flex items-center justify-between border-b border-white/[0.08] pb-3">
+        <h2 class="font-bold text-xs tracking-wider text-[#EAEAEA] uppercase">Riwayat Tutup Buku Kasir</h2>
+        <span class="text-[10px] font-mono-num text-[#7B7F8D] tracking-wider uppercase">10 Data Terakhir</span>
       </div>
 
       <!-- TABLE CONTAINER WITH SCROLL FOR MOBILE -->
       <div class="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
         <table class="w-full text-left border-collapse text-xs min-w-[500px] sm:min-w-full">
           <thead>
-            <tr class="border-b border-slate-200 text-slate-400 font-semibold uppercase tracking-wider">
+            <tr class="border-b border-white/[0.08] text-[#7B7F8D] font-bold text-[10px] tracking-wider uppercase">
               <th class="py-2.5 px-3">Waktu</th>
               <th class="py-2.5 px-3">Cabang</th>
               <th class="py-2.5 px-3">Kasir</th>
@@ -170,7 +224,7 @@
               <th class="py-2.5 px-3 text-right">Uang Keluar</th>
             </tr>
           </thead>
-          <tbody id="tableCloseBookBody" class="divide-y divide-slate-100 text-slate-700">
+          <tbody id="tableCloseBookBody" class="divide-y divide-white/[0.04] text-[#EAEAEA]">
             <!-- Rendered via JavaScript -->
           </tbody>
         </table>
@@ -258,15 +312,15 @@
       const btnBulan = document.getElementById('btnFilterBulan');
 
       [btnShift, btnMinggu, btnBulan].forEach(btn => {
-        btn.className = 'flex-1 sm:flex-none px-3 py-1.5 text-xs font-medium rounded-lg transition text-slate-600 hover:text-slate-900 text-center';
+        btn.className = 'flex-1 sm:flex-none px-3 py-1 text-[11px] font-medium tracking-wider rounded transition text-[#7B7F8D] hover:text-[#EAEAEA] text-center uppercase';
       });
 
       if (filterType === 'shift_baru') {
-        btnShift.className = 'flex-1 sm:flex-none px-3 py-1.5 text-xs font-bold rounded-lg transition bg-white text-slate-900 shadow-sm text-center';
+        btnShift.className = 'flex-1 sm:flex-none px-3 py-1 text-[11px] font-bold tracking-wider rounded transition bg-[#5C6C8F] text-white text-center uppercase';
       } else if (filterType === 'minggu_ini') {
-        btnMinggu.className = 'flex-1 sm:flex-none px-3 py-1.5 text-xs font-bold rounded-lg transition bg-white text-slate-900 shadow-sm text-center';
+        btnMinggu.className = 'flex-1 sm:flex-none px-3 py-1 text-[11px] font-bold tracking-wider rounded transition bg-[#5C6C8F] text-white text-center uppercase';
       } else if (filterType === 'bulan_ini') {
-        btnBulan.className = 'flex-1 sm:flex-none px-3 py-1.5 text-xs font-bold rounded-lg transition bg-white text-slate-900 shadow-sm text-center';
+        btnBulan.className = 'flex-1 sm:flex-none px-3 py-1 text-[11px] font-bold tracking-wider rounded transition bg-[#5C6C8F] text-white text-center uppercase';
       }
 
       renderBranchTrays();
@@ -277,7 +331,7 @@
       container.innerHTML = '';
 
       if (!masterDataCache || !masterDataCache.summary || !masterDataCache.summary.branch_performance) {
-        container.innerHTML = `<div class="col-span-full text-center py-6 text-xs text-slate-400">Tidak ada data performa cabang.</div>`;
+        container.innerHTML = `<div class="col-span-full text-center py-8 text-xs font-mono-num text-[#7B7F8D]">Tidak ada data performa cabang.</div>`;
         return;
       }
 
@@ -288,29 +342,29 @@
         const lastCloseText = formatDate(b.last_close_book);
 
         const cardHtml = `
-          <div class="glass-card rounded-2xl p-4 sm:p-5 apple-shadow flex flex-col justify-between space-y-4 hover:border-slate-300 transition">
+          <div class="bento-card p-4 flex flex-col justify-between space-y-4 hover:border-white/20 transition">
             <div class="flex items-start justify-between">
               <div>
-                <h3 class="font-bold text-slate-900 text-sm sm:text-base">${b.cabang}</h3>
-                <p class="text-[11px] text-slate-400 mt-0.5">Tutup Buku: <span class="font-medium text-slate-600">${lastCloseText}</span></p>
+                <h3 class="font-bold text-[#EAEAEA] text-sm tracking-wide uppercase">${b.cabang}</h3>
+                <p class="text-[10px] text-[#7B7F8D] mt-0.5 tracking-wider">TUTUP BUKU: <span class="font-mono-num text-[#EAEAEA]">${lastCloseText}</span></p>
               </div>
-              <span class="p-2 rounded-xl bg-slate-100 text-slate-600">
-                <i data-lucide="store" class="w-4 h-4"></i>
+              <span class="p-1.5 rounded-lg bg-white/5 border border-white/10 text-[#7B7F8D]">
+                <i data-lucide="store" class="w-3.5 h-3.5"></i>
               </span>
             </div>
 
-            <div class="space-y-1.5">
-              <div class="flex justify-between text-xs">
-                <span class="text-slate-500">Pemasukan</span>
-                <span class="font-semibold text-emerald-600">${formatRupiah(perf.pemasukan)}</span>
+            <div class="space-y-2 pt-2 border-t border-white/[0.06]">
+              <div class="flex justify-between items-center text-xs">
+                <span class="text-[11px] text-[#7B7F8D] uppercase tracking-wider">Pemasukan</span>
+                <span class="font-mono-num font-semibold text-emerald-400">${formatRupiah(perf.pemasukan)}</span>
               </div>
-              <div class="flex justify-between text-xs">
-                <span class="text-slate-500">Pengeluaran</span>
-                <span class="font-semibold text-rose-600">${formatRupiah(perf.pengeluaran)}</span>
+              <div class="flex justify-between items-center text-xs">
+                <span class="text-[11px] text-[#7B7F8D] uppercase tracking-wider">Pengeluaran</span>
+                <span class="font-mono-num font-semibold text-rose-400">${formatRupiah(perf.pengeluaran)}</span>
               </div>
-              <div class="pt-2 border-t border-slate-100 flex justify-between items-center">
-                <span class="text-xs font-bold text-slate-700">Omset Bersih</span>
-                <span class="text-sm font-extrabold text-slate-900">${formatRupiah(perf.omset)}</span>
+              <div class="pt-2 border-t border-white/[0.06] flex justify-between items-center">
+                <span class="text-[10px] font-bold text-[#EAEAEA] uppercase tracking-wider">Omset Bersih</span>
+                <span class="text-sm font-bold font-mono-num text-[#C7C5B8]">${formatRupiah(perf.omset)}</span>
               </div>
             </div>
           </div>
@@ -326,18 +380,18 @@
       tbody.innerHTML = '';
 
       if (!masterDataCache || !masterDataCache.pembukuan_logs || masterDataCache.pembukuan_logs.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-slate-400">Belum ada riwayat tutup buku</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-xs font-mono-num text-[#7B7F8D]">Belum ada riwayat tutup buku</td></tr>`;
         return;
       }
 
       masterDataCache.pembukuan_logs.forEach(log => {
         const trHtml = `
-          <tr class="hover:bg-slate-50/80 transition">
-            <td class="py-2.5 px-3 whitespace-nowrap text-slate-500">${formatDate(log.waktu)}</td>
-            <td class="py-2.5 px-3 font-semibold text-slate-800">${log.cabang}</td>
-            <td class="py-2.5 px-3 text-slate-600">${log.user}</td>
-            <td class="py-2.5 px-3 text-right font-medium text-emerald-600">${formatRupiah(log.uang_masuk)}</td>
-            <td class="py-2.5 px-3 text-right font-medium text-rose-600">${formatRupiah(log.uang_keluar)}</td>
+          <tr class="hover:bg-white/[0.02] transition">
+            <td class="py-2.5 px-3 whitespace-nowrap font-mono-num text-[#7B7F8D] text-[11px]">${formatDate(log.waktu)}</td>
+            <td class="py-2.5 px-3 font-semibold text-[#EAEAEA] uppercase tracking-wide">${log.cabang}</td>
+            <td class="py-2.5 px-3 text-[#7B7F8D]">${log.user}</td>
+            <td class="py-2.5 px-3 text-right font-mono-num font-medium text-emerald-400">${formatRupiah(log.uang_masuk)}</td>
+            <td class="py-2.5 px-3 text-right font-mono-num font-medium text-rose-400">${formatRupiah(log.uang_keluar)}</td>
           </tr>
         `;
         tbody.insertAdjacentHTML('beforeend', trHtml);
