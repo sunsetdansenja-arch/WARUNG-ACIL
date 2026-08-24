@@ -59,13 +59,6 @@
       border-color: #047857 !important;
     }
 
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-    .animate-spin-fast {
-      animation: spin 0.6s linear infinite;
-    }
-
     @media print {
       @page {
         margin: 0;
@@ -216,32 +209,37 @@
         <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-4 md:p-5 fast-card">
           <div class="flex justify-between items-center mb-3">
             <h2 class="font-extrabold text-slate-800 text-sm flex items-center gap-1">💵 Ringkasan Laci Kasir</h2>
-            <button id="btnRefresh" onclick="loadDashboardData()" class="text-xs text-emerald-600 font-extrabold bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 cursor-pointer flex items-center gap-1">
-              <span id="refreshIcon">🔄</span> <span>Refresh</span>
-            </button>
+            <button onclick="loadDashboardData()" class="text-xs text-emerald-600 font-extrabold bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 cursor-pointer">🔄 Refresh</button>
           </div>
           <div class="flex bg-slate-100 p-1.5 rounded-2xl mb-3 text-xs font-bold text-slate-500 fast-input">
             <button id="btnToday" onclick="switchPeriod('today')" class="flex-1 py-1.5 rounded-xl bg-white text-emerald-700 shadow-xs">Hari Ini</button>
             <button id="btnWeek" onclick="switchPeriod('week')" class="flex-1 py-1.5 rounded-xl">7 Hari</button>
             <button id="btnMonth" onclick="switchPeriod('month')" class="flex-1 py-1.5 rounded-xl">Bulan Ini</button>
           </div>
-          
-          <!-- TRAY TUTUP BUKU -->
-          <div>
-            <button id="btnTutupBuku" onclick="prosesTutupBuku()" class="w-full py-4 bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-black text-lg md:text-xl rounded-2xl shadow-lg border-b-4 border-rose-900 transition flex items-center justify-center gap-2 cursor-pointer uppercase tracking-wider">
-              <span>📋 TUTUP BUKU</span>
-            </button>
+          <div class="grid grid-cols-3 gap-2 text-center text-xs font-bold">
+            <div class="bg-emerald-50 p-2.5 rounded-2xl border border-emerald-100">
+              <p class="text-[10px] text-emerald-700 font-extrabold">CASH</p>
+              <p id="valCash" class="text-slate-800 mt-0.5 font-black text-xs md:text-sm">Rp 0</p>
+            </div>
+            <div class="bg-blue-50 p-2.5 rounded-2xl border border-blue-100">
+              <p class="text-[10px] text-blue-700 font-extrabold">QRIS</p>
+              <p id="valQris" class="text-slate-800 mt-0.5 font-black text-xs md:text-sm">Rp 0</p>
+            </div>
+            <div class="bg-purple-50 p-2.5 rounded-2xl border border-purple-100">
+              <p class="text-[10px] text-purple-700 font-extrabold">TRANSFER</p>
+              <p id="valTransfer" class="text-slate-800 mt-0.5 font-black text-xs md:text-sm">Rp 0</p>
+            </div>
           </div>
-
+          <div class="mt-3 pt-2.5 border-t border-dashed border-slate-200 flex justify-between items-center text-xs font-bold">
+            <span class="text-slate-500 font-extrabold">Total Bersih:</span>
+            <span class="text-emerald-600 text-base font-black" id="valTotalNet">Rp 0</span>
+          </div>
         </div>
 
         <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-4 md:p-5 flex-1 flex flex-col fast-card">
           <h3 class="font-extrabold text-xs uppercase tracking-wider mb-3">Daftar Transaksi Terakhir</h3>
           <div class="max-h-[380px] lg:max-h-[460px] overflow-y-auto pr-1 space-y-2.5 custom-scroll" id="historyList">
-            <div class="flex flex-col items-center justify-center py-8 text-slate-400 gap-2">
-              <div class="w-6 h-6 border-3 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
-              <p class="text-xs">Memuat riwayat...</p>
-            </div>
+            <p class="text-xs text-center text-slate-400 py-6">Memuat riwayat...</p>
           </div>
         </div>
       </div>
@@ -261,14 +259,14 @@
 
       <!-- Opsi Pembayaran -->
       <div class="grid grid-cols-1 gap-3.5 pt-2" id="paymentButtonsGroup">
-        <button id="btnPayCash" onclick="submitTransaction('CASH')" class="w-full h-20 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black rounded-2xl md:rounded-3xl text-2xl shadow-xl flex items-center justify-center gap-3 cursor-pointer border-b-8 border-emerald-900 transition">
-          <span>💵 CASH</span>
+        <button onclick="submitTransaction('CASH')" class="w-full h-20 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black rounded-2xl md:rounded-3xl text-2xl shadow-xl flex items-center justify-center gap-3 cursor-pointer border-b-8 border-emerald-900 transition">
+          💵 CASH
         </button>
-        <button id="btnPayQris" onclick="submitTransaction('QRIS')" class="w-full h-20 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-black rounded-2xl md:rounded-3xl text-2xl shadow-xl flex items-center justify-center gap-3 cursor-pointer border-b-8 border-blue-900 transition">
-          <span>📱 QRIS</span>
+        <button onclick="submitTransaction('QRIS')" class="w-full h-20 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-black rounded-2xl md:rounded-3xl text-2xl shadow-xl flex items-center justify-center gap-3 cursor-pointer border-b-8 border-blue-900 transition">
+          📱 QRIS
         </button>
-        <button id="btnPayTransfer" onclick="submitTransaction('TRANSFER')" class="w-full h-20 bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black rounded-2xl md:rounded-3xl text-2xl shadow-xl flex items-center justify-center gap-3 cursor-pointer border-b-8 border-purple-900 transition">
-          <span>🏦 TRANSFER</span>
+        <button onclick="submitTransaction('TRANSFER')" class="w-full h-20 bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black rounded-2xl md:rounded-3xl text-2xl shadow-xl flex items-center justify-center gap-3 cursor-pointer border-b-8 border-purple-900 transition">
+          🏦 TRANSFER
         </button>
       </div>
 
@@ -301,8 +299,8 @@
       </div>
 
       <div class="flex flex-col gap-2.5 no-print pt-3">
-        <button id="btnPrintBtn" onclick="triggerPrint()" class="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black text-base py-4 rounded-2xl shadow-lg cursor-pointer border-b-4 border-emerald-900 flex items-center justify-center gap-2 transition">
-          <span>🖨️ CETAK BLUETOOTH DIRECT</span>
+        <button onclick="triggerPrint()" class="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black text-base py-4 rounded-2xl shadow-lg cursor-pointer border-b-4 border-emerald-900 flex items-center justify-center gap-2 transition">
+          🖨️ CETAK BLUETOOTH DIRECT
         </button>
         <button onclick="closeReceiptModal()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold text-xs py-3 rounded-xl cursor-pointer">
           Tutup Window
@@ -615,14 +613,8 @@
 
       document.getElementById('modalNominal').innerText = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(finalCalculatedNominal);
       document.getElementById('paymentStatusText').innerText = 'Klik metode untuk menyimpan transaksi';
-      
-      const btnGroup = document.getElementById('paymentButtonsGroup');
-      btnGroup.style.pointerEvents = 'auto';
-      btnGroup.style.opacity = '1';
-      document.getElementById('btnPayCash').innerHTML = '<span>💵 CASH</span>';
-      document.getElementById('btnPayQris').innerHTML = '<span>📱 QRIS</span>';
-      document.getElementById('btnPayTransfer').innerHTML = '<span>🏦 TRANSFER</span>';
-
+      document.getElementById('paymentButtonsGroup').style.pointerEvents = 'auto';
+      document.getElementById('paymentButtonsGroup').style.opacity = '1';
       document.getElementById('paymentModal').classList.remove('hidden');
     }
 
@@ -649,12 +641,6 @@
       statusText.innerText = '⏳ Memproses & Menyimpan Transaksi...';
       btnGroup.style.pointerEvents = 'none';
       btnGroup.style.opacity = '0.5';
-
-      let targetBtnId = 'btnPay' + method.charAt(0).toUpperCase() + method.slice(1).toLowerCase();
-      let targetBtn = document.getElementById(targetBtnId);
-      if (targetBtn) {
-        targetBtn.innerHTML = `<span class="inline-block animate-spin mr-2">⏳</span> <span>MEMPROSES...</span>`;
-      }
 
       try {
         const response = await fetch(WEBHOOK_URL, {
@@ -687,10 +673,6 @@
           statusText.innerText = 'Gagal menyimpan transaksi. Coba lagi.';
           btnGroup.style.pointerEvents = 'auto';
           btnGroup.style.opacity = '1';
-          if (targetBtn) {
-            let label = method === 'CASH' ? '💵 CASH' : (method === 'QRIS' ? '📱 QRIS' : '🏦 TRANSFER');
-            targetBtn.innerHTML = `<span>${label}</span>`;
-          }
         }
       } catch (err) {
         console.error('Error koneksi webhook:', err);
@@ -698,50 +680,6 @@
         statusText.innerText = 'Koneksi terputus. Silakan coba lagi.';
         btnGroup.style.pointerEvents = 'auto';
         btnGroup.style.opacity = '1';
-        if (targetBtn) {
-          let label = method === 'CASH' ? '💵 CASH' : (method === 'QRIS' ? '📱 QRIS' : '🏦 TRANSFER');
-          targetBtn.innerHTML = `<span>${label}</span>`;
-        }
-      }
-    }
-
-    // FUNGSIONALITAS TUTUP BUKU
-    async function prosesTutupBuku() {
-      const confirmClose = confirm('Apakah Anda yakin ingin melakukan TUTUP BUKU untuk laci kasir saat ini?');
-      if (!confirmClose) return;
-
-      const btn = document.getElementById('btnTutupBuku');
-      const originalText = btn.innerHTML;
-      btn.disabled = true;
-      btn.innerHTML = `<span class="inline-block animate-spin text-xl">⏳</span> <span>MEMPROSES TUTUP BUKU...</span>`;
-
-      const targetBranch = getSelectedTargetBranch();
-      const payload = {
-        action: 'tutup_buku',
-        kasir: session.user,
-        cabang: targetBranch,
-        timestamp: new Date().toISOString()
-      };
-
-      try {
-        const response = await fetch(WEBHOOK_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-
-        if (response.ok) {
-          alert('Tutup buku berhasil diproses!');
-          loadDashboardData();
-        } else {
-          alert('Gagal memproses tutup buku. Silakan coba lagi.');
-        }
-      } catch (err) {
-        console.error('Error tutup buku:', err);
-        alert('Terjadi kesalahan koneksi saat melakukan tutup buku.');
-      } finally {
-        btn.disabled = false;
-        btn.innerHTML = originalText;
       }
     }
 
@@ -772,12 +710,6 @@
     async function triggerPrint() {
       if (!activeReceiptData) return;
       if (!navigator.bluetooth) return;
-
-      const printBtn = document.getElementById('btnPrintBtn');
-      const origPrintHtml = printBtn ? printBtn.innerHTML : '';
-      if (printBtn) {
-        printBtn.innerHTML = `<span class="inline-block animate-spin mr-2">⏳</span> <span>MENSHARING / MENCETAK...</span>`;
-      }
 
       try {
         const optionalServicesList = (typeof CONFIG !== 'undefined' && CONFIG.PRINTER && CONFIG.PRINTER.OPTIONAL_SERVICES) ? CONFIG.PRINTER.OPTIONAL_SERVICES : [
@@ -839,8 +771,6 @@
       } catch (error) {
         console.error('Error Web Bluetooth:', error);
         cachedBluetoothDevice = null;
-      } finally {
-        if (printBtn) printBtn.innerHTML = origPrintHtml;
       }
     }
 
@@ -849,7 +779,7 @@
     }
 
     // ==========================================
-    // PARSING DATA RESPONSE N8N SECARA ROBUST & REVERSE ORDER
+    // PARSING DATA RESPONSE N8N & AKUMULASI TUTUP BUKU AMAN
     // ==========================================
 
     function switchNav(tab) {
@@ -887,17 +817,7 @@
 
     async function loadDashboardData() {
       const container = document.getElementById('historyList');
-      const refreshIcon = document.getElementById('refreshIcon');
-      
-      if (refreshIcon) refreshIcon.classList.add('inline-block', 'animate-spin');
-      if (container) {
-        container.innerHTML = `
-          <div class="flex flex-col items-center justify-center py-8 text-slate-400 gap-2">
-            <div class="w-6 h-6 border-3 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
-            <p class="text-xs">Memuat riwayat...</p>
-          </div>
-        `;
-      }
+      if (container) container.innerHTML = `<p class="text-xs text-center text-slate-400 py-6">Memuat riwayat...</p>`;
 
       try {
         const response = await fetch(WEBHOOK_URL, {
@@ -939,8 +859,6 @@
       } catch (err) {
         console.error('Gagal memuat data:', err);
         if (container) container.innerHTML = `<p class="text-xs text-center text-rose-500 py-6">Gagal memuat riwayat. Periksa koneksi/n8n.</p>`;
-      } finally {
-        if (refreshIcon) refreshIcon.classList.remove('inline-block', 'animate-spin');
       }
     }
 
@@ -958,15 +876,71 @@
     }
 
     function calculateLaciTotals() {
-      // Fungsi ini tetap aman jika dipanggil
+      const now = new Date();
+      let listIn = [...(globalRawData.money_in || [])];
+      let listOut = [...(globalRawData.money_out || [])];
+
+      if (!session.isOwner) {
+        listIn = listIn.filter(i => String(i.CABANG || i.cabang || '').toUpperCase() === currentBranchName.toUpperCase());
+        listOut = listOut.filter(o => String(o.CABANG || o.cabang || '').toUpperCase() === currentBranchName.toUpperCase());
+      }
+
+      const filterByDate = (item) => {
+        const ts = getItemTimestamp(item);
+        if (!ts) return true;
+        
+        const d = new Date(ts);
+        if (activePeriod === 'today') {
+          return d.getFullYear() === now.getFullYear() && 
+                 d.getMonth() === now.getMonth() && 
+                 d.getDate() === now.getDate();
+        }
+        if (activePeriod === 'week') return Math.floor((now - d) / (1000 * 60 * 60 * 24)) < 7;
+        if (activePeriod === 'month') return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+        return true;
+      };
+
+      const filteredIn = listIn.filter(filterByDate);
+      const filteredOut = listOut.filter(filterByDate);
+
+      let totals = { cash: 0, qris: 0, transfer: 0 };
+
+      // Pendekatan Soft Delete: Seluruh transaksi dihitung utuh tanpa menghiraukan ketergantungan tray aktif/nonaktif
+      filteredIn.forEach(i => {
+        const m = String(i.TRANSAKSI || i.transaksi || '').toLowerCase();
+        const nom = Number(i.NOMINAL || i.nominal || 0);
+        if (totals[m] !== undefined) totals[m] += nom;
+      });
+
+      filteredOut.forEach(o => {
+        const m = String(o.TRANSAKSI || o.transaksi || '').toLowerCase();
+        const nom = Number(o.NOMINAL || o.nominal || 0);
+        if (totals[m] !== undefined) totals[m] -= nom;
+      });
+
+      const totalNet = totals.cash + totals.qris + totals.transfer;
+      const formatCurrency = (val) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(val);
+
+      document.getElementById('valCash').innerText = formatCurrency(totals.cash);
+      document.getElementById('valQris').innerText = formatCurrency(totals.qris);
+      document.getElementById('valTransfer').innerText = formatCurrency(totals.transfer);
+      document.getElementById('valTotalNet').innerText = formatCurrency(totalNet);
     }
 
     function renderHistoryList() {
       const container = document.getElementById('historyList');
       if (!container) return;
 
-      let listIn = (globalRawData.money_in || []).map(i => ({ ...i, type: 'IN', timestamp: getItemTimestamp(i) }));
-      let listOut = (globalRawData.money_out || []).map(o => ({ ...o, type: 'OUT', timestamp: getItemTimestamp(o) }));
+      // Pendekatan Soft Delete: Transaksi disaring secara visual jika tray disembunyikan (is_hidden / is_deleted),
+      // namun perhitungan penutupan tetap membaca seluruh record data.
+      let listIn = (globalRawData.money_in || [])
+        .filter(i => !i.is_hidden && !i.is_deleted && i.status !== 'deleted')
+        .map(i => ({ ...i, type: 'IN', timestamp: getItemTimestamp(i) }));
+        
+      let listOut = (globalRawData.money_out || [])
+        .filter(o => !o.is_hidden && !o.is_deleted && o.status !== 'deleted')
+        .map(o => ({ ...o, type: 'OUT', timestamp: getItemTimestamp(o) }));
+        
       let all = [...listIn, ...listOut];
 
       if (!session.isOwner) {
@@ -978,7 +952,6 @@
         return;
       }
 
-      // DIBALIKKAN (REVERSE) AGAR TRANSAKSI TERAKHIR MASUK DI ATAS
       all.reverse();
 
       container.innerHTML = all.map((item) => {
