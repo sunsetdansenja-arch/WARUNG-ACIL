@@ -1425,38 +1425,41 @@
       }
     }
 
-    // Otomatis sinkronisasi data pending saat internet menyala (ONLINE)
-    async function syncOfflineQueue() {
-      if (!navigator.onLine) return;
-      
-      const queue = getOfflineQueue();
-      if (queue.length === 0) return;
+  // PERBAIKAN: Fungsi Sync Antrean Offline
+async function syncOfflineQueue() {
+  if (!navigator.onLine) return;
+  
+  let queue = getOfflineQueue();
+  if (queue.length === 0) return;
 
-      console.log(`Mengirim ${queue.length} transaksi offline ke n8n...`);
+  console.log(`Mengirim ${queue.length} transaksi offline ke n8n...`);
 
-      for (let i = 0; i < queue.length; i++) {
-        const item = queue[i];
-        try {
-          const response = await fetch(WEBHOOK_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(item)
-          });
+  // Gunakan while loop untuk memproses elemen pertama sampai habis
+  while (queue.length > 0 && navigator.onLine) {
+    const item = queue[0]; // Selalu ambil elemen paling depan
+    try {
+      const response = await fetch(WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(item)
+      });
 
-          if (response.ok) {
-            removeFirstFromOfflineQueue();
-          } else {
-            break; // Hentikan perulangan jika server error
-          }
-        } catch (err) {
-          console.warn('Gagal sinkronisasi satu item, akan dicoba nanti:', err);
-          break;
-        }
+      if (response.ok) {
+        removeFirstFromOfflineQueue(); // Hapus elemen pertama yang sukses
+        queue = getOfflineQueue(); // Perbarui instance queue lokal
+      } else {
+        console.warn('Server merespons gagal, menghentikan sync sementara.');
+        break; // Hentikan jika ada kegagalan dari server
       }
-      
-      // Refresh riwayat lokal setelah sync
-      loadDashboardData();
+    } catch (err) {
+      console.warn('Gagal sinkronisasi satu item, akan dicoba nanti:', err);
+      break; // Hentikan loop jika koneksi terputus di tengah jalan
     }
+  }
+  
+  // Refresh riwayat lokal setelah selesai sync
+  loadDashboardData();
+}
 
     // Pasang Listener otomatis untuk deteksi perubahan jaringan
     window.addEventListener('online', () => {
