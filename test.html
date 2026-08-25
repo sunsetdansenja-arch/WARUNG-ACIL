@@ -406,6 +406,12 @@
     // Validasi Sesi
     const session = JSON.parse(localStorage.getItem('warung_acil_session')) || { user: 'KASIR1', akses: 'CABANG 1', isOwner: false };
 
+    // Helper Formatter Rupiah yang Aman untuk Seluruh Browser
+    function formatRupiah(val) {
+      const num = Number(val) || 0;
+      return 'Rp ' + num.toLocaleString('id-ID');
+    }
+
     function initBranchOptions() {
       const selectBranch = document.getElementById('selectBranch');
       if (!selectBranch) return;
@@ -437,13 +443,18 @@
 
     document.addEventListener('DOMContentLoaded', () => {
       applyFastModeUI();
-      loadDashboardData();
+      updateOfflineBadge();
       updateNetworkBadge();
+      loadDashboardData();
+      if (navigator.onLine) {
+        syncOfflineQueue();
+      }
     });
 
     function getSelectedTargetBranch() {
       if (session.isOwner) {
-        return document.getElementById('selectBranch').value;
+        const sb = document.getElementById('selectBranch');
+        return sb ? sb.value : currentBranchName;
       }
       return currentBranchName;
     }
@@ -690,7 +701,7 @@
         badge.className = 'inline-block text-xs md:text-sm font-black uppercase px-4 py-1.5 rounded-full bg-rose-100 text-rose-800 tracking-wider';
       }
 
-      document.getElementById('modalNominal').innerText = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(finalCalculatedNominal);
+      document.getElementById('modalNominal').innerText = formatRupiah(finalCalculatedNominal);
       document.getElementById('paymentStatusText').innerText = 'Klik metode untuk menyimpan transaksi';
       document.getElementById('paymentButtonsGroup').style.pointerEvents = 'auto';
       document.getElementById('paymentButtonsGroup').style.opacity = '1';
@@ -722,8 +733,6 @@
       // JIKA SEDANG OFFLINE ATAU KONEKSI TERPUTUS
       if (!navigator.onLine) {
         saveToOfflineQueue(payload);
-        
-        // Simpan juga ke cache visual riwayat lokal sementara
         saveLocalHistory(payload);
 
         clearCalc();
@@ -773,7 +782,7 @@
     }
 
     function openReceiptModal(nominal, method, isMoneyIn, kasir, cabang, date) {
-      const formattedNominal = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(nominal);
+      const formattedNominal = formatRupiah(nominal);
       const formattedDate = new Date(date || Date.now()).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' }) + ' WIB';
       const typeText = isMoneyIn ? 'Penjualan' : 'Pengeluaran';
 
@@ -843,26 +852,41 @@
 
         const encoder = new TextEncoder();
         let commands = "";
-        commands += "\x1B\x40"; 
-        commands += "\x1B\x61\x01"; 
-        commands += "\x1B\x45\x01WARUNG ACIL\x1B\x45\x00\n";
-        commands += activeReceiptData.branch + "\n";
-        commands += activeReceiptData.date + "\n";
-        commands += "--------------------------------\n";
-        commands += "\x1B\x61\x00"; 
-        commands += "Jenis   : " + activeReceiptData.type.toUpperCase() + "\n";
-        commands += "Metode  : " + activeReceiptData.method.toUpperCase() + "\n";
-        commands += "Kasir   : " + activeReceiptData.kasir + "\n";
-        commands += "\x1B\x61\x01"; 
-        commands += "--------------------------------\n";
-        commands += "TOTAL   : \x1B\x45\x01" + activeReceiptData.nominal + "\x1B\x45\x00\n";
-        commands += "--------------------------------\n";
-        commands += "*** Terima Kasih ***\n\n\n\n";
+        commands += " @"; 
+        commands += " a "; 
+        commands += " E WARUNG ACIL E 
+";
+        commands += activeReceiptData.branch + "
+";
+        commands += activeReceiptData.date + "
+";
+        commands += "--------------------------------
+";
+        commands += " a "; 
+        commands += "Jenis   : " + activeReceiptData.type.toUpperCase() + "
+";
+        commands += "Metode  : " + activeReceiptData.method.toUpperCase() + "
+";
+        commands += "Kasir   : " + activeReceiptData.kasir + "
+";
+        commands += " a "; 
+        commands += "--------------------------------
+";
+        commands += "TOTAL   :  E " + activeReceiptData.nominal + " E 
+";
+        commands += "--------------------------------
+";
+        commands += "*** Terima Kasih ***
+
+
+
+";
 
         await characteristic.writeValue(encoder.encode(commands));
       } catch (error) {
         console.error('Error Web Bluetooth:', error);
         cachedBluetoothDevice = null;
+        window.print();
       }
     }
 
@@ -876,7 +900,6 @@
     function openCloseBookConfirmation() {
       const totals = calculateLaciTotals();
       const targetBranch = getSelectedTargetBranch();
-      const formatCurrency = (val) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(val);
 
       const elBranch = document.getElementById('cbConfirmBranch');
       const elKasir = document.getElementById('cbConfirmKasir');
@@ -888,11 +911,11 @@
 
       if (elBranch) elBranch.innerText = targetBranch;
       if (elKasir) elKasir.innerText = session.user;
-      if (elCash) elCash.innerText = formatCurrency(totals.cash);
-      if (elQris) elQris.innerText = formatCurrency(totals.qris);
-      if (elTransfer) elTransfer.innerText = formatCurrency(totals.transfer);
-      if (elOut) elOut.innerText = formatCurrency(totals.totalOut);
-      if (elNet) elNet.innerText = formatCurrency(totals.totalNet);
+      if (elCash) elCash.innerText = formatRupiah(totals.cash);
+      if (elQris) elQris.innerText = formatRupiah(totals.qris);
+      if (elTransfer) elTransfer.innerText = formatRupiah(totals.transfer);
+      if (elOut) elOut.innerText = formatRupiah(totals.totalOut);
+      if (elNet) elNet.innerText = formatRupiah(totals.totalNet);
 
       document.getElementById('closeBookConfirmModal').classList.remove('hidden');
     }
@@ -960,30 +983,29 @@
     }
 
     function openCloseBookReceiptModal(totals, cabang, kasir, date) {
-      const formatCurrency = (val) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(val);
       const formattedDate = new Date(date || Date.now()).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' }) + ' WIB';
 
       document.getElementById('cbRBranch').innerText = cabang || currentBranchName;
       document.getElementById('cbRDate').innerText = formattedDate;
       document.getElementById('cbRKasir').innerText = kasir || session.user;
       
-      document.getElementById('cbRCash').innerText = formatCurrency(totals.cash);
-      document.getElementById('cbRQris').innerText = formatCurrency(totals.qris);
-      document.getElementById('cbRTransfer').innerText = formatCurrency(totals.transfer);
-      document.getElementById('cbRTotalIn').innerText = formatCurrency(totals.totalIn);
-      document.getElementById('cbRTotalOut').innerText = formatCurrency(totals.totalOut);
-      document.getElementById('cbRTotalNet').innerText = formatCurrency(totals.totalNet);
+      document.getElementById('cbRCash').innerText = formatRupiah(totals.cash);
+      document.getElementById('cbRQris').innerText = formatRupiah(totals.qris);
+      document.getElementById('cbRTransfer').innerText = formatRupiah(totals.transfer);
+      document.getElementById('cbRTotalIn').innerText = formatRupiah(totals.totalIn);
+      document.getElementById('cbRTotalOut').innerText = formatRupiah(totals.totalOut);
+      document.getElementById('cbRTotalNet').innerText = formatRupiah(totals.totalNet);
 
       activeCloseBookData = {
         branch: cabang || currentBranchName,
         date: formattedDate,
         kasir: kasir || session.user,
-        cash: formatCurrency(totals.cash),
-        qris: formatCurrency(totals.qris),
-        transfer: formatCurrency(totals.transfer),
-        totalIn: formatCurrency(totals.totalIn),
-        totalOut: formatCurrency(totals.totalOut),
-        totalNet: formatCurrency(totals.totalNet)
+        cash: formatRupiah(totals.cash),
+        qris: formatRupiah(totals.qris),
+        transfer: formatRupiah(totals.transfer),
+        totalIn: formatRupiah(totals.totalIn),
+        totalOut: formatRupiah(totals.totalOut),
+        totalNet: formatRupiah(totals.totalNet)
       };
 
       document.getElementById('closeBookReceiptModal').classList.remove('hidden');
@@ -1056,31 +1078,51 @@
 
         const encoder = new TextEncoder();
         let commands = "";
-        commands += "\x1B\x40"; 
-        commands += "\x1B\x61\x01"; 
-        commands += "\x1B\x45\x01WARUNG ACIL\x1B\x45\x00\n";
-        commands += "\x1B\x45\x01REKAP TUTUP BUKU\x1B\x45\x00\n";
-        commands += activeCloseBookData.branch + "\n";
-        commands += activeCloseBookData.date + "\n";
-        commands += "--------------------------------\n";
-        commands += "\x1B\x61\x00"; 
-        commands += "Kasir       : " + activeCloseBookData.kasir + "\n";
-        commands += "Cash        : " + activeCloseBookData.cash + "\n";
-        commands += "QRIS        : " + activeCloseBookData.qris + "\n";
-        commands += "Transfer    : " + activeCloseBookData.transfer + "\n";
-        commands += "--------------------------------\n";
-        commands += "Total IN    : " + activeCloseBookData.totalIn + "\n";
-        commands += "Total OUT   : " + activeCloseBookData.totalOut + "\n";
-        commands += "--------------------------------\n";
-        commands += "\x1B\x61\x01"; 
-        commands += "NET TOTAL   : \x1B\x45\x01" + activeCloseBookData.totalNet + "\x1B\x45\x00\n";
-        commands += "--------------------------------\n";
-        commands += "*** Penutupan Sesi Berhasil ***\n\n\n\n";
+        commands += " @"; 
+        commands += " a "; 
+        commands += " E WARUNG ACIL E 
+";
+        commands += " E REKAP TUTUP BUKU E 
+";
+        commands += activeCloseBookData.branch + "
+";
+        commands += activeCloseBookData.date + "
+";
+        commands += "--------------------------------
+";
+        commands += " a "; 
+        commands += "Kasir       : " + activeCloseBookData.kasir + "
+";
+        commands += "Cash        : " + activeCloseBookData.cash + "
+";
+        commands += "QRIS        : " + activeCloseBookData.qris + "
+";
+        commands += "Transfer    : " + activeCloseBookData.transfer + "
+";
+        commands += "--------------------------------
+";
+        commands += "Total IN    : " + activeCloseBookData.totalIn + "
+";
+        commands += "Total OUT   : " + activeCloseBookData.totalOut + "
+";
+        commands += "--------------------------------
+";
+        commands += " a "; 
+        commands += "NET TOTAL   :  E " + activeCloseBookData.totalNet + " E 
+";
+        commands += "--------------------------------
+";
+        commands += "*** Penutupan Sesi Berhasil ***
+
+
+
+";
 
         await characteristic.writeValue(encoder.encode(commands));
       } catch (error) {
         console.error('Error Bluetooth Tutup Buku:', error);
         cachedBluetoothDevice = null;
+        window.print();
       }
     }
 
@@ -1121,10 +1163,8 @@
       return 0;
     }
 
-    // GABUNGAN RIWAYAT SERVER DENGAN CACHE LOKAL (LANGKAH 3)
+    // GABUNGAN RIWAYAT SERVER DENGAN CACHE LOKAL
     function saveLocalHistory(payload) {
-      let localHist = JSON.parse(localStorage.getItem('warung_acil_local_hist')) || [];
-      
       if (payload.action === 'in') {
         if (!globalRawData.money_in) globalRawData.money_in = [];
         globalRawData.money_in.push({
@@ -1145,6 +1185,7 @@
         });
       }
 
+      localStorage.setItem('warung_acil_cached_dashboard', JSON.stringify(globalRawData));
       calculateLaciTotals();
       renderHistoryList();
     }
@@ -1266,17 +1307,15 @@
       const totalIn = totals.cash + totals.qris + totals.transfer;
       const totalNet = totalIn - totalOut;
 
-      const formatCurrency = (val) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(val);
-
       const elCash = document.getElementById('valCash');
       const elQris = document.getElementById('valQris');
       const elTransfer = document.getElementById('valTransfer');
       const elTotalNet = document.getElementById('valTotalNet');
 
-      if (elCash) elCash.innerText = formatCurrency(totals.cash);
-      if (elQris) elQris.innerText = formatCurrency(totals.qris);
-      if (elTransfer) elTransfer.innerText = formatCurrency(totals.transfer);
-      if (elTotalNet) elTotalNet.innerText = formatCurrency(totalNet);
+      if (elCash) elCash.innerText = formatRupiah(totals.cash);
+      if (elQris) elQris.innerText = formatRupiah(totals.qris);
+      if (elTransfer) elTransfer.innerText = formatRupiah(totals.transfer);
+      if (elTotalNet) elTotalNet.innerText = formatRupiah(totalNet);
 
       return {
         cash: totals.cash,
@@ -1320,7 +1359,7 @@
           ? new Date(item.timestamp).toLocaleString('id-ID', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' }) 
           : '-';
 
-        const formattedNominal = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(nominal);
+        const formattedNominal = formatRupiah(nominal);
 
         return `
           <div class="flex justify-between items-center p-3 bg-slate-50 rounded-2xl border border-slate-100 shadow-xs">
@@ -1353,7 +1392,7 @@
     }
 
     // ==========================================
-    // PWA & OFFLINE QUEUE ENGINE (IndexedDB / LocalStorage) (LANGKAH 1)
+    // PWA & OFFLINE QUEUE ENGINE (IndexedDB / LocalStorage)
     // ==========================================
     const OFFLINE_KEY = 'warung_acil_offline_queue';
 
@@ -1416,50 +1455,48 @@
 
       if (navigator.onLine) {
         badge.className = 'bg-emerald-500 text-white text-xs px-2.5 py-1.5 rounded-xl font-bold flex items-center gap-1 border border-emerald-400';
-        badge.querySelector('span').className = 'w-2 h-2 rounded-full bg-emerald-200 animate-pulse';
-        text.innerText = 'ONLINE';
+        badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-200 animate-pulse"></span><span id="networkStatusText">ONLINE</span>';
       } else {
         badge.className = 'bg-slate-700 text-amber-300 text-xs px-2.5 py-1.5 rounded-xl font-bold flex items-center gap-1 border border-slate-600';
-        badge.querySelector('span').className = 'w-2 h-2 rounded-full bg-amber-400 animate-ping';
-        text.innerText = 'OFFLINE';
+        badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span><span id="networkStatusText">OFFLINE</span>';
       }
     }
 
-  // PERBAIKAN: Fungsi Sync Antrean Offline
-async function syncOfflineQueue() {
-  if (!navigator.onLine) return;
-  
-  let queue = getOfflineQueue();
-  if (queue.length === 0) return;
+    // Otomatis sinkronisasi data pending saat internet menyala (ONLINE) - BUG FIXED
+    async function syncOfflineQueue() {
+      if (!navigator.onLine) return;
+      
+      let queue = getOfflineQueue();
+      if (queue.length === 0) return;
 
-  console.log(`Mengirim ${queue.length} transaksi offline ke n8n...`);
+      console.log(`Mengirim ${queue.length} transaksi offline ke n8n...`);
 
-  // Gunakan while loop untuk memproses elemen pertama sampai habis
-  while (queue.length > 0 && navigator.onLine) {
-    const item = queue[0]; // Selalu ambil elemen paling depan
-    try {
-      const response = await fetch(WEBHOOK_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(item)
-      });
+      // Menggunakan while loop membaca elemen [0] agar penghapusan shift() presisi
+      while (queue.length > 0 && navigator.onLine) {
+        const item = queue[0];
+        try {
+          const response = await fetch(WEBHOOK_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(item)
+          });
 
-      if (response.ok) {
-        removeFirstFromOfflineQueue(); // Hapus elemen pertama yang sukses
-        queue = getOfflineQueue(); // Perbarui instance queue lokal
-      } else {
-        console.warn('Server merespons gagal, menghentikan sync sementara.');
-        break; // Hentikan jika ada kegagalan dari server
+          if (response.ok) {
+            removeFirstFromOfflineQueue();
+            queue = getOfflineQueue(); // update queue instance
+          } else {
+            console.warn('Server error saat sync offline queue, dihentikan sementara.');
+            break;
+          }
+        } catch (err) {
+          console.warn('Gagal sinkronisasi satu item, akan dicoba nanti:', err);
+          break;
+        }
       }
-    } catch (err) {
-      console.warn('Gagal sinkronisasi satu item, akan dicoba nanti:', err);
-      break; // Hentikan loop jika koneksi terputus di tengah jalan
+      
+      // Refresh riwayat lokal setelah sync
+      loadDashboardData();
     }
-  }
-  
-  // Refresh riwayat lokal setelah selesai sync
-  loadDashboardData();
-}
 
     // Pasang Listener otomatis untuk deteksi perubahan jaringan
     window.addEventListener('online', () => {
@@ -1471,15 +1508,6 @@ async function syncOfflineQueue() {
     window.addEventListener('offline', () => {
       console.log('Perangkat terputus dari jaringan. Berpindah ke Mode Offline.');
       updateNetworkBadge();
-    });
-
-    // Cek antrean saat aplikasi baru dibuka
-    document.addEventListener('DOMContentLoaded', () => {
-      updateOfflineBadge();
-      updateNetworkBadge();
-      if (navigator.onLine) {
-        syncOfflineQueue();
-      }
     });
   </script>
 </body>
