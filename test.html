@@ -4,19 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Dashboard Kasir - Kasir Warung Acil</title>
-
+  
   <!-- Panggil config.js paling atas jika ada -->
   <script src="config.js"></script>
-
-  <script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js')
-        .then(reg => console.log('SW Registered!', reg))
-        .catch(err => console.error('SW Registration Failed!', err));
-    });
-  }
-</script>
   
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
@@ -141,6 +131,12 @@
       </div>
 
       <div class="flex items-center gap-2 shrink-0">
+        <!-- INDIKATOR STATUS KONEKSI ONLINE / OFFLINE -->
+        <div id="networkStatusBadge" class="bg-emerald-500 text-white text-xs px-2.5 py-1.5 rounded-xl font-bold flex items-center gap-1 border border-emerald-400">
+          <span class="w-2 h-2 rounded-full bg-emerald-200 animate-pulse"></span>
+          <span id="networkStatusText">ONLINE</span>
+        </div>
+
         <button onclick="toggleFastMode()" id="fastModeBtn" class="flex items-center gap-1 bg-amber-500 hover:bg-amber-600 text-slate-900 text-xs px-2.5 py-1.5 rounded-xl font-bold shadow-xs transition cursor-pointer">
           <span>⚡</span>
           <span id="fastModeText">Mode Cepat</span>
@@ -227,9 +223,8 @@
       <!-- SEKSI 2: RIWAYAT TRANSAKSI & TUTUP BUKU -->
       <div id="secHistory" class="hidden lg:block lg:col-span-5 flex-1 flex flex-col gap-3">
         
-        <!-- TRAY TUTUP BUKU (TAMPILAN RINGKASAN & BUTTON HIDDEN HANYA MENAMPILKAN BUTTON UTAMA PENUH 1 TRAY) -->
+        <!-- TRAY TUTUP BUKU -->
         <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-4 md:p-5 fast-card">
-          <!-- ELEMEN RINGKASAN & PERIODE DI-HIDE (FUNGSI TETAP BERJALAN) -->
           <div class="hidden">
             <button onclick="loadDashboardData()"></button>
             <div id="btnToday"></div>
@@ -329,7 +324,6 @@
         <p class="text-xs text-slate-500 font-medium">Apakah Anda yakin ingin memproses penutupan buku kasir sekarang?</p>
       </div>
 
-      <!-- RINCIAN DISEMBUNYIKAN (ELEMEN ID TETAP DISIMPAN DI DOM SECARA HIDDEN AGAR SCRIPT TIDAK ERROR) -->
       <div class="hidden">
         <span id="cbConfirmBranch">-</span>
         <span id="cbConfirmKasir">-</span>
@@ -444,6 +438,7 @@
     document.addEventListener('DOMContentLoaded', () => {
       applyFastModeUI();
       loadDashboardData();
+      updateNetworkBadge();
     });
 
     function getSelectedTargetBranch() {
@@ -717,11 +712,28 @@
         nominal: String(transNominal),
         transaksi: method.toUpperCase(),
         kasir: session.user,
-        cabang: targetBranch
+        cabang: targetBranch,
+        timestamp: transTime.toISOString()
       };
 
       const statusText = document.getElementById('paymentStatusText');
       const btnGroup = document.getElementById('paymentButtonsGroup');
+
+      // JIKA SEDANG OFFLINE ATAU KONEKSI TERPUTUS
+      if (!navigator.onLine) {
+        saveToOfflineQueue(payload);
+        
+        // Simpan juga ke cache visual riwayat lokal sementara
+        saveLocalHistory(payload);
+
+        clearCalc();
+        closePaymentModal();
+        openReceiptModal(transNominal, method, transAction === 'in', session.user, targetBranch, transTime);
+        setTimeout(() => { triggerPrint(); }, 200);
+        return;
+      }
+
+      // JIKA ONLINE: Kirim normal ke n8n
       statusText.innerText = '⏳ Memproses & Menyimpan Transaksi...';
       btnGroup.style.pointerEvents = 'none';
       btnGroup.style.opacity = '0.5';
@@ -733,19 +745,8 @@
           body: JSON.stringify(payload)
         });
 
-        const resData = await response.json();
-
-        let isSuccess = false;
-        if (response.ok) {
-          if (Array.isArray(resData) && resData[0]?.json?.success !== undefined) {
-            isSuccess = resData[0].json.success;
-          } else if (resData?.success !== undefined) {
-            isSuccess = resData.success;
-          } else {
-            isSuccess = true; 
-          }
-        }
-
+        let isSuccess = response.ok;
+        
         if (isSuccess) {
           clearCalc();
           loadDashboardData();
@@ -753,15 +754,19 @@
           openReceiptModal(transNominal, method, transAction === 'in', session.user, targetBranch, transTime);
           setTimeout(() => { triggerPrint(); }, 200);
         } else {
-          alert('Gagal menyimpan transaksi!');
-          statusText.innerText = 'Gagal menyimpan transaksi. Coba lagi.';
-          btnGroup.style.pointerEvents = 'auto';
-          btnGroup.style.opacity = '1';
+          throw new Error('Server mengembalikan error');
         }
       } catch (err) {
-        console.error('Error koneksi webhook:', err);
-        alert('Gagal terhubung ke webhook/server.');
-        statusText.innerText = 'Koneksi terputus. Silakan coba lagi.';
+        console.warn('Gagal terhubung ke webhook, beralih ke simpan offline:', err);
+        // Simpan ke offline queue jika permintaan fetch gagal/timeout
+        saveToOfflineQueue(payload);
+        saveLocalHistory(payload);
+
+        clearCalc();
+        closePaymentModal();
+        openReceiptModal(transNominal, method, transAction === 'in', session.user, targetBranch, transTime);
+        setTimeout(() => { triggerPrint(); }, 200);
+      } finally {
         btnGroup.style.pointerEvents = 'auto';
         btnGroup.style.opacity = '1';
       }
@@ -1080,7 +1085,7 @@
     }
 
     // ==========================================
-    // PARSING DATA RESPONSE N8N SECARA ROBUST & REVERSE ORDER
+    // RIWAYAT TRANSAKSI & NAVIGASI
     // ==========================================
 
     function switchNav(tab) {
@@ -1116,10 +1121,50 @@
       return 0;
     }
 
+    // GABUNGAN RIWAYAT SERVER DENGAN CACHE LOKAL (LANGKAH 3)
+    function saveLocalHistory(payload) {
+      let localHist = JSON.parse(localStorage.getItem('warung_acil_local_hist')) || [];
+      
+      if (payload.action === 'in') {
+        if (!globalRawData.money_in) globalRawData.money_in = [];
+        globalRawData.money_in.push({
+          NOMINAL: payload.nominal,
+          TRANSAKSI: payload.transaksi,
+          KASIR: payload.kasir,
+          CABANG: payload.cabang,
+          createdAt: payload.timestamp
+        });
+      } else if (payload.action === 'out') {
+        if (!globalRawData.money_out) globalRawData.money_out = [];
+        globalRawData.money_out.push({
+          NOMINAL: payload.nominal,
+          TRANSAKSI: payload.transaksi,
+          KASIR: payload.kasir,
+          CABANG: payload.cabang,
+          createdAt: payload.timestamp
+        });
+      }
+
+      calculateLaciTotals();
+      renderHistoryList();
+    }
+
     async function loadDashboardData() {
       const container = document.getElementById('historyList');
       if (container) container.innerHTML = `<p class="text-xs text-center text-slate-400 py-6">Memuat riwayat...</p>`;
 
+      // JIKA OFFLINE: Ambil dari cache lokal
+      if (!navigator.onLine) {
+        const cachedData = localStorage.getItem('warung_acil_cached_dashboard');
+        if (cachedData) {
+          globalRawData = JSON.parse(cachedData);
+        }
+        calculateLaciTotals();
+        renderHistoryList();
+        return;
+      }
+
+      // JIKA ONLINE: Ambil dari n8n dan simpan hasilnya ke cache lokal
       try {
         const response = await fetch(WEBHOOK_URL, {
           method: 'POST',
@@ -1128,16 +1173,12 @@
         });
         
         const resData = await response.json();
-        
         let extractedIn = [];
         let extractedOut = [];
 
         const searchData = (obj) => {
           if (!obj || typeof obj !== 'object') return;
-          if (Array.isArray(obj)) {
-            obj.forEach(searchData);
-            return;
-          }
+          if (Array.isArray(obj)) { obj.forEach(searchData); return; }
           if (obj.money_in || obj.money_out) {
             if (Array.isArray(obj.money_in)) extractedIn = obj.money_in;
             if (Array.isArray(obj.money_out)) extractedOut = obj.money_out;
@@ -1149,16 +1190,21 @@
 
         searchData(resData);
 
-        globalRawData = {
-          money_in: extractedIn,
-          money_out: extractedOut
-        };
+        globalRawData = { money_in: extractedIn, money_out: extractedOut };
+        
+        // Simpan ke Cache Lokal untuk penggunaan Offline
+        localStorage.setItem('warung_acil_cached_dashboard', JSON.stringify(globalRawData));
 
         calculateLaciTotals();
         renderHistoryList();
       } catch (err) {
-        console.error('Gagal memuat data:', err);
-        if (container) container.innerHTML = `<p class="text-xs text-center text-rose-500 py-6">Gagal memuat riwayat. Periksa koneksi/n8n.</p>`;
+        console.error('Gagal memuat data online, mencoba membaca cache lokal:', err);
+        const cachedData = localStorage.getItem('warung_acil_cached_dashboard');
+        if (cachedData) {
+          globalRawData = JSON.parse(cachedData);
+        }
+        calculateLaciTotals();
+        renderHistoryList();
       }
     }
 
@@ -1305,6 +1351,133 @@
       localStorage.removeItem('warung_acil_session');
       window.location.href = 'index.html';
     }
+
+    // ==========================================
+    // PWA & OFFLINE QUEUE ENGINE (IndexedDB / LocalStorage) (LANGKAH 1)
+    // ==========================================
+    const OFFLINE_KEY = 'warung_acil_offline_queue';
+
+    // Mengambil antrean transaksi yang tersimpan di lokal
+    function getOfflineQueue() {
+      const queue = localStorage.getItem(OFFLINE_KEY);
+      return queue ? JSON.parse(queue) : [];
+    }
+
+    // Menyimpan transaksi baru ke dalam antrean lokal
+    function saveToOfflineQueue(payload) {
+      const queue = getOfflineQueue();
+      // Tambahkan ID unik dan status pengiriman
+      payload.offlineId = 'OFF-' + Date.now();
+      payload.timestamp = payload.timestamp || new Date().toISOString();
+      queue.push(payload);
+      localStorage.setItem(OFFLINE_KEY, JSON.stringify(queue));
+      updateOfflineBadge();
+    }
+
+    // Menghapus antrean jika transaksi berhasil terikirim ke n8n
+    function removeFirstFromOfflineQueue() {
+      const queue = getOfflineQueue();
+      queue.shift();
+      localStorage.setItem(OFFLINE_KEY, JSON.stringify(queue));
+      updateOfflineBadge();
+    }
+
+    // Tampilan indikator badge saat ada data pending di lokal
+    function updateOfflineBadge() {
+      const queue = getOfflineQueue();
+      let badge = document.getElementById('pendingSyncBadge');
+      
+      if (!badge) {
+        // Buat badge otomatis jika belum ada di UI Navbar
+        const nav = document.querySelector('nav .flex.items-center.gap-2.shrink-0');
+        if (nav) {
+          badge = document.createElement('div');
+          badge.id = 'pendingSyncBadge';
+          badge.className = 'bg-rose-500 text-white text-xs px-2.5 py-1.5 rounded-xl font-bold flex items-center gap-1 animate-pulse hidden';
+          nav.insertBefore(badge, nav.firstChild);
+        }
+      }
+
+      if (badge) {
+        if (queue.length > 0) {
+          badge.innerHTML = `⏳ Pending Sync (${queue.length})`;
+          badge.classList.remove('hidden');
+        } else {
+          badge.classList.add('hidden');
+        }
+      }
+    }
+
+    // UPDATE TAMPILAN STATUS NETWORK BADGE (ONLINE / OFFLINE)
+    function updateNetworkBadge() {
+      const badge = document.getElementById('networkStatusBadge');
+      const text = document.getElementById('networkStatusText');
+      if (!badge || !text) return;
+
+      if (navigator.onLine) {
+        badge.className = 'bg-emerald-500 text-white text-xs px-2.5 py-1.5 rounded-xl font-bold flex items-center gap-1 border border-emerald-400';
+        badge.querySelector('span').className = 'w-2 h-2 rounded-full bg-emerald-200 animate-pulse';
+        text.innerText = 'ONLINE';
+      } else {
+        badge.className = 'bg-slate-700 text-amber-300 text-xs px-2.5 py-1.5 rounded-xl font-bold flex items-center gap-1 border border-slate-600';
+        badge.querySelector('span').className = 'w-2 h-2 rounded-full bg-amber-400 animate-ping';
+        text.innerText = 'OFFLINE';
+      }
+    }
+
+    // Otomatis sinkronisasi data pending saat internet menyala (ONLINE)
+    async function syncOfflineQueue() {
+      if (!navigator.onLine) return;
+      
+      const queue = getOfflineQueue();
+      if (queue.length === 0) return;
+
+      console.log(`Mengirim ${queue.length} transaksi offline ke n8n...`);
+
+      for (let i = 0; i < queue.length; i++) {
+        const item = queue[i];
+        try {
+          const response = await fetch(WEBHOOK_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(item)
+          });
+
+          if (response.ok) {
+            removeFirstFromOfflineQueue();
+          } else {
+            break; // Hentikan perulangan jika server error
+          }
+        } catch (err) {
+          console.warn('Gagal sinkronisasi satu item, akan dicoba nanti:', err);
+          break;
+        }
+      }
+      
+      // Refresh riwayat lokal setelah sync
+      loadDashboardData();
+    }
+
+    // Pasang Listener otomatis untuk deteksi perubahan jaringan
+    window.addEventListener('online', () => {
+      console.log('Koneksi kembali online. Memulai sinkronisasi...');
+      updateNetworkBadge();
+      syncOfflineQueue();
+    });
+
+    window.addEventListener('offline', () => {
+      console.log('Perangkat terputus dari jaringan. Berpindah ke Mode Offline.');
+      updateNetworkBadge();
+    });
+
+    // Cek antrean saat aplikasi baru dibuka
+    document.addEventListener('DOMContentLoaded', () => {
+      updateOfflineBadge();
+      updateNetworkBadge();
+      if (navigator.onLine) {
+        syncOfflineQueue();
+      }
+    });
   </script>
 </body>
 </html>
