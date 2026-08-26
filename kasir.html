@@ -929,6 +929,10 @@
         }
 
         if (isSuccess) {
+          // SIMPAN WAKTU TUTUP BUKU TERAKHIR KE LOCALSTORAGE
+          const branchKey = 'last_close_book_' + targetBranch;
+          localStorage.setItem(branchKey, closeTime.getTime());
+
           closeCloseBookConfirmation();
           openCloseBookReceiptModal(totals, targetBranch, session.user, closeTime);
           setTimeout(() => { triggerPrintCloseBook(); }, 200);
@@ -1179,12 +1183,17 @@
         const ts = getItemTimestamp(item);
         if (!ts) return true;
         
-        const d = new Date(ts);
         if (activePeriod === 'today') {
-          return d.getFullYear() === now.getFullYear() && 
-                 d.getMonth() === now.getMonth() && 
-                 d.getDate() === now.getDate();
+          // Ambil timestamp tutup buku terakhir dari cabang yang sedang aktif
+          const targetBranch = getSelectedTargetBranch();
+          const branchKey = 'last_close_book_' + targetBranch;
+          const lastCloseBookTs = Number(localStorage.getItem(branchKey)) || 0;
+
+          // Tampilkan hanya transaksi yang terjadi SETELAH tutup buku terakhir
+          return ts >= lastCloseBookTs;
         }
+        
+        const d = new Date(ts);
         if (activePeriod === 'week') return Math.floor((now - d) / (1000 * 60 * 60 * 24)) < 7;
         if (activePeriod === 'month') return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
         return true;
