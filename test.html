@@ -1101,6 +1101,7 @@
     function getItemTimestamp(item) {
       const rawDate = item.createdAt || item.created_at || item.tanggal || item.TANGGAL;
       if (rawDate) {
+        // Jika format hanya YYYY-MM-DD, parsing agar tidak bentrok dengan timestamp jam tutup buku
         const parsed = new Date(rawDate).getTime();
         if (!isNaN(parsed)) return parsed;
       }
@@ -1183,14 +1184,16 @@
         const ts = getItemTimestamp(item);
         if (!ts) return true;
         
-        if (activePeriod === 'today') {
-          // Ambil timestamp tutup buku terakhir dari cabang yang sedang aktif
-          const targetBranch = getSelectedTargetBranch();
-          const branchKey = 'last_close_book_' + targetBranch;
-          const lastCloseBookTs = Number(localStorage.getItem(branchKey)) || 0;
+        const targetBranch = getSelectedTargetBranch();
+        const branchKey = 'last_close_book_' + targetBranch;
+        const lastCloseBookTs = Number(localStorage.getItem(branchKey)) || 0;
 
-          // Tampilkan hanya transaksi yang terjadi SETELAH tutup buku terakhir
-          return ts >= lastCloseBookTs;
+        if (activePeriod === 'today') {
+          // JIKA belum pernah tutup buku sama sekali, tampilkan semua
+          if (lastCloseBookTs === 0) return true;
+          
+          // Tampilkan transaksi yang dibuat SETELAH timestamp Tutup Buku terakhir
+          return ts > lastCloseBookTs;
         }
         
         const d = new Date(ts);
