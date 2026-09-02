@@ -367,6 +367,11 @@
           <span class="font-extrabold text-xs" id="cbRTotalNet">Rp 0</span>
         </div>
 
+        <div class="border-b border-dashed border-black pb-1.5 my-1 flex justify-between items-center">
+          <span class="font-bold text-[10px]">TOTAL LACI:</span>
+          <span class="font-extrabold text-xs" id="cbRTotalLaci">Rp 0</span>
+        </div>
+
         <p class="text-[8px] mt-1.5 italic">*** Penutupan Kasir Berhasil ***</p>
       </div>
 
@@ -962,6 +967,7 @@
       document.getElementById('cbRTotalIn').innerText = formatCurrency(totals.totalIn);
       document.getElementById('cbRTotalOut').innerText = formatCurrency(totals.totalOut);
       document.getElementById('cbRTotalNet').innerText = formatCurrency(totals.totalNet);
+      document.getElementById('cbRTotalLaci').innerText = formatCurrency(totals.totalLaci);
 
       activeCloseBookData = {
         branch: cabang || currentBranchName,
@@ -972,7 +978,8 @@
         transfer: formatCurrency(totals.transfer),
         totalIn: formatCurrency(totals.totalIn),
         totalOut: formatCurrency(totals.totalOut),
-        totalNet: formatCurrency(totals.totalNet)
+        totalNet: formatCurrency(totals.totalNet),
+        totalLaci: formatCurrency(totals.totalLaci)
       };
 
       document.getElementById('closeBookReceiptModal').classList.remove('hidden');
@@ -1063,6 +1070,7 @@
         commands += "--------------------------------\n";
         commands += "\x1B\x61\x01"; 
         commands += "NET TOTAL   : \x1B\x45\x01" + activeCloseBookData.totalNet + "\x1B\x45\x00\n";
+        commands += "TOTAL LACI  : \x1B\x45\x01" + activeCloseBookData.totalLaci + "\x1B\x45\x00\n";
         commands += "--------------------------------\n";
         commands += "*** Penutupan Sesi Berhasil ***\n\n\n\n";
 
@@ -1167,6 +1175,28 @@
         }
       });
       calculateLaciTotals();
+      renderHistoryList();
+    }
+
+    function getHistoryPeriodFilter() {
+      const now = new Date();
+
+      return (item) => {
+        const ts = getItemTimestamp(item);
+        if (!ts) return true;
+
+        if (activePeriod === 'today') {
+          const targetBranch = getSelectedTargetBranch();
+          const branchKey = 'last_close_book_' + targetBranch;
+          const lastCloseBookTs = Number(localStorage.getItem(branchKey)) || 0;
+          return ts >= lastCloseBookTs;
+        }
+
+        const d = new Date(ts);
+        if (activePeriod === 'week') return Math.floor((now - d) / (1000 * 60 * 60 * 24)) < 7;
+        if (activePeriod === 'month') return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+        return true;
+      };
     }
 
     function calculateLaciTotals() {
@@ -1179,25 +1209,7 @@
         listOut = listOut.filter(o => String(o.CABANG || o.cabang || '').toUpperCase() === currentBranchName.toUpperCase());
       }
 
-      const filterByDate = (item) => {
-        const ts = getItemTimestamp(item);
-        if (!ts) return true;
-        
-        if (activePeriod === 'today') {
-          // Ambil timestamp tutup buku terakhir dari cabang yang sedang aktif
-          const targetBranch = getSelectedTargetBranch();
-          const branchKey = 'last_close_book_' + targetBranch;
-          const lastCloseBookTs = Number(localStorage.getItem(branchKey)) || 0;
-
-          // Tampilkan hanya transaksi yang terjadi SETELAH tutup buku terakhir
-          return ts >= lastCloseBookTs;
-        }
-        
-        const d = new Date(ts);
-        if (activePeriod === 'week') return Math.floor((now - d) / (1000 * 60 * 60 * 24)) < 7;
-        if (activePeriod === 'month') return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-        return true;
-      };
+      const filterByDate = getHistoryPeriodFilter();
 
       const filteredIn = listIn.filter(filterByDate);
       const filteredOut = listOut.filter(filterByDate);
@@ -1218,6 +1230,8 @@
 
       const totalIn = totals.cash + totals.qris + totals.transfer;
       const totalNet = totalIn - totalOut;
+      // Semua pengeluaran diasumsikan menggunakan CASH.
+      const totalLaci = totals.cash - totalOut;
 
       const formatCurrency = (val) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(val);
 
@@ -1237,7 +1251,8 @@
         transfer: totals.transfer,
         totalIn: totalIn,
         totalOut: totalOut,
-        totalNet: totalNet
+        totalNet: totalNet,
+        totalLaci: totalLaci
       };
     }
 
@@ -1252,6 +1267,9 @@
       if (!session.isOwner) {
         all = all.filter(item => String(item.CABANG || item.cabang || '').toUpperCase() === currentBranchName.toUpperCase());
       }
+
+      const filterByDate = getHistoryPeriodFilter();
+      all = all.filter(filterByDate);
 
       if (all.length === 0) {
         container.innerHTML = `<p class="text-xs text-center text-slate-400 py-6">Belum ada riwayat transaksi.</p>`;
