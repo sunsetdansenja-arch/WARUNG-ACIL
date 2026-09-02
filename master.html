@@ -236,75 +236,191 @@
   <script>
     let masterDataCache = null;
     let activeFilter = 'shift_baru';
+    let isFetchingMasterData = false;
+    let fetchRequestId = 0;
+    const FETCH_TIMEOUT_MS = 20000;
 
     const WEBHOOK_URL = 'https://n8n-mzbmiib3etk4.kangkung.sumopod.my.id/webhook/0c2f335e-543b-4f3e-968e-f70d412f194b';
 
-    // Show/Hide Loading Overlay
     function showLoading(show) {
       const overlay = document.getElementById('loadingOverlay');
-      if (show) {
-        overlay.classList.remove('hidden-overlay');
-      } else {
-        overlay.classList.add('hidden-overlay');
-      }
+      if (!overlay) return;
+      overlay.classList.toggle('hidden-overlay', !show);
     }
 
     function formatRupiah(val) {
-      const num = Number(val) || 0;
-      return 'Rp ' + num.toLocaleString('id-ID');
+      const num = Number(val);
+      return 'Rp ' + (Number.isFinite(num) ? num : 0).toLocaleString('id-ID');
     }
 
-    function formatDate(isoStr) {
-      if (!isoStr) return 'Belum Pernah';
-      const d = new Date(isoStr);
-      if (isNaN(d.getTime())) return 'Belum Pernah';
-      return d.toLocaleString('id-ID', {
-        day: '2-digit', month: 'short', year: 'numeric',
-        hour: '2-digit', minute: '2-digit'
+    function parseTimestamp(value) {
+      if (value === null || value === undefined || value === '') return 0;
+      const numeric = Number(value);
+      if (Number.isFinite(numeric) && numeric > 0) {
+        return numeric < 100000000000 ? numeric * 1000 : numeric;
+      }
+      const parsed = new Date(value).getTime();
+      return Number.isFinite(parsed) ? parsed : 0;
+    }
+
+    function formatDate(value) {
+      const ts = parseTimestamp(value);
+      if (!ts) return 'Belum Pernah';
+      return new Date(ts).toLocaleString('id-ID', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
       });
     }
 
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function setStatusMessage(message, type = 'error') {
+      const container = document.getElementById('branchTrayContainer');
+      if (!container) return;
+      const cls = type === 'error'
+        ? 'text-rose-400'
+        : 'text-[#7B7F8D]';
+      container.innerHTML = `<div class="col-span-full text-center py-8 text-xs font-mono-num ${cls}">${escapeHtml(message)}</div>`;
+    }
+
+    function extractMasterPayload(result) {
+      let candidate = result;
+      if (Array.isArray(candidate)) candidate = candidate[0];
+
+      if (candidate?.json?.data) return candidate.json.data;
+      if (candidate?.data) return candidate.data;
+      if (candidate?.json && (candidate.json.summary || candidate.json.pembukuan_logs)) return candidate.json;
+      if (candidate?.summary || candidate?.pembukuan_logs) return candidate;
+
+      return null;
+    }
+
+    function validateMasterData(data) {
+      if (!data || typeof data !== 'object') {
+        throw new Error('Response master tidak memiliki data yang valid.');
+      }
+
+      if (!data.summary || typeof data.summary !== 'object') {
+        throw new Error('Data summary master tidak ditemukan.');
+      }
+
+      if (!Array.isArray(data.summary.branch_performance)) {
+        throw new Error('Data performa cabang tidak valid.');
+      }
+
+      if (!Array.isArray(data.pembukuan_logs)) {
+        throw new Error('Data riwayat tutup buku tidak valid.');
+      }
+
+      return true;
+    }
+
     async function fetchMasterData() {
+      if (isFetchingMasterData) return;
+
+      isFetchingMasterData = true;
+      const requestId = ++fetchRequestId;
       showLoading(true);
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+
       try {
         const response = await fetch(WEBHOOK_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'get_master' })
+          body: JSON.stringify({ action: 'get_master' }),
+          signal: controller.signal,
+          cache: 'no-store'
         });
 
-        const result = await response.json();
-        const payload = Array.isArray(result) ? result[0] : result;
+        const contentType = response.headers.get('content-type') || '';
+        let result;
 
-        if (payload && payload.json && payload.json.data) {
-          masterDataCache = payload.json.data;
-        } else if (payload && payload.data) {
-          masterDataCache = payload.data;
+        if (contentType.includes('application/json')) {
+          result = await response.json();
+        } else {
+          const text = await response.text();
+          try {
+            result = JSON.parse(text);
+          } catch {
+            throw new Error(`Server mengembalikan response non-JSON (HTTP ${response.status}).`);
+          }
         }
 
-        if (masterDataCache) {
-          renderGlobalSummary();
-          renderBranchTrays();
-          renderCloseBookTable();
+        if (!response.ok) {
+          const serverMessage =
+            result?.message ||
+            result?.error ||
+            result?.json?.message ||
+            result?.json?.error ||
+            `HTTP ${response.status}`;
+          throw new Error(`Gagal mengambil data master: ${serverMessage}`);
         }
+
+        const data = extractMasterPayload(result);
+        validateMasterData(data);
+
+        // Jangan biarkan response lama menimpa response yang lebih baru.
+        if (requestId !== fetchRequestId) return;
+
+        masterDataCache = data;
+        renderGlobalSummary();
+        renderBranchTrays();
+        renderCloseBookTable();
       } catch (err) {
+        if (requestId !== fetchRequestId) return;
+
         console.error('Gagal mengambil master data:', err);
+
+        let message = err?.message || 'Gagal memuat data master.';
+        if (err?.name === 'AbortError') {
+          message = 'Request timeout. Server tidak merespons dalam 20 detik.';
+        }
+
+        setStatusMessage(message, 'error');
+
+        const tbody = document.getElementById('tableCloseBookBody');
+        if (tbody) {
+          tbody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-xs font-mono-num text-rose-400">${escapeHtml(message)}</td></tr>`;
+        }
       } finally {
-        setTimeout(() => showLoading(false), 300);
+        clearTimeout(timeoutId);
+        isFetchingMasterData = false;
+        setTimeout(() => showLoading(false), 200);
       }
     }
 
     function renderGlobalSummary() {
-      if (!masterDataCache || !masterDataCache.summary) return;
-      const s = masterDataCache.summary;
+      if (!masterDataCache?.summary) return;
 
-      document.getElementById('statTotalIn').innerText = formatRupiah(s.total_in);
-      document.getElementById('statTotalOut').innerText = formatRupiah(s.total_out);
-      document.getElementById('statTotalCash').innerText = formatRupiah(s.total_cash);
-      document.getElementById('statTotalNonCash').innerText = formatRupiah((s.total_qris || 0) + (s.total_transfer || 0));
+      const s = masterDataCache.summary;
+      const totalIn = Number(s.total_in) || 0;
+      const totalOut = Number(s.total_out) || 0;
+      const totalCash = Number(s.total_cash) || 0;
+      const totalQris = Number(s.total_qris) || 0;
+      const totalTransfer = Number(s.total_transfer) || 0;
+
+      document.getElementById('statTotalIn').innerText = formatRupiah(totalIn);
+      document.getElementById('statTotalOut').innerText = formatRupiah(totalOut);
+      document.getElementById('statTotalCash').innerText = formatRupiah(totalCash);
+      document.getElementById('statTotalNonCash').innerText = formatRupiah(totalQris + totalTransfer);
     }
 
     function setBranchFilter(filterType) {
+      const allowed = ['shift_baru', 'minggu_ini', 'bulan_ini'];
+      if (!allowed.includes(filterType)) return;
+
       activeFilter = filterType;
 
       const btnShift = document.getElementById('btnFilterShift');
@@ -312,15 +428,18 @@
       const btnBulan = document.getElementById('btnFilterBulan');
 
       [btnShift, btnMinggu, btnBulan].forEach(btn => {
+        if (!btn) return;
         btn.className = 'flex-1 sm:flex-none px-3 py-1 text-[11px] font-medium tracking-wider rounded transition text-[#7B7F8D] hover:text-[#EAEAEA] text-center uppercase';
       });
 
-      if (filterType === 'shift_baru') {
-        btnShift.className = 'flex-1 sm:flex-none px-3 py-1 text-[11px] font-bold tracking-wider rounded transition bg-[#5C6C8F] text-white text-center uppercase';
-      } else if (filterType === 'minggu_ini') {
-        btnMinggu.className = 'flex-1 sm:flex-none px-3 py-1 text-[11px] font-bold tracking-wider rounded transition bg-[#5C6C8F] text-white text-center uppercase';
-      } else if (filterType === 'bulan_ini') {
-        btnBulan.className = 'flex-1 sm:flex-none px-3 py-1 text-[11px] font-bold tracking-wider rounded transition bg-[#5C6C8F] text-white text-center uppercase';
+      const activeBtn = {
+        shift_baru: btnShift,
+        minggu_ini: btnMinggu,
+        bulan_ini: btnBulan
+      }[filterType];
+
+      if (activeBtn) {
+        activeBtn.className = 'flex-1 sm:flex-none px-3 py-1 text-[11px] font-bold tracking-wider rounded transition bg-[#5C6C8F] text-white text-center uppercase';
       }
 
       renderBranchTrays();
@@ -328,24 +447,42 @@
 
     function renderBranchTrays() {
       const container = document.getElementById('branchTrayContainer');
+      if (!container) return;
+
       container.innerHTML = '';
 
-      if (!masterDataCache || !masterDataCache.summary || !masterDataCache.summary.branch_performance) {
+      const branches = masterDataCache?.summary?.branch_performance;
+
+      if (!Array.isArray(branches)) {
         container.innerHTML = `<div class="col-span-full text-center py-8 text-xs font-mono-num text-[#7B7F8D]">Tidak ada data performa cabang.</div>`;
         return;
       }
 
-      const branches = masterDataCache.summary.branch_performance;
+      if (branches.length === 0) {
+        container.innerHTML = `<div class="col-span-full text-center py-8 text-xs font-mono-num text-[#7B7F8D]">Belum ada data cabang.</div>`;
+        return;
+      }
+
+      const countLabel = document.querySelector('section p.text-\\[11px\\]');
+      if (countLabel) {
+        countLabel.textContent = `Ringkasan transaksi dan omset di ${branches.length} cabang`;
+      }
 
       branches.forEach(b => {
-        const perf = b[activeFilter] || { pemasukan: 0, pengeluaran: 0, omset: 0 };
-        const lastCloseText = formatDate(b.last_close_book);
+        if (!b || typeof b !== 'object') return;
+
+        const perf = b[activeFilter] && typeof b[activeFilter] === 'object'
+          ? b[activeFilter]
+          : { pemasukan: 0, pengeluaran: 0, omset: 0 };
+
+        const cabang = escapeHtml(b.cabang || '-');
+        const lastCloseText = escapeHtml(formatDate(b.last_close_book));
 
         const cardHtml = `
           <div class="bento-card p-4 flex flex-col justify-between space-y-4 hover:border-white/20 transition">
             <div class="flex items-start justify-between">
               <div>
-                <h3 class="font-bold text-[#EAEAEA] text-sm tracking-wide uppercase">${b.cabang}</h3>
+                <h3 class="font-bold text-[#EAEAEA] text-sm tracking-wide uppercase">${cabang}</h3>
                 <p class="text-[10px] text-[#7B7F8D] mt-0.5 tracking-wider">TUTUP BUKU: <span class="font-mono-num text-[#EAEAEA]">${lastCloseText}</span></p>
               </div>
               <span class="p-1.5 rounded-lg bg-white/5 border border-white/10 text-[#7B7F8D]">
@@ -369,37 +506,80 @@
             </div>
           </div>
         `;
+
         container.insertAdjacentHTML('beforeend', cardHtml);
       });
 
       if (window.lucide) lucide.createIcons();
     }
 
+    function getCloseBookTimestamp(log) {
+      if (!log || typeof log !== 'object') return 0;
+      return parseTimestamp(
+        log.waktu ??
+        log.createdAt ??
+        log.created_at ??
+        log.WAKTU_TUTUP_BUKU ??
+        log.tanggal ??
+        log.TANGGAL
+      );
+    }
+
     function renderCloseBookTable() {
       const tbody = document.getElementById('tableCloseBookBody');
+      if (!tbody) return;
+
       tbody.innerHTML = '';
 
-      if (!masterDataCache || !masterDataCache.pembukuan_logs || masterDataCache.pembukuan_logs.length === 0) {
+      const logs = masterDataCache?.pembukuan_logs;
+
+      if (!Array.isArray(logs) || logs.length === 0) {
         tbody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-xs font-mono-num text-[#7B7F8D]">Belum ada riwayat tutup buku</td></tr>`;
         return;
       }
 
-      masterDataCache.pembukuan_logs.forEach(log => {
+      // Backend sudah mengirim 10 data terakhir. Sort lagi di frontend agar urutan
+      // tetap terbaru -> terlama walaupun urutan response berubah.
+      const sortedLogs = logs
+        .filter(log => log && typeof log === 'object')
+        .map((log, index) => ({ log, index, ts: getCloseBookTimestamp(log) }))
+        .sort((a, b) => {
+          if (b.ts !== a.ts) return b.ts - a.ts;
+          return b.index - a.index;
+        })
+        .slice(0, 10)
+        .map(item => item.log);
+
+      if (sortedLogs.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-xs font-mono-num text-[#7B7F8D]">Belum ada riwayat tutup buku</td></tr>`;
+        return;
+      }
+
+      sortedLogs.forEach(log => {
+        const waktu = escapeHtml(formatDate(
+          log.waktu ?? log.createdAt ?? log.created_at ?? log.WAKTU_TUTUP_BUKU ?? log.tanggal ?? log.TANGGAL
+        ));
+        const cabang = escapeHtml(log.cabang ?? log.CABANG ?? '-');
+        const user = escapeHtml(log.user ?? log.kasir ?? log.KASIR ?? '-');
+
         const trHtml = `
           <tr class="hover:bg-white/[0.02] transition">
-            <td class="py-2.5 px-3 whitespace-nowrap font-mono-num text-[#7B7F8D] text-[11px]">${formatDate(log.waktu)}</td>
-            <td class="py-2.5 px-3 font-semibold text-[#EAEAEA] uppercase tracking-wide">${log.cabang}</td>
-            <td class="py-2.5 px-3 text-[#7B7F8D]">${log.user}</td>
-            <td class="py-2.5 px-3 text-right font-mono-num font-medium text-emerald-400">${formatRupiah(log.uang_masuk)}</td>
-            <td class="py-2.5 px-3 text-right font-mono-num font-medium text-rose-400">${formatRupiah(log.uang_keluar)}</td>
+            <td class="py-2.5 px-3 whitespace-nowrap font-mono-num text-[#7B7F8D] text-[11px]">${waktu}</td>
+            <td class="py-2.5 px-3 font-semibold text-[#EAEAEA] uppercase tracking-wide">${cabang}</td>
+            <td class="py-2.5 px-3 text-[#7B7F8D]">${user}</td>
+            <td class="py-2.5 px-3 text-right font-mono-num font-medium text-emerald-400">${formatRupiah(log.uang_masuk ?? log.total_in ?? log.money_in)}</td>
+            <td class="py-2.5 px-3 text-right font-mono-num font-medium text-rose-400">${formatRupiah(log.uang_keluar ?? log.total_out ?? log.money_out)}</td>
           </tr>
         `;
+
         tbody.insertAdjacentHTML('beforeend', trHtml);
       });
     }
 
     function logout() {
-      localStorage.clear();
+      // Jangan gunakan localStorage.clear() agar setting/penyimpanan aplikasi lain
+      // pada domain yang sama tidak ikut terhapus.
+      localStorage.removeItem('warung_acil_session');
       window.location.href = 'index.html';
     }
 
