@@ -214,41 +214,27 @@
         </div>
       </div>
 
-      <!-- SEKSI 2: RIWAYAT TRANSAKSI -->
+      <!-- SEKSI 2: RIWAYAT TRANSAKSI & TUTUP BUKU -->
       <div id="secHistory" class="hidden lg:block lg:col-span-5 flex-1 flex flex-col gap-3">
+        
+        <!-- TRAY TUTUP BUKU (TAMPILAN RINGKASAN & BUTTON HIDDEN HANYA MENAMPILKAN BUTTON UTAMA PENUH 1 TRAY) -->
         <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-4 md:p-5 fast-card">
-          <div class="flex justify-between items-center mb-3">
-            <h2 class="font-extrabold text-slate-800 text-sm flex items-center gap-1">💵 Ringkasan Laci Kasir</h2>
-            <div class="flex items-center gap-1.5">
-              <button onclick="openCloseBookConfirmation()" class="text-xs text-rose-700 font-extrabold bg-rose-50 hover:bg-rose-100 px-2.5 py-1 rounded-lg border border-rose-200 cursor-pointer transition">
-                🔒 Tutup Buku
-              </button>
-              <button onclick="loadDashboardData()" class="text-xs text-emerald-600 font-extrabold bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 cursor-pointer">🔄 Refresh</button>
-            </div>
+          <!-- ELEMEN RINGKASAN & PERIODE DI-HIDE (FUNGSI TETAP BERJALAN) -->
+          <div class="hidden">
+            <button onclick="loadDashboardData()"></button>
+            <div id="btnToday"></div>
+            <div id="btnWeek"></div>
+            <div id="btnMonth"></div>
+            <div id="valCash">Rp 0</div>
+            <div id="valQris">Rp 0</div>
+            <div id="valTransfer">Rp 0</div>
+            <div id="valTotalNet">Rp 0</div>
           </div>
-          <div class="flex bg-slate-100 p-1.5 rounded-2xl mb-3 text-xs font-bold text-slate-500 fast-input">
-            <button id="btnToday" onclick="switchPeriod('today')" class="flex-1 py-1.5 rounded-xl bg-white text-emerald-700 shadow-xs font-black">Hari Ini</button>
-            <button id="btnWeek" onclick="switchPeriod('week')" class="flex-1 py-1.5 rounded-xl font-bold">7 Hari</button>
-            <button id="btnMonth" onclick="switchPeriod('month')" class="flex-1 py-1.5 rounded-xl font-bold">Bulan Ini</button>
-          </div>
-          <div class="grid grid-cols-3 gap-2 text-center text-xs font-bold">
-            <div class="bg-emerald-50 p-2.5 rounded-2xl border border-emerald-100">
-              <p class="text-[10px] text-emerald-700 font-extrabold">CASH</p>
-              <p id="valCash" class="text-slate-800 mt-0.5 font-black text-xs md:text-sm">Rp 0</p>
-            </div>
-            <div class="bg-blue-50 p-2.5 rounded-2xl border border-blue-100">
-              <p class="text-[10px] text-blue-700 font-extrabold">QRIS</p>
-              <p id="valQris" class="text-slate-800 mt-0.5 font-black text-xs md:text-sm">Rp 0</p>
-            </div>
-            <div class="bg-purple-50 p-2.5 rounded-2xl border border-purple-100">
-              <p class="text-[10px] text-purple-700 font-extrabold">TRANSFER</p>
-              <p id="valTransfer" class="text-slate-800 mt-0.5 font-black text-xs md:text-sm">Rp 0</p>
-            </div>
-          </div>
-          <div class="mt-3 pt-2.5 border-t border-dashed border-slate-200 flex justify-between items-center text-xs font-bold">
-            <span class="text-slate-500 font-extrabold">Total Bersih:</span>
-            <span class="text-emerald-600 text-base font-black" id="valTotalNet">Rp 0</span>
-          </div>
+
+          <!-- BUTTON TUTUP BUKU PENUH 1 TRAY -->
+          <button onclick="openCloseBookConfirmation()" class="w-full py-4 md:py-5 bg-rose-600 hover:bg-rose-700 active:scale-[0.98] text-white text-base md:text-lg font-black rounded-2xl shadow-md border-b-4 border-rose-900 cursor-pointer transition flex items-center justify-center gap-2 uppercase tracking-wider">
+            🔒 Tutup Buku Kasir
+          </button>
         </div>
 
         <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-4 md:p-5 flex-1 flex flex-col fast-card">
@@ -330,41 +316,21 @@
       <div class="text-center space-y-1">
         <p class="inline-block text-xs font-black uppercase px-3 py-1 rounded-full bg-rose-100 text-rose-800 tracking-wider">SESI OPERASIONAL</p>
         <h3 class="font-black text-slate-800 text-xl">Konfirmasi Tutup Buku</h3>
-        <p class="text-xs text-slate-500 font-medium">Periksa kembali rekap penutupan laci harian sebelum memproses.</p>
+        <p class="text-xs text-slate-500 font-medium">Apakah Anda yakin ingin memproses penutupan buku kasir sekarang?</p>
       </div>
 
-      <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-xs space-y-2">
-        <div class="flex justify-between border-b border-slate-200 pb-1.5">
-          <span class="text-slate-500">Cabang</span>
-          <span class="font-bold text-slate-800" id="cbConfirmBranch">-</span>
-        </div>
-        <div class="flex justify-between border-b border-slate-200 pb-1.5">
-          <span class="text-slate-500">Kasir</span>
-          <span class="font-bold text-slate-800" id="cbConfirmKasir">-</span>
-        </div>
-        <div class="flex justify-between">
-          <span class="text-slate-500">Total Cash (Masuk)</span>
-          <span class="font-bold text-slate-800" id="cbConfirmCash">Rp 0</span>
-        </div>
-        <div class="flex justify-between">
-          <span class="text-slate-500">Total QRIS</span>
-          <span class="font-bold text-slate-800" id="cbConfirmQris">Rp 0</span>
-        </div>
-        <div class="flex justify-between">
-          <span class="text-slate-500">Total Transfer</span>
-          <span class="font-bold text-slate-800" id="cbConfirmTransfer">Rp 0</span>
-        </div>
-        <div class="flex justify-between border-t border-slate-200 pt-1.5">
-          <span class="text-rose-600 font-bold">Total Pengeluaran (Out)</span>
-          <span class="font-bold text-rose-600" id="cbConfirmOut">Rp 0</span>
-        </div>
-        <div class="flex justify-between border-t border-dashed border-slate-300 pt-2 text-sm font-black">
-          <span class="text-slate-800">Total Bersih (Net)</span>
-          <span class="text-emerald-600" id="cbConfirmNet">Rp 0</span>
-        </div>
+      <!-- RINCIAN DISEMBUNYIKAN (ELEMEN ID TETAP DISIMPAN DI DOM SECARA HIDDEN AGAR SCRIPT TIDAK ERROR) -->
+      <div class="hidden">
+        <span id="cbConfirmBranch">-</span>
+        <span id="cbConfirmKasir">-</span>
+        <span id="cbConfirmCash">Rp 0</span>
+        <span id="cbConfirmQris">Rp 0</span>
+        <span id="cbConfirmTransfer">Rp 0</span>
+        <span id="cbConfirmOut">Rp 0</span>
+        <span id="cbConfirmNet">Rp 0</span>
       </div>
 
-      <div class="flex flex-col gap-2">
+      <div class="flex flex-col gap-2 pt-2">
         <button id="btnExecuteCloseBook" onclick="executeCloseBook()" class="w-full bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-black py-3.5 rounded-2xl text-sm shadow-lg cursor-pointer transition">
           🔒 PROSES TUTUP BUKU NOW
         </button>
@@ -399,6 +365,11 @@
         <div class="border-b border-dashed border-black pb-1.5 my-1 flex justify-between items-center">
           <span class="font-bold text-[10px]">TOTAL NET:</span>
           <span class="font-extrabold text-xs" id="cbRTotalNet">Rp 0</span>
+        </div>
+
+        <div class="border-b border-dashed border-black pb-1.5 my-1 flex justify-between items-center">
+          <span class="font-bold text-[10px]">TOTAL LACI:</span>
+          <span class="font-extrabold text-xs" id="cbRTotalLaci">Rp 0</span>
         </div>
 
         <p class="text-[8px] mt-1.5 italic">*** Penutupan Kasir Berhasil ***</p>
@@ -897,13 +868,21 @@
       const targetBranch = getSelectedTargetBranch();
       const formatCurrency = (val) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(val);
 
-      document.getElementById('cbConfirmBranch').innerText = targetBranch;
-      document.getElementById('cbConfirmKasir').innerText = session.user;
-      document.getElementById('cbConfirmCash').innerText = formatCurrency(totals.cash);
-      document.getElementById('cbConfirmQris').innerText = formatCurrency(totals.qris);
-      document.getElementById('cbConfirmTransfer').innerText = formatCurrency(totals.transfer);
-      document.getElementById('cbConfirmOut').innerText = formatCurrency(totals.totalOut);
-      document.getElementById('cbConfirmNet').innerText = formatCurrency(totals.totalNet);
+      const elBranch = document.getElementById('cbConfirmBranch');
+      const elKasir = document.getElementById('cbConfirmKasir');
+      const elCash = document.getElementById('cbConfirmCash');
+      const elQris = document.getElementById('cbConfirmQris');
+      const elTransfer = document.getElementById('cbConfirmTransfer');
+      const elOut = document.getElementById('cbConfirmOut');
+      const elNet = document.getElementById('cbConfirmNet');
+
+      if (elBranch) elBranch.innerText = targetBranch;
+      if (elKasir) elKasir.innerText = session.user;
+      if (elCash) elCash.innerText = formatCurrency(totals.cash);
+      if (elQris) elQris.innerText = formatCurrency(totals.qris);
+      if (elTransfer) elTransfer.innerText = formatCurrency(totals.transfer);
+      if (elOut) elOut.innerText = formatCurrency(totals.totalOut);
+      if (elNet) elNet.innerText = formatCurrency(totals.totalNet);
 
       document.getElementById('closeBookConfirmModal').classList.remove('hidden');
     }
@@ -921,7 +900,6 @@
       btnExecute.innerText = '⏳ Memproses Tutup Buku...';
       btnExecute.disabled = true;
 
-      // PEMBENAHAN PAYLOAD: Memasukkan money_in & money_out dengan presisi
       const payload = {
         action: 'close_book',
         kasir: session.user,
@@ -956,6 +934,10 @@
         }
 
         if (isSuccess) {
+          // SIMPAN WAKTU TUTUP BUKU TERAKHIR KE LOCALSTORAGE
+          const branchKey = 'last_close_book_' + targetBranch;
+          localStorage.setItem(branchKey, closeTime.getTime());
+
           closeCloseBookConfirmation();
           openCloseBookReceiptModal(totals, targetBranch, session.user, closeTime);
           setTimeout(() => { triggerPrintCloseBook(); }, 200);
@@ -985,6 +967,7 @@
       document.getElementById('cbRTotalIn').innerText = formatCurrency(totals.totalIn);
       document.getElementById('cbRTotalOut').innerText = formatCurrency(totals.totalOut);
       document.getElementById('cbRTotalNet').innerText = formatCurrency(totals.totalNet);
+      document.getElementById('cbRTotalLaci').innerText = formatCurrency(totals.totalLaci);
 
       activeCloseBookData = {
         branch: cabang || currentBranchName,
@@ -995,7 +978,8 @@
         transfer: formatCurrency(totals.transfer),
         totalIn: formatCurrency(totals.totalIn),
         totalOut: formatCurrency(totals.totalOut),
-        totalNet: formatCurrency(totals.totalNet)
+        totalNet: formatCurrency(totals.totalNet),
+        totalLaci: formatCurrency(totals.totalLaci)
       };
 
       document.getElementById('closeBookReceiptModal').classList.remove('hidden');
@@ -1003,8 +987,6 @@
 
     function closeCloseBookReceiptModal() {
       document.getElementById('closeBookReceiptModal').classList.add('hidden');
-      
-      // MEMICU ANIMASI REFRESH SETELAH TUTUP BUKU SELESAI
       triggerPostCloseBookReset();
     }
 
@@ -1013,11 +995,8 @@
       overlay.classList.remove('hidden');
 
       setTimeout(() => {
-        // Kosongkan cache riwayat lokal & reset kalkulator
         globalRawData = { money_in: [], money_out: [] };
         clearCalc();
-        
-        // Memuat ulang data dari server
         loadDashboardData();
 
         setTimeout(() => {
@@ -1091,6 +1070,7 @@
         commands += "--------------------------------\n";
         commands += "\x1B\x61\x01"; 
         commands += "NET TOTAL   : \x1B\x45\x01" + activeCloseBookData.totalNet + "\x1B\x45\x00\n";
+        commands += "TOTAL LACI  : \x1B\x45\x01" + activeCloseBookData.totalLaci + "\x1B\x45\x00\n";
         commands += "--------------------------------\n";
         commands += "*** Penutupan Sesi Berhasil ***\n\n\n\n";
 
@@ -1151,7 +1131,6 @@
         
         const resData = await response.json();
         
-        // Extractor dinamis: mencari properti money_in & money_out di level manapun
         let extractedIn = [];
         let extractedOut = [];
 
@@ -1196,6 +1175,28 @@
         }
       });
       calculateLaciTotals();
+      renderHistoryList();
+    }
+
+    function getHistoryPeriodFilter() {
+      const now = new Date();
+
+      return (item) => {
+        const ts = getItemTimestamp(item);
+        if (!ts) return true;
+
+        if (activePeriod === 'today') {
+          const targetBranch = getSelectedTargetBranch();
+          const branchKey = 'last_close_book_' + targetBranch;
+          const lastCloseBookTs = Number(localStorage.getItem(branchKey)) || 0;
+          return ts >= lastCloseBookTs;
+        }
+
+        const d = new Date(ts);
+        if (activePeriod === 'week') return Math.floor((now - d) / (1000 * 60 * 60 * 24)) < 7;
+        if (activePeriod === 'month') return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+        return true;
+      };
     }
 
     function calculateLaciTotals() {
@@ -1208,20 +1209,7 @@
         listOut = listOut.filter(o => String(o.CABANG || o.cabang || '').toUpperCase() === currentBranchName.toUpperCase());
       }
 
-      const filterByDate = (item) => {
-        const ts = getItemTimestamp(item);
-        if (!ts) return true; // Fallback jika tidak ada timestamp
-        
-        const d = new Date(ts);
-        if (activePeriod === 'today') {
-          return d.getFullYear() === now.getFullYear() && 
-                 d.getMonth() === now.getMonth() && 
-                 d.getDate() === now.getDate();
-        }
-        if (activePeriod === 'week') return Math.floor((now - d) / (1000 * 60 * 60 * 24)) < 7;
-        if (activePeriod === 'month') return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-        return true;
-      };
+      const filterByDate = getHistoryPeriodFilter();
 
       const filteredIn = listIn.filter(filterByDate);
       const filteredOut = listOut.filter(filterByDate);
@@ -1242,13 +1230,20 @@
 
       const totalIn = totals.cash + totals.qris + totals.transfer;
       const totalNet = totalIn - totalOut;
+      // Semua pengeluaran diasumsikan menggunakan CASH.
+      const totalLaci = totals.cash - totalOut;
 
       const formatCurrency = (val) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(val);
 
-      document.getElementById('valCash').innerText = formatCurrency(totals.cash);
-      document.getElementById('valQris').innerText = formatCurrency(totals.qris);
-      document.getElementById('valTransfer').innerText = formatCurrency(totals.transfer);
-      document.getElementById('valTotalNet').innerText = formatCurrency(totalNet);
+      const elCash = document.getElementById('valCash');
+      const elQris = document.getElementById('valQris');
+      const elTransfer = document.getElementById('valTransfer');
+      const elTotalNet = document.getElementById('valTotalNet');
+
+      if (elCash) elCash.innerText = formatCurrency(totals.cash);
+      if (elQris) elQris.innerText = formatCurrency(totals.qris);
+      if (elTransfer) elTransfer.innerText = formatCurrency(totals.transfer);
+      if (elTotalNet) elTotalNet.innerText = formatCurrency(totalNet);
 
       return {
         cash: totals.cash,
@@ -1256,7 +1251,8 @@
         transfer: totals.transfer,
         totalIn: totalIn,
         totalOut: totalOut,
-        totalNet: totalNet
+        totalNet: totalNet,
+        totalLaci: totalLaci
       };
     }
 
@@ -1272,12 +1268,14 @@
         all = all.filter(item => String(item.CABANG || item.cabang || '').toUpperCase() === currentBranchName.toUpperCase());
       }
 
+      const filterByDate = getHistoryPeriodFilter();
+      all = all.filter(filterByDate);
+
       if (all.length === 0) {
         container.innerHTML = `<p class="text-xs text-center text-slate-400 py-6">Belum ada riwayat transaksi.</p>`;
         return;
       }
 
-      // DIBALIKKAN (REVERSE) AGAR TRANSAKSI TERAKHIR MASUK DI ATAS
       all.reverse();
 
       container.innerHTML = all.map((item) => {
