@@ -319,77 +319,15 @@
         <p class="text-xs text-slate-500 font-medium">Apakah Anda yakin ingin memproses penutupan buku kasir sekarang?</p>
       </div>
 
-      <div class="bg-slate-50 rounded-2xl border border-slate-200 p-3 space-y-3">
-        <div class="flex justify-between items-center text-xs">
-          <span class="font-bold text-slate-500">CABANG</span>
-          <span id="cbConfirmBranch" class="font-black text-slate-800">-</span>
-        </div>
-        <div class="flex justify-between items-center text-xs">
-          <span class="font-bold text-slate-500">KASIR</span>
-          <span id="cbConfirmKasir" class="font-black text-slate-800">-</span>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 gap-2.5">
-        <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-3">
-          <div class="flex justify-between items-center mb-2">
-            <span class="font-black text-xs uppercase text-emerald-800">💵 Laci Cash</span>
-            <span id="cbConfirmCash" class="font-black text-sm text-emerald-900">Rp 0</span>
-          </div>
-          <div class="grid grid-cols-2 gap-2 text-[10px]">
-            <div><span class="text-slate-500 block">Masuk</span><span id="cbConfirmCashIn" class="font-bold">Rp 0</span></div>
-            <div><span class="text-slate-500 block">Keluar</span><span id="cbConfirmCashOut" class="font-bold text-rose-600">Rp 0</span></div>
-          </div>
-        </div>
-        <div class="rounded-2xl border border-blue-200 bg-blue-50 p-3">
-          <div class="flex justify-between items-center mb-2">
-            <span class="font-black text-xs uppercase text-blue-800">📱 QRIS</span>
-            <span id="cbConfirmQris" class="font-black text-sm text-blue-900">Rp 0</span>
-          </div>
-          <div class="grid grid-cols-2 gap-2 text-[10px]">
-            <div><span class="text-slate-500 block">Masuk</span><span id="cbConfirmQrisIn" class="font-bold">Rp 0</span></div>
-            <div><span class="text-slate-500 block">Keluar</span><span id="cbConfirmQrisOut" class="font-bold text-rose-600">Rp 0</span></div>
-          </div>
-        </div>
-        <div class="rounded-2xl border border-purple-200 bg-purple-50 p-3">
-          <div class="flex justify-between items-center mb-2">
-            <span class="font-black text-xs uppercase text-purple-800">🏦 Transfer</span>
-            <span id="cbConfirmTransfer" class="font-black text-sm text-purple-900">Rp 0</span>
-          </div>
-          <div class="grid grid-cols-2 gap-2 text-[10px]">
-            <div><span class="text-slate-500 block">Masuk</span><span id="cbConfirmTransferIn" class="font-bold">Rp 0</span></div>
-            <div><span class="text-slate-500 block">Keluar</span><span id="cbConfirmTransferOut" class="font-bold text-rose-600">Rp 0</span></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="rounded-2xl border border-slate-200 bg-white p-3">
-        <div class="flex justify-between text-xs mb-1"><span class="font-bold text-slate-500">TOTAL MASUK</span><span id="cbConfirmIn" class="font-black">Rp 0</span></div>
-        <div class="flex justify-between text-xs mb-1"><span class="font-bold text-slate-500">TOTAL KELUAR</span><span id="cbConfirmOut" class="font-black text-rose-600">Rp 0</span></div>
-        <div class="border-t border-dashed border-slate-200 pt-2 mt-2 flex justify-between items-center"><span class="font-black text-sm">TOTAL SALDO</span><span id="cbConfirmNet" class="font-black text-lg text-slate-900">Rp 0</span></div>
-      </div>
-
-      <div class="rounded-2xl border border-amber-200 bg-amber-50 p-3">
-        <p class="text-[10px] font-black uppercase tracking-wider text-amber-900 mb-2">CEK FISIK SEBELUM TUTUP</p>
-        <div class="space-y-2">
-          <label class="block">
-            <span class="text-[10px] font-bold text-slate-600">Aktual Laci Cash</span>
-            <input id="actualCash" inputmode="numeric" type="number" min="0" step="1" placeholder="Masukkan saldo cash aktual" class="w-full mt-1 px-3 py-2.5 rounded-xl border border-amber-300 bg-white text-sm font-black text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-400">
-          </label>
-          <label class="block">
-            <span class="text-[10px] font-bold text-slate-600">Aktual Saldo QRIS</span>
-            <input id="actualQris" inputmode="numeric" type="number" min="0" step="1" placeholder="Masukkan saldo QRIS aktual" class="w-full mt-1 px-3 py-2.5 rounded-xl border border-amber-300 bg-white text-sm font-black text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-400">
-          </label>
-          <label class="block">
-            <span class="text-[10px] font-bold text-slate-600">Aktual Saldo Transfer</span>
-            <input id="actualTransfer" inputmode="numeric" type="number" min="0" step="1" placeholder="Masukkan saldo transfer aktual" class="w-full mt-1 px-3 py-2.5 rounded-xl border border-amber-300 bg-white text-sm font-black text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-400">
-          </label>
-          <label class="block">
-            <span class="text-[10px] font-bold text-slate-600">Catatan Selisih (opsional)</span>
-            <textarea id="closeBookNote" rows="2" placeholder="Isi jika terdapat selisih..." class="w-full mt-1 px-3 py-2.5 rounded-xl border border-amber-300 bg-white text-sm font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-400"></textarea>
-          </label>
-        </div>
-        <div id="closeBookBalancePreview" class="mt-3 rounded-xl bg-white border border-amber-200 p-3 text-xs font-bold text-slate-600">Masukkan saldo aktual untuk melihat hasil pengecekan.</div>
+      <!-- RINCIAN DISEMBUNYIKAN (ELEMEN ID TETAP DISIMPAN DI DOM SECARA HIDDEN AGAR SCRIPT TIDAK ERROR) -->
+      <div class="hidden">
+        <span id="cbConfirmBranch">-</span>
+        <span id="cbConfirmKasir">-</span>
+        <span id="cbConfirmCash">Rp 0</span>
+        <span id="cbConfirmQris">Rp 0</span>
+        <span id="cbConfirmTransfer">Rp 0</span>
+        <span id="cbConfirmOut">Rp 0</span>
+        <span id="cbConfirmNet">Rp 0</span>
       </div>
 
       <div class="flex flex-col gap-2 pt-2">
@@ -417,28 +355,23 @@
         </div>
 
         <div class="border-t border-b border-dashed border-black py-1.5 my-1 text-left space-y-1 text-[9px]">
-          <p class="font-bold text-[10px] text-center mb-1">SALDO AKHIR SEHARUSNYA</p>
-          <div class="flex justify-between"><span>Cash:</span> <span id="cbRCash" class="font-bold">Rp 0</span></div>
+          <div class="flex justify-between"><span>Cash (Masuk):</span> <span id="cbRCash" class="font-bold">Rp 0</span></div>
           <div class="flex justify-between"><span>QRIS:</span> <span id="cbRQris" class="font-bold">Rp 0</span></div>
           <div class="flex justify-between"><span>Transfer:</span> <span id="cbRTransfer" class="font-bold">Rp 0</span></div>
-          <div class="flex justify-between border-t border-slate-200 pt-1"><span>Total Saldo:</span> <span id="cbRTotalNet" class="font-bold">Rp 0</span></div>
+          <div class="flex justify-between border-t border-slate-200 pt-1"><span>Total Masuk (IN):</span> <span id="cbRTotalIn" class="font-bold">Rp 0</span></div>
+          <div class="flex justify-between text-rose-600"><span>Pengeluaran (OUT):</span> <span id="cbRTotalOut" class="font-bold">Rp 0</span></div>
         </div>
-        <div class="border-b border-dashed border-black pb-1.5 my-1 text-left space-y-1 text-[9px]">
-          <p class="font-bold text-[10px] text-center mb-1">PERGERAKAN</p>
-          <div class="flex justify-between"><span>Cash IN / OUT:</span> <span id="cbRCashFlow" class="font-bold">Rp 0 / Rp 0</span></div>
-          <div class="flex justify-between"><span>QRIS IN / OUT:</span> <span id="cbRQrisFlow" class="font-bold">Rp 0 / Rp 0</span></div>
-          <div class="flex justify-between"><span>Transfer IN / OUT:</span> <span id="cbRTransferFlow" class="font-bold">Rp 0 / Rp 0</span></div>
-          <div class="flex justify-between border-t border-slate-200 pt-1"><span>Total IN:</span> <span id="cbRTotalIn" class="font-bold">Rp 0</span></div>
-          <div class="flex justify-between text-rose-600"><span>Total OUT:</span> <span id="cbRTotalOut" class="font-bold">Rp 0</span></div>
+
+        <div class="border-b border-dashed border-black pb-1.5 my-1 flex justify-between items-center">
+          <span class="font-bold text-[10px]">TOTAL NET:</span>
+          <span class="font-extrabold text-xs" id="cbRTotalNet">Rp 0</span>
         </div>
-        <div class="border-b border-dashed border-black pb-1.5 my-1 text-left space-y-1 text-[9px]">
-          <p class="font-bold text-[10px] text-center mb-1">HASIL CEK FISIK</p>
-          <div class="flex justify-between"><span>Cash:</span> <span id="cbRCashCheck" class="font-bold">-</span></div>
-          <div class="flex justify-between"><span>QRIS:</span> <span id="cbRQrisCheck" class="font-bold">-</span></div>
-          <div class="flex justify-between"><span>Transfer:</span> <span id="cbRTransferCheck" class="font-bold">-</span></div>
-          <div class="flex justify-between border-t border-slate-200 pt-1"><span>STATUS:</span> <span id="cbRStatus" class="font-bold">-</span></div>
+
+        <div class="border-b border-dashed border-black pb-1.5 my-1 flex justify-between items-center">
+          <span class="font-bold text-[10px]">TOTAL LACI:</span>
+          <span class="font-extrabold text-xs" id="cbRTotalLaci">Rp 0</span>
         </div>
-        <p id="cbRNote" class="text-[8px] mt-1.5 italic text-left"></p>
+
         <p class="text-[8px] mt-1.5 italic">*** Penutupan Kasir Berhasil ***</p>
       </div>
 
@@ -506,12 +439,6 @@
     document.addEventListener('DOMContentLoaded', () => {
       applyFastModeUI();
       loadDashboardData();
-    });
-
-    ['actualCash', 'actualQris', 'actualTransfer'].forEach(id => {
-      document.addEventListener('input', (event) => {
-        if (event.target && event.target.id === id) renderCloseBookBalancePreview(calculateLaciTotals());
-      });
     });
 
     function getSelectedTargetBranch() {
@@ -785,9 +712,7 @@
         nominal: String(transNominal),
         transaksi: method.toUpperCase(),
         kasir: session.user,
-        cabang: targetBranch,
-        timestamp: transTime.toISOString(),
-        createdAt: transTime.toISOString()
+        cabang: targetBranch
       };
 
       const statusText = document.getElementById('paymentStatusText');
@@ -819,8 +744,12 @@
         if (isSuccess) {
           clearCalc();
           closePaymentModal();
-          // Beri waktu singkat agar write ke Data Table selesai sebelum GET DATA.
-          setTimeout(() => loadDashboardData(), 700);
+
+          // Beri waktu singkat agar write ke Data Table selesai
+          // sebelum GET DATA dijalankan kembali.
+          setTimeout(() => {
+            loadDashboardData();
+          }, 700);
           openReceiptModal(transNominal, method, transAction === 'in', session.user, targetBranch, transTime);
           setTimeout(() => { triggerPrint(); }, 200);
         } else {
@@ -939,92 +868,27 @@
     // ==========================================
     // LOGIKA FITUR TUTUP BUKU (CLOSE BOOK)
     // ==========================================
-    function formatCurrencyGlobal(val) {
-      return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(val) || 0);
-    }
-
-    function getCloseBookCheck(totals) {
-      const actualCashRaw = document.getElementById('actualCash')?.value;
-      const actualQrisRaw = document.getElementById('actualQris')?.value;
-      const actualTransferRaw = document.getElementById('actualTransfer')?.value;
-
-      const hasCash = actualCashRaw !== '' && actualCashRaw !== undefined;
-      const hasQris = actualQrisRaw !== '' && actualQrisRaw !== undefined;
-      const hasTransfer = actualTransferRaw !== '' && actualTransferRaw !== undefined;
-
-      const actualCash = hasCash ? Number(actualCashRaw) : null;
-      const actualQris = hasQris ? Number(actualQrisRaw) : null;
-      const actualTransfer = hasTransfer ? Number(actualTransferRaw) : null;
-
-      const cashDiff = hasCash ? actualCash - totals.cash : null;
-      const qrisDiff = hasQris ? actualQris - totals.qris : null;
-      const transferDiff = hasTransfer ? actualTransfer - totals.transfer : null;
-      const allChecked = hasCash && hasQris && hasTransfer;
-      const balanced = allChecked && cashDiff === 0 && qrisDiff === 0 && transferDiff === 0;
-
-      return {
-        actualCash, actualQris, actualTransfer,
-        cashDiff, qrisDiff, transferDiff,
-        allChecked, balanced,
-        totalActual: allChecked ? actualCash + actualQris + actualTransfer : null,
-        totalDiff: allChecked ? cashDiff + qrisDiff + transferDiff : null
-      };
-    }
-
-    function renderCloseBookBalancePreview(totals) {
-      const box = document.getElementById('closeBookBalancePreview');
-      if (!box) return;
-      const check = getCloseBookCheck(totals);
-      const row = (label, diff) => {
-        if (diff === null) return `<div class="flex justify-between"><span>${label}</span><span class="font-black text-slate-500">Belum diisi</span></div>`;
-        const ok = diff === 0;
-        const sign = diff > 0 ? '+' : '';
-        return `<div class="flex justify-between"><span>${label}</span><span class="font-black ${ok ? 'text-emerald-700' : 'text-rose-700'}">${ok ? '✓ BALANCE' : sign + formatCurrencyGlobal(diff)}</span></div>`;
-      };
-      box.innerHTML = `
-        <div class="font-black text-slate-800 mb-2">HASIL PENGECEKAN</div>
-        <div class="space-y-1">
-          ${row('Laci Cash', check.cashDiff)}
-          ${row('QRIS', check.qrisDiff)}
-          ${row('Transfer', check.transferDiff)}
-        </div>
-        <div class="border-t border-amber-200 mt-2 pt-2 flex justify-between">
-          <span class="font-black">STATUS</span>
-          <span class="font-black ${check.balanced ? 'text-emerald-700' : 'text-amber-700'}">${check.balanced ? '✓ BALANCE' : (check.allChecked ? '⚠ ADA SELISIH' : 'MENUNGGU DATA AKTUAL')}</span>
-        </div>`;
-    }
-
     function openCloseBookConfirmation() {
       const totals = calculateLaciTotals();
       const targetBranch = getSelectedTargetBranch();
-      const fields = {
-        cbConfirmBranch: targetBranch,
-        cbConfirmKasir: session.user,
-        cbConfirmCash: formatCurrencyGlobal(totals.cash),
-        cbConfirmQris: formatCurrencyGlobal(totals.qris),
-        cbConfirmTransfer: formatCurrencyGlobal(totals.transfer),
-        cbConfirmCashIn: formatCurrencyGlobal(totals.cashIn),
-        cbConfirmCashOut: formatCurrencyGlobal(totals.cashOut),
-        cbConfirmQrisIn: formatCurrencyGlobal(totals.qrisIn),
-        cbConfirmQrisOut: formatCurrencyGlobal(totals.qrisOut),
-        cbConfirmTransferIn: formatCurrencyGlobal(totals.transferIn),
-        cbConfirmTransferOut: formatCurrencyGlobal(totals.transferOut),
-        cbConfirmIn: formatCurrencyGlobal(totals.totalIn),
-        cbConfirmOut: formatCurrencyGlobal(totals.totalOut),
-        cbConfirmNet: formatCurrencyGlobal(totals.totalNet)
-      };
-      Object.entries(fields).forEach(([id, value]) => {
-        const el = document.getElementById(id);
-        if (el) el.innerText = value;
-      });
+      const formatCurrency = (val) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(val);
 
-      ['actualCash', 'actualQris', 'actualTransfer'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.value = '';
-      });
-      const note = document.getElementById('closeBookNote');
-      if (note) note.value = '';
-      renderCloseBookBalancePreview(totals);
+      const elBranch = document.getElementById('cbConfirmBranch');
+      const elKasir = document.getElementById('cbConfirmKasir');
+      const elCash = document.getElementById('cbConfirmCash');
+      const elQris = document.getElementById('cbConfirmQris');
+      const elTransfer = document.getElementById('cbConfirmTransfer');
+      const elOut = document.getElementById('cbConfirmOut');
+      const elNet = document.getElementById('cbConfirmNet');
+
+      if (elBranch) elBranch.innerText = targetBranch;
+      if (elKasir) elKasir.innerText = session.user;
+      if (elCash) elCash.innerText = formatCurrency(totals.cash);
+      if (elQris) elQris.innerText = formatCurrency(totals.qris);
+      if (elTransfer) elTransfer.innerText = formatCurrency(totals.transfer);
+      if (elOut) elOut.innerText = formatCurrency(totals.totalOut);
+      if (elNet) elNet.innerText = formatCurrency(totals.totalNet);
+
       document.getElementById('closeBookConfirmModal').classList.remove('hidden');
     }
 
@@ -1034,20 +898,9 @@
 
     async function executeCloseBook() {
       const totals = calculateLaciTotals();
-      const check = getCloseBookCheck(totals);
-      if (!check.allChecked) {
-        alert('Isi saldo aktual Laci Cash, QRIS, dan Transfer terlebih dahulu sebelum tutup buku.');
-        return;
-      }
-
-      if (!check.balanced && !(document.getElementById('closeBookNote')?.value || '').trim()) {
-        alert('Terdapat selisih. Isi Catatan Selisih terlebih dahulu sebelum tutup buku.');
-        return;
-      }
-
       const targetBranch = getSelectedTargetBranch();
       const closeTime = new Date();
-      const closeNote = (document.getElementById('closeBookNote')?.value || '').trim();
+
       const btnExecute = document.getElementById('btnExecuteCloseBook');
       btnExecute.innerText = '⏳ Memproses Tutup Buku...';
       btnExecute.disabled = true;
@@ -1062,21 +915,6 @@
         cash: String(totals.cash),
         qris: String(totals.qris),
         transfer: String(totals.transfer),
-        cash_in: String(totals.cashIn),
-        cash_out: String(totals.cashOut),
-        qris_in: String(totals.qrisIn),
-        qris_out: String(totals.qrisOut),
-        transfer_in: String(totals.transferIn),
-        transfer_out: String(totals.transferOut),
-        actual_cash: String(check.actualCash),
-        actual_qris: String(check.actualQris),
-        actual_transfer: String(check.actualTransfer),
-        cash_difference: String(check.cashDiff),
-        qris_difference: String(check.qrisDiff),
-        transfer_difference: String(check.transferDiff),
-        total_difference: String(check.totalDiff),
-        balance_status: check.balanced ? 'BALANCE' : 'SELISIH',
-        close_note: closeNote,
         timestamp: closeTime.toISOString()
       };
 
@@ -1086,19 +924,27 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
+
         const resData = await response.json();
+
         let isSuccess = false;
         if (response.ok) {
-          if (Array.isArray(resData) && resData[0]?.json?.success !== undefined) isSuccess = resData[0].json.success;
-          else if (resData?.success !== undefined) isSuccess = resData.success;
-          else isSuccess = true;
+          if (Array.isArray(resData) && resData[0]?.json?.success !== undefined) {
+            isSuccess = resData[0].json.success;
+          } else if (resData?.success !== undefined) {
+            isSuccess = resData.success;
+          } else {
+            isSuccess = true;
+          }
         }
 
         if (isSuccess) {
+          // SIMPAN WAKTU TUTUP BUKU TERAKHIR KE LOCALSTORAGE
           const branchKey = 'last_close_book_' + targetBranch;
           localStorage.setItem(branchKey, closeTime.getTime());
+
           closeCloseBookConfirmation();
-          openCloseBookReceiptModal(totals, targetBranch, session.user, closeTime, check, closeNote);
+          openCloseBookReceiptModal(totals, targetBranch, session.user, closeTime);
           setTimeout(() => { triggerPrintCloseBook(); }, 200);
         } else {
           alert('Gagal memproses Tutup Buku di server!');
@@ -1112,53 +958,33 @@
       }
     }
 
-    function openCloseBookReceiptModal(totals, cabang, kasir, date, check, note) {
+    function openCloseBookReceiptModal(totals, cabang, kasir, date) {
+      const formatCurrency = (val) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(val);
       const formattedDate = new Date(date || Date.now()).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' }) + ' WIB';
+
       document.getElementById('cbRBranch').innerText = cabang || currentBranchName;
       document.getElementById('cbRDate').innerText = formattedDate;
       document.getElementById('cbRKasir').innerText = kasir || session.user;
-      document.getElementById('cbRCash').innerText = formatCurrencyGlobal(totals.cash);
-      document.getElementById('cbRQris').innerText = formatCurrencyGlobal(totals.qris);
-      document.getElementById('cbRTransfer').innerText = formatCurrencyGlobal(totals.transfer);
-      document.getElementById('cbRTotalIn').innerText = formatCurrencyGlobal(totals.totalIn);
-      document.getElementById('cbRTotalOut').innerText = formatCurrencyGlobal(totals.totalOut);
-      document.getElementById('cbRTotalNet').innerText = formatCurrencyGlobal(totals.totalNet);
-      document.getElementById('cbRCashFlow').innerText = `${formatCurrencyGlobal(totals.cashIn)} / ${formatCurrencyGlobal(totals.cashOut)}`;
-      document.getElementById('cbRQrisFlow').innerText = `${formatCurrencyGlobal(totals.qrisIn)} / ${formatCurrencyGlobal(totals.qrisOut)}`;
-      document.getElementById('cbRTransferFlow').innerText = `${formatCurrencyGlobal(totals.transferIn)} / ${formatCurrencyGlobal(totals.transferOut)}`;
-
-      const checkText = (diff) => diff === 0 ? '✓ BALANCE' : `${diff > 0 ? '+' : ''}${formatCurrencyGlobal(diff)}`;
-      document.getElementById('cbRCashCheck').innerText = checkText(check.cashDiff);
-      document.getElementById('cbRQrisCheck').innerText = checkText(check.qrisDiff);
-      document.getElementById('cbRTransferCheck').innerText = checkText(check.transferDiff);
-      document.getElementById('cbRStatus').innerText = check.balanced ? '✓ BALANCE' : '⚠ ADA SELISIH';
-      document.getElementById('cbRNote').innerText = note ? `Catatan: ${note}` : '';
+      
+      document.getElementById('cbRCash').innerText = formatCurrency(totals.cash);
+      document.getElementById('cbRQris').innerText = formatCurrency(totals.qris);
+      document.getElementById('cbRTransfer').innerText = formatCurrency(totals.transfer);
+      document.getElementById('cbRTotalIn').innerText = formatCurrency(totals.totalIn);
+      document.getElementById('cbRTotalOut').innerText = formatCurrency(totals.totalOut);
+      document.getElementById('cbRTotalNet').innerText = formatCurrency(totals.totalNet);
+      document.getElementById('cbRTotalLaci').innerText = formatCurrency(totals.totalLaci);
 
       activeCloseBookData = {
         branch: cabang || currentBranchName,
         date: formattedDate,
         kasir: kasir || session.user,
-        cash: formatCurrencyGlobal(totals.cash),
-        qris: formatCurrencyGlobal(totals.qris),
-        transfer: formatCurrencyGlobal(totals.transfer),
-        totalIn: formatCurrencyGlobal(totals.totalIn),
-        totalOut: formatCurrencyGlobal(totals.totalOut),
-        totalNet: formatCurrencyGlobal(totals.totalNet),
-        cashIn: formatCurrencyGlobal(totals.cashIn),
-        cashOut: formatCurrencyGlobal(totals.cashOut),
-        qrisIn: formatCurrencyGlobal(totals.qrisIn),
-        qrisOut: formatCurrencyGlobal(totals.qrisOut),
-        transferIn: formatCurrencyGlobal(totals.transferIn),
-        transferOut: formatCurrencyGlobal(totals.transferOut),
-        actualCash: formatCurrencyGlobal(check.actualCash),
-        actualQris: formatCurrencyGlobal(check.actualQris),
-        actualTransfer: formatCurrencyGlobal(check.actualTransfer),
-        cashDiff: formatCurrencyGlobal(check.cashDiff),
-        qrisDiff: formatCurrencyGlobal(check.qrisDiff),
-        transferDiff: formatCurrencyGlobal(check.transferDiff),
-        totalDiff: formatCurrencyGlobal(check.totalDiff),
-        status: check.balanced ? 'BALANCE' : 'ADA SELISIH',
-        note: note || ''
+        cash: formatCurrency(totals.cash),
+        qris: formatCurrency(totals.qris),
+        transfer: formatCurrency(totals.transfer),
+        totalIn: formatCurrency(totals.totalIn),
+        totalOut: formatCurrency(totals.totalOut),
+        totalNet: formatCurrency(totals.totalNet),
+        totalLaci: formatCurrency(totals.totalLaci)
       };
 
       document.getElementById('closeBookReceiptModal').classList.remove('hidden');
@@ -1240,29 +1066,16 @@
         commands += "--------------------------------\n";
         commands += "\x1B\x61\x00"; 
         commands += "Kasir       : " + activeCloseBookData.kasir + "\n";
-        commands += "SALDO AKHIR SEHARUSNYA\n";
         commands += "Cash        : " + activeCloseBookData.cash + "\n";
         commands += "QRIS        : " + activeCloseBookData.qris + "\n";
         commands += "Transfer    : " + activeCloseBookData.transfer + "\n";
         commands += "--------------------------------\n";
-        commands += "PERGERAKAN\n";
-        commands += "Cash IN/OUT : " + activeCloseBookData.cashIn + " / " + activeCloseBookData.cashOut + "\n";
-        commands += "QRIS IN/OUT : " + activeCloseBookData.qrisIn + " / " + activeCloseBookData.qrisOut + "\n";
-        commands += "Transfer I/O: " + activeCloseBookData.transferIn + " / " + activeCloseBookData.transferOut + "\n";
         commands += "Total IN    : " + activeCloseBookData.totalIn + "\n";
         commands += "Total OUT   : " + activeCloseBookData.totalOut + "\n";
         commands += "--------------------------------\n";
-        commands += "CEK FISIK\n";
-        commands += "Cash actual : " + activeCloseBookData.actualCash + "\n";
-        commands += "QRIS actual : " + activeCloseBookData.actualQris + "\n";
-        commands += "Transfer act: " + activeCloseBookData.actualTransfer + "\n";
-        commands += "Cash selisih: " + activeCloseBookData.cashDiff + "\n";
-        commands += "QRIS selisih: " + activeCloseBookData.qrisDiff + "\n";
-        commands += "Trans selisih: " + activeCloseBookData.transferDiff + "\n";
-        commands += "STATUS      : " + activeCloseBookData.status + "\n";
-        if (activeCloseBookData.note) commands += "Catatan     : " + activeCloseBookData.note + "\n";
-        commands += "--------------------------------\n";
-        commands += "TOTAL SALDO : \x1B\x45\x01" + activeCloseBookData.totalNet + "\x1B\x45\x00\n";
+        commands += "\x1B\x61\x01"; 
+        commands += "NET TOTAL   : \x1B\x45\x01" + activeCloseBookData.totalNet + "\x1B\x45\x00\n";
+        commands += "TOTAL LACI  : \x1B\x45\x01" + activeCloseBookData.totalLaci + "\x1B\x45\x00\n";
         commands += "--------------------------------\n";
         commands += "*** Penutupan Sesi Berhasil ***\n\n\n\n";
 
@@ -1299,44 +1112,24 @@
     }
 
     function getItemTimestamp(item) {
-      const candidates = [
-        item.createdAt, item.created_at, item.timestamp, item.TIMESTAMP,
-        item.tanggal, item.TANGGAL, item.date, item.DATE,
-        item.waktu, item.WAKTU, item.datetime, item.DATETIME
-      ];
-      for (const rawDate of candidates) {
-        if (rawDate === undefined || rawDate === null || rawDate === '') continue;
-        if (typeof rawDate === 'number' && rawDate > 0) {
-          const ms = rawDate < 10000000000 ? rawDate * 1000 : rawDate;
-          if (!isNaN(ms)) return ms;
-        }
+      const rawDate =
+        item.createdAt ||
+        item.created_at ||
+        item.tanggal ||
+        item.TANGGAL ||
+        item.WAKTU ||
+        item.waktu ||
+        item.timestamp ||
+        item.DATE ||
+        item.date;
+      if (rawDate) {
         const parsed = new Date(rawDate).getTime();
         if (!isNaN(parsed)) return parsed;
       }
+      if (item.id && !isNaN(Number(item.id))) {
+        return Number(item.id);
+      }
       return 0;
-    }
-
-    function normalizeBranch(value) {
-      return String(value || '')
-        .trim()
-        .replace(/\s+/g, ' ')
-        .toUpperCase();
-    }
-
-    function getItemBranch(item) {
-      return item.CABANG || item.cabang || item.BRANCH || item.branch || item.nama_cabang || item.NAMA_CABANG || '';
-    }
-
-    function getItemNominal(item) {
-      const raw = item.NOMINAL ?? item.nominal ?? item.amount ?? item.AMOUNT ?? 0;
-      if (typeof raw === 'number') return raw;
-      const cleaned = String(raw).replace(/[^0-9.-]/g, '');
-      const value = Number(cleaned);
-      return Number.isFinite(value) ? value : 0;
-    }
-
-    function getItemMethod(item) {
-      return String(item.TRANSAKSI || item.transaksi || item.METODE || item.metode || item.method || '').trim().toLowerCase();
     }
 
     async function loadDashboardData() {
@@ -1344,10 +1137,15 @@
       if (container) container.innerHTML = `<p class="text-xs text-center text-slate-400 py-6">Memuat riwayat...</p>`;
 
       try {
+        const targetBranch = getSelectedTargetBranch();
+
         const response = await fetch(WEBHOOK_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'get_data' })
+          body: JSON.stringify({
+            action: 'get_data',
+            cabang: targetBranch
+          })
         });
         
         const resData = await response.json();
@@ -1410,9 +1208,7 @@
           const targetBranch = getSelectedTargetBranch();
           const branchKey = 'last_close_book_' + targetBranch;
           const lastCloseBookTs = Number(localStorage.getItem(branchKey)) || 0;
-          // Jika record tidak punya timestamp, jangan hilangkan dari daftar transaksi.
-          // Untuk record bertimestamp, tetap hormati batas sesi setelah tutup buku.
-          return !ts || !lastCloseBookTs || ts >= lastCloseBookTs;
+          return ts >= lastCloseBookTs;
         }
 
         const d = new Date(ts);
@@ -1423,58 +1219,60 @@
     }
 
     function calculateLaciTotals() {
+      const now = new Date();
       let listIn = [...(globalRawData.money_in || [])];
       let listOut = [...(globalRawData.money_out || [])];
 
       if (!session.isOwner) {
-        listIn = listIn.filter(i => normalizeBranch(getItemBranch(i)) === normalizeBranch(currentBranchName));
-        listOut = listOut.filter(o => normalizeBranch(getItemBranch(o)) === normalizeBranch(currentBranchName));
+        listIn = listIn.filter(i => String(i.CABANG || i.cabang || '').toUpperCase() === currentBranchName.toUpperCase());
+        listOut = listOut.filter(o => String(o.CABANG || o.cabang || '').toUpperCase() === currentBranchName.toUpperCase());
       }
 
       const filterByDate = getHistoryPeriodFilter();
+
       const filteredIn = listIn.filter(filterByDate);
       const filteredOut = listOut.filter(filterByDate);
 
-      const totals = {
-        cashIn: 0, qrisIn: 0, transferIn: 0,
-        cashOut: 0, qrisOut: 0, transferOut: 0
-      };
+      let totals = { cash: 0, qris: 0, transfer: 0 };
+      let totalOut = 0;
 
       filteredIn.forEach(i => {
-        const m = getItemMethod(i);
-        const nom = getItemNominal(i);
-        if (m === 'cash') totals.cashIn += nom;
-        else if (m === 'qris') totals.qrisIn += nom;
-        else if (m === 'transfer') totals.transferIn += nom;
+        const m = String(i.TRANSAKSI || i.transaksi || '').toLowerCase();
+        const nom = Number(i.NOMINAL || i.nominal || 0);
+        if (totals[m] !== undefined) totals[m] += nom;
       });
 
       filteredOut.forEach(o => {
-        const m = getItemMethod(o);
-        const nom = getItemNominal(o);
-        if (m === 'cash') totals.cashOut += nom;
-        else if (m === 'qris') totals.qrisOut += nom;
-        else if (m === 'transfer') totals.transferOut += nom;
-        else totals.cashOut += nom;
+        const nom = Number(o.NOMINAL || o.nominal || 0);
+        totalOut += nom;
       });
 
-      totals.cash = totals.cashIn - totals.cashOut;
-      totals.qris = totals.qrisIn - totals.qrisOut;
-      totals.transfer = totals.transferIn - totals.transferOut;
-      totals.totalIn = totals.cashIn + totals.qrisIn + totals.transferIn;
-      totals.totalOut = totals.cashOut + totals.qrisOut + totals.transferOut;
-      totals.totalNet = totals.cash + totals.qris + totals.transfer;
-      totals.totalLaci = totals.cash;
+      const totalIn = totals.cash + totals.qris + totals.transfer;
+      const totalNet = totalIn - totalOut;
+      // Semua pengeluaran diasumsikan menggunakan CASH.
+      const totalLaci = totals.cash - totalOut;
+
+      const formatCurrency = (val) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(val);
 
       const elCash = document.getElementById('valCash');
       const elQris = document.getElementById('valQris');
       const elTransfer = document.getElementById('valTransfer');
       const elTotalNet = document.getElementById('valTotalNet');
-      if (elCash) elCash.innerText = formatCurrencyGlobal(totals.cash);
-      if (elQris) elQris.innerText = formatCurrencyGlobal(totals.qris);
-      if (elTransfer) elTransfer.innerText = formatCurrencyGlobal(totals.transfer);
-      if (elTotalNet) elTotalNet.innerText = formatCurrencyGlobal(totals.totalNet);
 
-      return totals;
+      if (elCash) elCash.innerText = formatCurrency(totals.cash);
+      if (elQris) elQris.innerText = formatCurrency(totals.qris);
+      if (elTransfer) elTransfer.innerText = formatCurrency(totals.transfer);
+      if (elTotalNet) elTotalNet.innerText = formatCurrency(totalNet);
+
+      return {
+        cash: totals.cash,
+        qris: totals.qris,
+        transfer: totals.transfer,
+        totalIn: totalIn,
+        totalOut: totalOut,
+        totalNet: totalNet,
+        totalLaci: totalLaci
+      };
     }
 
     function renderHistoryList() {
@@ -1486,7 +1284,7 @@
       let all = [...listIn, ...listOut];
 
       if (!session.isOwner) {
-        all = all.filter(item => normalizeBranch(getItemBranch(item)) === normalizeBranch(currentBranchName));
+        all = all.filter(item => String(item.CABANG || item.cabang || '').toUpperCase() === currentBranchName.toUpperCase());
       }
 
       const filterByDate = getHistoryPeriodFilter();
@@ -1497,21 +1295,21 @@
         return;
       }
 
+      // Pastikan transaksi terbaru selalu berada paling atas.
       all.sort((a, b) => {
-        const ta = getItemTimestamp(a);
-        const tb = getItemTimestamp(b);
-        if (tb !== ta) return tb - ta;
-        return 0;
+        const ta = Number(a.timestamp) || 0;
+        const tb = Number(b.timestamp) || 0;
+        return tb - ta;
       });
 
       container.innerHTML = all.map((item) => {
         const isIn = item.type === 'IN';
         const badgeColor = isIn ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800';
         
-        const nominal = getItemNominal(item);
-        const metode = item.TRANSAKSI || item.transaksi || item.METODE || item.metode || item.method || '-';
+        const nominal = item.NOMINAL || item.nominal || 0;
+        const metode = item.TRANSAKSI || item.transaksi || '-';
         const kasir = item.KASIR || item.kasir || '-';
-        const cabang = getItemBranch(item) || currentBranchName;
+        const cabang = item.CABANG || item.cabang || currentBranchName;
         
         const timeText = item.timestamp > 0 
           ? new Date(item.timestamp).toLocaleString('id-ID', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' }) 
