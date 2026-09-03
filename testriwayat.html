@@ -785,7 +785,9 @@
         nominal: String(transNominal),
         transaksi: method.toUpperCase(),
         kasir: session.user,
-        cabang: targetBranch
+        cabang: targetBranch,
+        timestamp: transTime.toISOString(),
+        createdAt: transTime.toISOString()
       };
 
       const statusText = document.getElementById('paymentStatusText');
@@ -816,8 +818,9 @@
 
         if (isSuccess) {
           clearCalc();
-          loadDashboardData();
           closePaymentModal();
+          // Beri waktu singkat agar write ke Data Table selesai sebelum GET DATA.
+          setTimeout(() => loadDashboardData(), 700);
           openReceiptModal(transNominal, method, transAction === 'in', session.user, targetBranch, transTime);
           setTimeout(() => { triggerPrint(); }, 200);
         } else {
@@ -1296,15 +1299,44 @@
     }
 
     function getItemTimestamp(item) {
-      const rawDate = item.createdAt || item.created_at || item.tanggal || item.TANGGAL;
-      if (rawDate) {
+      const candidates = [
+        item.createdAt, item.created_at, item.timestamp, item.TIMESTAMP,
+        item.tanggal, item.TANGGAL, item.date, item.DATE,
+        item.waktu, item.WAKTU, item.datetime, item.DATETIME
+      ];
+      for (const rawDate of candidates) {
+        if (rawDate === undefined || rawDate === null || rawDate === '') continue;
+        if (typeof rawDate === 'number' && rawDate > 0) {
+          const ms = rawDate < 10000000000 ? rawDate * 1000 : rawDate;
+          if (!isNaN(ms)) return ms;
+        }
         const parsed = new Date(rawDate).getTime();
         if (!isNaN(parsed)) return parsed;
       }
-      if (item.id && !isNaN(Number(item.id))) {
-        return Number(item.id);
-      }
       return 0;
+    }
+
+    function normalizeBranch(value) {
+      return String(value || '')
+        .trim()
+        .replace(/\s+/g, ' ')
+        .toUpperCase();
+    }
+
+    function getItemBranch(item) {
+      return item.CABANG || item.cabang || item.BRANCH || item.branch || item.nama_cabang || item.NAMA_CABANG || '';
+    }
+
+    function getItemNominal(item) {
+      const raw = item.NOMINAL ?? item.nominal ?? item.amount ?? item.AMOUNT ?? 0;
+      if (typeof raw === 'number') return raw;
+      const cleaned = String(raw).replace(/[^0-9.-]/g, '');
+      const value = Number(cleaned);
+      return Number.isFinite(value) ? value : 0;
+    }
+
+    function getItemMethod(item) {
+      return String(item.TRANSAKSI || item.transaksi || item.METODE || item.metode || item.method || '').trim().toLowerCase();
     }
 
     async function loadDashboardData() {
@@ -1378,7 +1410,9 @@
           const targetBranch = getSelectedTargetBranch();
           const branchKey = 'last_close_book_' + targetBranch;
           const lastCloseBookTs = Number(localStorage.getItem(branchKey)) || 0;
-          return ts >= lastCloseBookTs;
+          // Jika record tidak punya timestamp, jangan hilangkan dari daftar transaksi.
+          // Untuk record bertimestamp, tetap hormati batas sesi setelah tutup buku.
+          return !ts || !lastCloseBookTs || ts >= lastCloseBookTs;
         }
 
         const d = new Date(ts);
@@ -1393,8 +1427,8 @@
       let listOut = [...(globalRawData.money_out || [])];
 
       if (!session.isOwner) {
-        listIn = listIn.filter(i => String(i.CABANG || i.cabang || '').toUpperCase() === currentBranchName.toUpperCase());
-        listOut = listOut.filter(o => String(o.CABANG || o.cabang || '').toUpperCase() === currentBranchName.toUpperCase());
+        listIn = listIn.filter(i => normalizeBranch(getItemBranch(i)) === normalizeBranch(currentBranchName));
+        listOut = listOut.filter(o => normalizeBranch(getItemBranch(o)) === normalizeBranch(currentBranchName));
       }
 
       const filterByDate = getHistoryPeriodFilter();
@@ -1407,16 +1441,16 @@
       };
 
       filteredIn.forEach(i => {
-        const m = String(i.TRANSAKSI || i.transaksi || '').trim().toLowerCase();
-        const nom = Number(i.NOMINAL || i.nominal || 0);
+        const m = getItemMethod(i);
+        const nom = getItemNominal(i);
         if (m === 'cash') totals.cashIn += nom;
         else if (m === 'qris') totals.qrisIn += nom;
         else if (m === 'transfer') totals.transferIn += nom;
       });
 
       filteredOut.forEach(o => {
-        const m = String(o.TRANSAKSI || o.transaksi || '').trim().toLowerCase();
-        const nom = Number(o.NOMINAL || o.nominal || 0);
+        const m = getItemMethod(o);
+        const nom = getItemNominal(o);
         if (m === 'cash') totals.cashOut += nom;
         else if (m === 'qris') totals.qrisOut += nom;
         else if (m === 'transfer') totals.transferOut += nom;
@@ -1452,7 +1486,7 @@
       let all = [...listIn, ...listOut];
 
       if (!session.isOwner) {
-        all = all.filter(item => String(item.CABANG || item.cabang || '').toUpperCase() === currentBranchName.toUpperCase());
+        all = all.filter(item => normalizeBranch(getItemBranch(item)) === normalizeBranch(currentBranchName));
       }
 
       const filterByDate = getHistoryPeriodFilter();
@@ -1463,16 +1497,21 @@
         return;
       }
 
-      all.reverse();
+      all.sort((a, b) => {
+        const ta = getItemTimestamp(a);
+        const tb = getItemTimestamp(b);
+        if (tb !== ta) return tb - ta;
+        return 0;
+      });
 
       container.innerHTML = all.map((item) => {
         const isIn = item.type === 'IN';
         const badgeColor = isIn ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800';
         
-        const nominal = item.NOMINAL || item.nominal || 0;
-        const metode = item.TRANSAKSI || item.transaksi || '-';
+        const nominal = getItemNominal(item);
+        const metode = item.TRANSAKSI || item.transaksi || item.METODE || item.metode || item.method || '-';
         const kasir = item.KASIR || item.kasir || '-';
-        const cabang = item.CABANG || item.cabang || currentBranchName;
+        const cabang = getItemBranch(item) || currentBranchName;
         
         const timeText = item.timestamp > 0 
           ? new Date(item.timestamp).toLocaleString('id-ID', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' }) 
