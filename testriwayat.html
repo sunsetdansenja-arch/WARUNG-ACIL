@@ -354,22 +354,66 @@
           <div class="flex justify-between"><span>Kasir:</span> <span id="cbRKasir" class="font-bold">-</span></div>
         </div>
 
+        <div class="border-t border-b border-dashed border-black py-2 my-1.5 text-left space-y-1.5 text-[9px]">
+
+          <div class="font-bold">CASH</div>
+          <div class="flex justify-between pl-2">
+            <span>Masuk:</span>
+            <span id="cbRCashIn" class="font-bold">Rp 0</span>
+          </div>
+          <div class="flex justify-between pl-2 text-rose-600">
+            <span>Keluar:</span>
+            <span id="cbRCashOut" class="font-bold">Rp 0</span>
+          </div>
+          <div class="flex justify-between pl-2 border-b border-slate-300 pb-1">
+            <span>Total:</span>
+            <span id="cbRCashTotal" class="font-bold">Rp 0</span>
+          </div>
+
+          <div class="font-bold pt-1">QRIS</div>
+          <div class="flex justify-between pl-2">
+            <span>Masuk:</span>
+            <span id="cbRQrisIn" class="font-bold">Rp 0</span>
+          </div>
+          <div class="flex justify-between pl-2 text-rose-600">
+            <span>Keluar:</span>
+            <span id="cbRQrisOut" class="font-bold">Rp 0</span>
+          </div>
+          <div class="flex justify-between pl-2 border-b border-slate-300 pb-1">
+            <span>Total:</span>
+            <span id="cbRQrisTotal" class="font-bold">Rp 0</span>
+          </div>
+
+          <div class="font-bold pt-1">TRANSFER</div>
+          <div class="flex justify-between pl-2">
+            <span>Masuk:</span>
+            <span id="cbRTransferIn" class="font-bold">Rp 0</span>
+          </div>
+          <div class="flex justify-between pl-2 text-rose-600">
+            <span>Keluar:</span>
+            <span id="cbRTransferOut" class="font-bold">Rp 0</span>
+          </div>
+          <div class="flex justify-between pl-2 pb-1">
+            <span>Total:</span>
+            <span id="cbRTransferTotal" class="font-bold">Rp 0</span>
+          </div>
+
+        </div>
+
         <div class="border-t border-b border-dashed border-black py-1.5 my-1 text-left space-y-1 text-[9px]">
-          <div class="flex justify-between"><span>Cash (Masuk):</span> <span id="cbRCash" class="font-bold">Rp 0</span></div>
-          <div class="flex justify-between"><span>QRIS:</span> <span id="cbRQris" class="font-bold">Rp 0</span></div>
-          <div class="flex justify-between"><span>Transfer:</span> <span id="cbRTransfer" class="font-bold">Rp 0</span></div>
-          <div class="flex justify-between border-t border-slate-200 pt-1"><span>Total Masuk (IN):</span> <span id="cbRTotalIn" class="font-bold">Rp 0</span></div>
-          <div class="flex justify-between text-rose-600"><span>Pengeluaran (OUT):</span> <span id="cbRTotalOut" class="font-bold">Rp 0</span></div>
+          <div class="flex justify-between">
+            <span class="font-bold">TOTAL PEMASUKAN:</span>
+            <span id="cbRTotalIn" class="font-bold">Rp 0</span>
+          </div>
+          <div class="flex justify-between text-rose-600">
+            <span class="font-bold">TOTAL PENGELUARAN:</span>
+            <span id="cbRTotalOut" class="font-bold">Rp 0</span>
+          </div>
         </div>
 
         <div class="border-b border-dashed border-black pb-1.5 my-1 flex justify-between items-center">
-          <span class="font-bold text-[10px]">TOTAL NET:</span>
+          <span class="font-bold text-[10px]">NET:</span>
           <span class="font-extrabold text-xs" id="cbRTotalNet">Rp 0</span>
-        </div>
-
-        <div class="border-b border-dashed border-black pb-1.5 my-1 flex justify-between items-center">
-          <span class="font-bold text-[10px]">TOTAL LACI:</span>
-          <span class="font-extrabold text-xs" id="cbRTotalLaci">Rp 0</span>
         </div>
 
         <p class="text-[8px] mt-1.5 italic">*** Penutupan Kasir Berhasil ***</p>
@@ -959,35 +1003,92 @@
     }
 
     function openCloseBookReceiptModal(totals, cabang, kasir, date) {
-      const formatCurrency = (val) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(val);
-      const formattedDate = new Date(date || Date.now()).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' }) + ' WIB';
+      const formatCurrency = (val) =>
+        new Intl.NumberFormat('id-ID', {
+          style: 'currency',
+          currency: 'IDR',
+          maximumFractionDigits: 0
+        }).format(Number(val) || 0);
 
-      document.getElementById('cbRBranch').innerText = cabang || currentBranchName;
-      document.getElementById('cbRDate').innerText = formattedDate;
-      document.getElementById('cbRKasir').innerText = kasir || session.user;
-      
-      document.getElementById('cbRCash').innerText = formatCurrency(totals.cash);
-      document.getElementById('cbRQris').innerText = formatCurrency(totals.qris);
-      document.getElementById('cbRTransfer').innerText = formatCurrency(totals.transfer);
-      document.getElementById('cbRTotalIn').innerText = formatCurrency(totals.totalIn);
-      document.getElementById('cbRTotalOut').innerText = formatCurrency(totals.totalOut);
-      document.getElementById('cbRTotalNet').innerText = formatCurrency(totals.totalNet);
-      document.getElementById('cbRTotalLaci').innerText = formatCurrency(totals.totalLaci);
+      const formattedDate =
+        new Date(date || Date.now()).toLocaleString('id-ID', {
+          timeZone: 'Asia/Jakarta'
+        }) + ' WIB';
+
+      document.getElementById('cbRBranch').innerText =
+        cabang || currentBranchName;
+
+      document.getElementById('cbRDate').innerText =
+        formattedDate;
+
+      document.getElementById('cbRKasir').innerText =
+        kasir || session.user;
+
+      // CASH
+      document.getElementById('cbRCashIn').innerText =
+        formatCurrency(totals.cashIn);
+
+      document.getElementById('cbRCashOut').innerText =
+        formatCurrency(totals.cashOut);
+
+      document.getElementById('cbRCashTotal').innerText =
+        formatCurrency(totals.cash);
+
+      // QRIS
+      document.getElementById('cbRQrisIn').innerText =
+        formatCurrency(totals.qrisIn);
+
+      document.getElementById('cbRQrisOut').innerText =
+        formatCurrency(totals.qrisOut);
+
+      document.getElementById('cbRQrisTotal').innerText =
+        formatCurrency(totals.qris);
+
+      // TRANSFER
+      document.getElementById('cbRTransferIn').innerText =
+        formatCurrency(totals.transferIn);
+
+      document.getElementById('cbRTransferOut').innerText =
+        formatCurrency(totals.transferOut);
+
+      document.getElementById('cbRTransferTotal').innerText =
+        formatCurrency(totals.transfer);
+
+      // TOTAL
+      document.getElementById('cbRTotalIn').innerText =
+        formatCurrency(totals.totalIn);
+
+      document.getElementById('cbRTotalOut').innerText =
+        formatCurrency(totals.totalOut);
+
+      document.getElementById('cbRTotalNet').innerText =
+        formatCurrency(totals.totalNet);
 
       activeCloseBookData = {
         branch: cabang || currentBranchName,
         date: formattedDate,
         kasir: kasir || session.user,
+
+        cashIn: formatCurrency(totals.cashIn),
+        cashOut: formatCurrency(totals.cashOut),
         cash: formatCurrency(totals.cash),
+
+        qrisIn: formatCurrency(totals.qrisIn),
+        qrisOut: formatCurrency(totals.qrisOut),
         qris: formatCurrency(totals.qris),
+
+        transferIn: formatCurrency(totals.transferIn),
+        transferOut: formatCurrency(totals.transferOut),
         transfer: formatCurrency(totals.transfer),
+
         totalIn: formatCurrency(totals.totalIn),
         totalOut: formatCurrency(totals.totalOut),
-        totalNet: formatCurrency(totals.totalNet),
-        totalLaci: formatCurrency(totals.totalLaci)
+        totalNet: formatCurrency(totals.totalNet)
       };
 
-      document.getElementById('closeBookReceiptModal').classList.remove('hidden');
+      document
+        .getElementById('closeBookReceiptModal')
+        .classList.remove('hidden');
     }
 
     function closeCloseBookReceiptModal() {
@@ -1066,16 +1167,33 @@
         commands += "--------------------------------\n";
         commands += "\x1B\x61\x00"; 
         commands += "Kasir       : " + activeCloseBookData.kasir + "\n";
-        commands += "Cash        : " + activeCloseBookData.cash + "\n";
-        commands += "QRIS        : " + activeCloseBookData.qris + "\n";
-        commands += "Transfer    : " + activeCloseBookData.transfer + "\n";
         commands += "--------------------------------\n";
-        commands += "Total IN    : " + activeCloseBookData.totalIn + "\n";
-        commands += "Total OUT   : " + activeCloseBookData.totalOut + "\n";
+
+        commands += "CASH\n";
+        commands += "  Masuk   : " + activeCloseBookData.cashIn + "\n";
+        commands += "  Keluar  : " + activeCloseBookData.cashOut + "\n";
+        commands += "  Total   : " + activeCloseBookData.cash + "\n";
+
         commands += "--------------------------------\n";
-        commands += "\x1B\x61\x01"; 
-        commands += "NET TOTAL   : \x1B\x45\x01" + activeCloseBookData.totalNet + "\x1B\x45\x00\n";
-        commands += "TOTAL LACI  : \x1B\x45\x01" + activeCloseBookData.totalLaci + "\x1B\x45\x00\n";
+
+        commands += "QRIS\n";
+        commands += "  Masuk   : " + activeCloseBookData.qrisIn + "\n";
+        commands += "  Keluar  : " + activeCloseBookData.qrisOut + "\n";
+        commands += "  Total   : " + activeCloseBookData.qris + "\n";
+
+        commands += "--------------------------------\n";
+
+        commands += "TRANSFER\n";
+        commands += "  Masuk   : " + activeCloseBookData.transferIn + "\n";
+        commands += "  Keluar  : " + activeCloseBookData.transferOut + "\n";
+        commands += "  Total   : " + activeCloseBookData.transfer + "\n";
+
+        commands += "--------------------------------\n";
+        commands += "TOTAL PEMASUKAN   : " + activeCloseBookData.totalIn + "\n";
+        commands += "TOTAL PENGELUARAN : " + activeCloseBookData.totalOut + "\n";
+        commands += "--------------------------------\n";
+        commands += "\x1B\x61\x01";
+        commands += "NET : \x1B\x45\x01" + activeCloseBookData.totalNet + "\x1B\x45\x00\n";
         commands += "--------------------------------\n";
         commands += "*** Penutupan Sesi Berhasil ***\n\n\n\n";
 
@@ -1219,59 +1337,101 @@
     }
 
     function calculateLaciTotals() {
-      const now = new Date();
       let listIn = [...(globalRawData.money_in || [])];
       let listOut = [...(globalRawData.money_out || [])];
 
       if (!session.isOwner) {
-        listIn = listIn.filter(i => String(i.CABANG || i.cabang || '').toUpperCase() === currentBranchName.toUpperCase());
-        listOut = listOut.filter(o => String(o.CABANG || o.cabang || '').toUpperCase() === currentBranchName.toUpperCase());
+        listIn = listIn.filter(i =>
+          String(i.CABANG || i.cabang || '').trim().toUpperCase() ===
+          String(currentBranchName || '').trim().toUpperCase()
+        );
+
+        listOut = listOut.filter(o =>
+          String(o.CABANG || o.cabang || '').trim().toUpperCase() ===
+          String(currentBranchName || '').trim().toUpperCase()
+        );
       }
 
       const filterByDate = getHistoryPeriodFilter();
-
       const filteredIn = listIn.filter(filterByDate);
       const filteredOut = listOut.filter(filterByDate);
 
-      let totals = { cash: 0, qris: 0, transfer: 0 };
-      let totalOut = 0;
+      let cashIn = 0;
+      let qrisIn = 0;
+      let transferIn = 0;
 
-      filteredIn.forEach(i => {
-        const m = String(i.TRANSAKSI || i.transaksi || '').toLowerCase();
-        const nom = Number(i.NOMINAL || i.nominal || 0);
-        if (totals[m] !== undefined) totals[m] += nom;
+      let cashOut = 0;
+      let qrisOut = 0;
+      let transferOut = 0;
+
+      filteredIn.forEach(item => {
+        const method = String(item.TRANSAKSI || item.transaksi || '').trim().toLowerCase();
+        const nominal = Number(item.NOMINAL || item.nominal || 0);
+
+        if (method === 'cash') {
+          cashIn += nominal;
+        } else if (method === 'qris') {
+          qrisIn += nominal;
+        } else if (method === 'transfer' || method === 'trf') {
+          transferIn += nominal;
+        }
       });
 
-      filteredOut.forEach(o => {
-        const nom = Number(o.NOMINAL || o.nominal || 0);
-        totalOut += nom;
+      filteredOut.forEach(item => {
+        const method = String(item.TRANSAKSI || item.transaksi || '').trim().toLowerCase();
+        const nominal = Number(item.NOMINAL || item.nominal || 0);
+
+        if (method === 'cash') {
+          cashOut += nominal;
+        } else if (method === 'qris') {
+          qrisOut += nominal;
+        } else if (method === 'transfer' || method === 'trf') {
+          transferOut += nominal;
+        }
       });
 
-      const totalIn = totals.cash + totals.qris + totals.transfer;
+      const cash = cashIn - cashOut;
+      const qris = qrisIn - qrisOut;
+      const transfer = transferIn - transferOut;
+
+      const totalIn = cashIn + qrisIn + transferIn;
+      const totalOut = cashOut + qrisOut + transferOut;
       const totalNet = totalIn - totalOut;
-      // Semua pengeluaran diasumsikan menggunakan CASH.
-      const totalLaci = totals.cash - totalOut;
 
-      const formatCurrency = (val) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(val);
+      const formatCurrency = (val) =>
+        new Intl.NumberFormat('id-ID', {
+          style: 'currency',
+          currency: 'IDR',
+          maximumFractionDigits: 0
+        }).format(val);
 
       const elCash = document.getElementById('valCash');
       const elQris = document.getElementById('valQris');
       const elTransfer = document.getElementById('valTransfer');
       const elTotalNet = document.getElementById('valTotalNet');
 
-      if (elCash) elCash.innerText = formatCurrency(totals.cash);
-      if (elQris) elQris.innerText = formatCurrency(totals.qris);
-      if (elTransfer) elTransfer.innerText = formatCurrency(totals.transfer);
+      if (elCash) elCash.innerText = formatCurrency(cash);
+      if (elQris) elQris.innerText = formatCurrency(qris);
+      if (elTransfer) elTransfer.innerText = formatCurrency(transfer);
       if (elTotalNet) elTotalNet.innerText = formatCurrency(totalNet);
 
       return {
-        cash: totals.cash,
-        qris: totals.qris,
-        transfer: totals.transfer,
-        totalIn: totalIn,
-        totalOut: totalOut,
-        totalNet: totalNet,
-        totalLaci: totalLaci
+        cash,
+        qris,
+        transfer,
+
+        cashIn,
+        cashOut,
+
+        qrisIn,
+        qrisOut,
+
+        transferIn,
+        transferOut,
+
+        totalIn,
+        totalOut,
+        totalNet
       };
     }
 
