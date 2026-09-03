@@ -8,15 +8,15 @@
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- Google Fonts -->
+  <!-- Google Fonts: Inter & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
-  <!-- External Config -->
+  <!-- External Config Script -->
   <script src="config.js"></script>
 
   <style>
@@ -28,10 +28,6 @@
       --text-main: #EAEAEA;
       --text-muted: #7B7F8D;
       --border-hairline: rgba(255, 255, 255, 0.08);
-    }
-
-    * {
-      box-sizing: border-box;
     }
 
     body {
@@ -64,2083 +60,942 @@
       color: #121316;
     }
 
-    .summary-primary {
-      min-height: 116px;
-    }
-
-    .summary-secondary {
-      min-height: 104px;
-    }
-
+    /* Loading Overlay Animation */
     #loadingOverlay {
       transition: opacity 0.3s ease, visibility 0.3s ease;
     }
-
     #loadingOverlay.hidden-overlay {
       opacity: 0;
       visibility: hidden;
       pointer-events: none;
     }
-
+    
     .spinner {
       border: 3px solid rgba(255, 255, 255, 0.1);
       border-top-color: #EAEAEA;
       animation: spinner 0.8s linear infinite;
     }
-
     @keyframes spinner {
-      0% {
-        transform: rotate(0deg);
-      }
-
-      100% {
-        transform: rotate(360deg);
-      }
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
 
+    /* Custom Scrollbar */
     ::-webkit-scrollbar {
       width: 6px;
       height: 6px;
     }
-
     ::-webkit-scrollbar-track {
       background: #121316;
     }
-
     ::-webkit-scrollbar-thumb {
       background: #2D3039;
       border-radius: 4px;
     }
-
-    .table-row-detail {
-      background: rgba(255, 255, 255, 0.018);
-    }
-
-    .period-badge {
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      background: rgba(255, 255, 255, 0.035);
-    }
   </style>
 </head>
-
 <body class="min-h-screen pb-16 relative antialiased selection:bg-[#5C6C8F] selection:text-white">
 
-  <!-- ====================================================== -->
-  <!-- LOADING -->
-  <!-- ====================================================== -->
-
-  <div id="loadingOverlay"
-       class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#121316]/80 backdrop-blur-md hidden-overlay">
-
+  <!-- LOADING OVERLAY ANIMATION -->
+  <div id="loadingOverlay" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#121316]/80 backdrop-blur-md hidden-overlay">
     <div class="bento-card p-6 flex flex-col items-center space-y-3 shadow-2xl">
       <div class="w-8 h-8 rounded-full spinner"></div>
-
-      <p class="text-xs font-mono-num tracking-wider text-[#7B7F8D] uppercase">
-        Memuat Data Master...
-      </p>
+      <p class="text-xs font-mono-num tracking-wider text-[#7B7F8D] uppercase">Memuat Data Master...</p>
     </div>
   </div>
 
-
-  <!-- ====================================================== -->
-  <!-- HEADER -->
-  <!-- ====================================================== -->
-
+  <!-- TOP BAR / HEADER -->
   <header class="sticky top-0 z-30 bg-[#121316]/90 backdrop-blur-md border-b border-white/[0.08]">
-
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-
       <div class="flex items-center space-x-3">
-
         <div class="w-8 h-8 rounded-lg bg-[#5C6C8F] text-white flex items-center justify-center font-bold text-xs tracking-wider">
           WA
         </div>
-
         <div>
-          <h1 class="font-bold text-sm tracking-wide text-[#EAEAEA] uppercase">
-            Master Dashboard
-          </h1>
-
-          <p class="text-[11px] text-[#7B7F8D] font-medium tracking-wide uppercase">
-            Warung Acil Group
-          </p>
+          <h1 class="font-bold text-sm tracking-wide text-[#EAEAEA] uppercase">Master Dashboard</h1>
+          <p class="text-[11px] text-[#7B7F8D] font-medium tracking-wide uppercase">Warung Acil Group</p>
         </div>
-
       </div>
 
-
+      <!-- ACTION BUTTONS -->
       <div class="flex items-center space-x-2 sm:space-x-3">
-
-        <a href="admin.html"
-           class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[#EAEAEA] hover:bg-white/10 transition text-xs tracking-wide uppercase font-medium">
-
+        <!-- Button Navigasi ke admin.html -->
+        <a href="admin.html" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[#EAEAEA] hover:bg-white/10 transition text-xs tracking-wide uppercase font-medium">
           <i data-lucide="shield" class="w-3.5 h-3.5 text-[#5C6C8F]"></i>
-
-          <span class="hidden sm:inline">
-            Panel Admin
-          </span>
-
+          <span class="hidden sm:inline">Panel Admin</span>
         </a>
 
-
-        <button onclick="fetchMasterData()"
-                class="p-1.5 rounded-lg bg-white/5 border border-white/10 text-[#7B7F8D] hover:text-[#EAEAEA] hover:bg-white/10 transition"
-                title="Refresh Data">
-
+        <!-- Button Refresh Data -->
+        <button onclick="fetchMasterData()" class="p-1.5 rounded-lg bg-white/5 border border-white/10 text-[#7B7F8D] hover:text-[#EAEAEA] hover:bg-white/10 transition" title="Refresh Data">
           <i data-lucide="refresh-cw" class="w-4 h-4"></i>
-
         </button>
 
-
-        <button onclick="logout()"
-                class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 transition text-xs tracking-wide uppercase font-medium">
-
+        <!-- Button Keluar -->
+        <button onclick="logout()" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 transition text-xs tracking-wide uppercase font-medium">
           <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
-
-          <span class="hidden sm:inline">
-            Keluar
-          </span>
-
+          <span class="hidden sm:inline">Keluar</span>
         </button>
-
       </div>
-
     </div>
-
   </header>
 
+  <!-- MAIN CONTAINER -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6 sm:space-y-8">
 
-  <!-- ====================================================== -->
-  <!-- MAIN -->
-  <!-- ====================================================== -->
-
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-7 sm:space-y-8">
-
-
-    <!-- ==================================================== -->
-    <!-- RINGKASAN KEUANGAN -->
-    <!-- ==================================================== -->
-
-    <section class="space-y-3">
-
-      <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2">
-
-        <div>
-
-          <h2 class="text-xs font-bold tracking-wider text-[#EAEAEA] uppercase">
-            Ringkasan Keuangan
-          </h2>
-
-          <p class="text-[11px] text-[#7B7F8D] mt-1">
-            Seluruh transaksi yang tersedia di sistem
-          </p>
-
+    <!-- GLOBAL SUMMARY CARDS -->
+    <section class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+      <div class="bento-card-steel p-4 flex flex-col justify-between space-y-3">
+        <div class="flex items-center justify-between">
+          <p class="text-[10px] font-bold tracking-wider text-white/70 uppercase">Total Pemasukan</p>
+          <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
         </div>
-
-        <div class="period-badge rounded-lg px-3 py-1.5 text-[10px] text-[#7B7F8D] font-mono-num uppercase tracking-wider">
-          Data keseluruhan
-        </div>
-
+        <h3 id="statTotalIn" class="text-lg sm:text-2xl font-bold font-mono-num text-white tracking-tight">Rp 0</h3>
       </div>
 
-
-      <!-- PRIMARY -->
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-
-
-        <!-- PEMASUKAN -->
-
-        <div class="bento-card-steel summary-primary p-4 flex flex-col justify-between">
-
-          <div class="flex items-center justify-between">
-
-            <div>
-              <p class="text-[10px] font-bold tracking-wider text-white/70 uppercase">
-                Pemasukan
-              </p>
-
-              <p class="text-[9px] text-white/50 uppercase tracking-wider mt-1">
-                Semua transaksi masuk
-              </p>
-            </div>
-
-            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-
-          </div>
-
-          <h3 id="statTotalIn"
-              class="text-xl sm:text-2xl font-bold font-mono-num text-white tracking-tight">
-            Rp 0
-          </h3>
-
+      <div class="bento-card p-4 flex flex-col justify-between space-y-3">
+        <div class="flex items-center justify-between">
+          <p class="text-[10px] font-bold tracking-wider text-[#7B7F8D] uppercase">Total Pengeluaran</p>
+          <span class="w-2 h-2 rounded-full bg-rose-400"></span>
         </div>
-
-
-        <!-- PENGELUARAN -->
-
-        <div class="bento-card summary-primary p-4 flex flex-col justify-between">
-
-          <div class="flex items-center justify-between">
-
-            <div>
-              <p class="text-[10px] font-bold tracking-wider text-[#7B7F8D] uppercase">
-                Pengeluaran
-              </p>
-
-              <p class="text-[9px] text-[#7B7F8D] uppercase tracking-wider mt-1">
-                Semua transaksi keluar
-              </p>
-            </div>
-
-            <span class="w-2 h-2 rounded-full bg-rose-400"></span>
-
-          </div>
-
-          <h3 id="statTotalOut"
-              class="text-xl sm:text-2xl font-bold font-mono-num text-[#EAEAEA] tracking-tight">
-            Rp 0
-          </h3>
-
-        </div>
-
-
-        <!-- OMSET BERSIH -->
-
-        <div class="bento-card-sand summary-primary p-4 flex flex-col justify-between">
-
-          <div class="flex items-center justify-between">
-
-            <div>
-              <p class="text-[10px] font-bold tracking-wider text-[#121316]/70 uppercase">
-                Omset Bersih
-              </p>
-
-              <p class="text-[9px] text-[#121316]/60 uppercase tracking-wider mt-1">
-                Pemasukan - Pengeluaran
-              </p>
-            </div>
-
-            <i data-lucide="equal" class="w-3.5 h-3.5 text-[#121316]/70"></i>
-
-          </div>
-
-          <h3 id="statTotalNet"
-              class="text-xl sm:text-2xl font-bold font-mono-num text-[#121316] tracking-tight">
-            Rp 0
-          </h3>
-
-        </div>
-
+        <h3 id="statTotalOut" class="text-lg sm:text-2xl font-bold font-mono-num text-[#EAEAEA] tracking-tight">Rp 0</h3>
       </div>
 
-
-      <!-- CASH BREAKDOWN -->
-
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-
-
-        <!-- CASH MASUK -->
-
-        <div class="bento-card summary-secondary p-4 flex flex-col justify-between">
-
-          <div class="flex items-center justify-between">
-
-            <div>
-
-              <p class="text-[10px] font-bold tracking-wider text-[#7B7F8D] uppercase">
-                Cash Masuk
-              </p>
-
-              <p class="text-[9px] text-[#7B7F8D] mt-1 uppercase tracking-wider">
-                Pembayaran cash
-              </p>
-
-            </div>
-
-            <i data-lucide="wallet" class="w-3.5 h-3.5 text-[#7B7F8D]"></i>
-
-          </div>
-
-          <h3 id="statTotalCash"
-              class="text-base sm:text-xl font-bold font-mono-num text-[#EAEAEA] tracking-tight">
-            Rp 0
-          </h3>
-
+      <div class="bento-card p-4 flex flex-col justify-between space-y-3">
+        <div class="flex items-center justify-between">
+          <p class="text-[10px] font-bold tracking-wider text-[#7B7F8D] uppercase">Net</p>
+          <i data-lucide="scale" class="w-3.5 h-3.5 text-[#7B7F8D]"></i>
         </div>
-
-
-        <!-- QRIS -->
-
-        <div class="bento-card summary-secondary p-4 flex flex-col justify-between">
-
-          <div class="flex items-center justify-between">
-
-            <div>
-
-              <p class="text-[10px] font-bold tracking-wider text-[#7B7F8D] uppercase">
-                QRIS
-              </p>
-
-              <p class="text-[9px] text-[#7B7F8D] mt-1 uppercase tracking-wider">
-                Pembayaran QRIS
-              </p>
-
-            </div>
-
-            <i data-lucide="qr-code" class="w-3.5 h-3.5 text-[#7B7F8D]"></i>
-
-          </div>
-
-          <h3 id="statTotalQris"
-              class="text-base sm:text-xl font-bold font-mono-num text-[#EAEAEA] tracking-tight">
-            Rp 0
-          </h3>
-
-        </div>
-
-
-        <!-- TRANSFER -->
-
-        <div class="bento-card summary-secondary p-4 flex flex-col justify-between">
-
-          <div class="flex items-center justify-between">
-
-            <div>
-
-              <p class="text-[10px] font-bold tracking-wider text-[#7B7F8D] uppercase">
-                Transfer
-              </p>
-
-              <p class="text-[9px] text-[#7B7F8D] mt-1 uppercase tracking-wider">
-                Pembayaran transfer
-              </p>
-
-            </div>
-
-            <i data-lucide="landmark" class="w-3.5 h-3.5 text-[#7B7F8D]"></i>
-
-          </div>
-
-          <h3 id="statTotalTransfer"
-              class="text-base sm:text-xl font-bold font-mono-num text-[#EAEAEA] tracking-tight">
-            Rp 0
-          </h3>
-
-        </div>
-
-
-        <!-- UANG LACI -->
-
-        <div class="bento-card summary-secondary p-4 flex flex-col justify-between border-[#5C6C8F]/40">
-
-          <div class="flex items-center justify-between">
-
-            <div>
-
-              <p class="text-[10px] font-bold tracking-wider text-[#5C6C8F] uppercase">
-                Uang Laci
-              </p>
-
-              <p class="text-[9px] text-[#7B7F8D] mt-1 uppercase tracking-wider">
-                Cash masuk - pengeluaran
-              </p>
-
-            </div>
-
-            <i data-lucide="banknote" class="w-3.5 h-3.5 text-[#5C6C8F]"></i>
-
-          </div>
-
-          <h3 id="statCashDrawer"
-              class="text-base sm:text-xl font-bold font-mono-num text-[#EAEAEA] tracking-tight">
-            Rp 0
-          </h3>
-
-        </div>
-
+        <h3 id="statTotalNet" class="text-lg sm:text-2xl font-bold font-mono-num text-[#EAEAEA] tracking-tight">Rp 0</h3>
       </div>
 
+      <div class="bento-card-sand p-4 flex flex-col justify-between space-y-3">
+        <div class="flex items-center justify-between">
+          <p class="text-[10px] font-bold tracking-wider text-[#121316]/70 uppercase">Saldo Semua Metode</p>
+          <i data-lucide="wallet-cards" class="w-3.5 h-3.5 text-[#121316]"></i>
+        </div>
+        <h3 id="statTotalBalance" class="text-lg sm:text-2xl font-bold font-mono-num text-[#121316] tracking-tight">Rp 0</h3>
+      </div>
     </section>
 
+    <!-- RINGKASAN CASH / QRIS / TRANSFER -->
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
+      <div class="bento-card p-4 space-y-3">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-[10px] font-bold tracking-wider text-[#7B7F8D] uppercase">Cash</p>
+            <p class="text-[9px] text-[#7B7F8D] mt-0.5">Saldo kas/laci</p>
+          </div>
+          <i data-lucide="wallet" class="w-4 h-4 text-[#7B7F8D]"></i>
+        </div>
+        <div class="grid grid-cols-3 gap-2 text-[10px]">
+          <div>
+            <p class="text-[#7B7F8D] uppercase">Masuk</p>
+            <p id="methodCashIn" class="font-mono-num font-semibold text-emerald-400">Rp 0</p>
+          </div>
+          <div>
+            <p class="text-[#7B7F8D] uppercase">Keluar</p>
+            <p id="methodCashOut" class="font-mono-num font-semibold text-rose-400">Rp 0</p>
+          </div>
+          <div>
+            <p class="text-[#7B7F8D] uppercase">Saldo</p>
+            <p id="methodCashBalance" class="font-mono-num font-bold text-[#EAEAEA]">Rp 0</p>
+          </div>
+        </div>
+      </div>
 
-    <!-- ==================================================== -->
-    <!-- PERFORMA CABANG -->
-    <!-- ==================================================== -->
+      <div class="bento-card p-4 space-y-3">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-[10px] font-bold tracking-wider text-[#7B7F8D] uppercase">QRIS</p>
+            <p class="text-[9px] text-[#7B7F8D] mt-0.5">Saldo QRIS</p>
+          </div>
+          <i data-lucide="qr-code" class="w-4 h-4 text-[#7B7F8D]"></i>
+        </div>
+        <div class="grid grid-cols-3 gap-2 text-[10px]">
+          <div>
+            <p class="text-[#7B7F8D] uppercase">Masuk</p>
+            <p id="methodQrisIn" class="font-mono-num font-semibold text-emerald-400">Rp 0</p>
+          </div>
+          <div>
+            <p class="text-[#7B7F8D] uppercase">Keluar</p>
+            <p id="methodQrisOut" class="font-mono-num font-semibold text-rose-400">Rp 0</p>
+          </div>
+          <div>
+            <p class="text-[#7B7F8D] uppercase">Saldo</p>
+            <p id="methodQrisBalance" class="font-mono-num font-bold text-[#EAEAEA]">Rp 0</p>
+          </div>
+        </div>
+      </div>
 
+      <div class="bento-card p-4 space-y-3">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-[10px] font-bold tracking-wider text-[#7B7F8D] uppercase">Transfer</p>
+            <p class="text-[9px] text-[#7B7F8D] mt-0.5">Saldo transfer</p>
+          </div>
+          <i data-lucide="landmark" class="w-4 h-4 text-[#7B7F8D]"></i>
+        </div>
+        <div class="grid grid-cols-3 gap-2 text-[10px]">
+          <div>
+            <p class="text-[#7B7F8D] uppercase">Masuk</p>
+            <p id="methodTransferIn" class="font-mono-num font-semibold text-emerald-400">Rp 0</p>
+          </div>
+          <div>
+            <p class="text-[#7B7F8D] uppercase">Keluar</p>
+            <p id="methodTransferOut" class="font-mono-num font-semibold text-rose-400">Rp 0</p>
+          </div>
+          <div>
+            <p class="text-[#7B7F8D] uppercase">Saldo</p>
+            <p id="methodTransferBalance" class="font-mono-num font-bold text-[#EAEAEA]">Rp 0</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION: TRAY PERFORMA CABANG -->
     <section class="space-y-4">
-
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-
         <div>
-
-          <h2 class="text-xs font-bold tracking-wider text-[#EAEAEA] uppercase">
-            Performa Cabang
-          </h2>
-
-          <p id="branchPeriodDescription"
-             class="text-[11px] text-[#7B7F8D]">
-            Ringkasan transaksi dan omset berdasarkan shift setelah tutup buku terakhir
-          </p>
-
+          <h2 class="text-xs font-bold tracking-wider text-[#EAEAEA] uppercase">Performa Cabang</h2>
+          <p class="text-[11px] text-[#7B7F8D]">Ringkasan transaksi dan omset di 6 cabang resmi</p>
         </div>
 
-
-        <!-- FILTER -->
-
+        <!-- FILTER TAB -->
         <div class="inline-flex p-1 bg-[#1B1C20] border border-white/[0.08] rounded-lg self-start sm:self-auto w-full sm:w-auto justify-between sm:justify-start">
-
-          <button onclick="setBranchFilter('shift_baru')"
-                  id="btnFilterShift"
-                  class="flex-1 sm:flex-none px-3 py-1.5 text-[11px] font-bold tracking-wider rounded transition bg-[#5C6C8F] text-white text-center uppercase">
+          <button onclick="setBranchFilter('shift_baru')" id="btnFilterShift" class="flex-1 sm:flex-none px-3 py-1 text-[11px] font-bold tracking-wider rounded transition bg-[#5C6C8F] text-white text-center uppercase">
             Shift Baru
           </button>
-
-          <button onclick="setBranchFilter('minggu_ini')"
-                  id="btnFilterMinggu"
-                  class="flex-1 sm:flex-none px-3 py-1.5 text-[11px] font-medium tracking-wider rounded transition text-[#7B7F8D] hover:text-[#EAEAEA] text-center uppercase">
+          <button onclick="setBranchFilter('minggu_ini')" id="btnFilterMinggu" class="flex-1 sm:flex-none px-3 py-1 text-[11px] font-medium tracking-wider rounded transition text-[#7B7F8D] hover:text-[#EAEAEA] text-center uppercase">
             Minggu Ini
           </button>
-
-          <button onclick="setBranchFilter('bulan_ini')"
-                  id="btnFilterBulan"
-                  class="flex-1 sm:flex-none px-3 py-1.5 text-[11px] font-medium tracking-wider rounded transition text-[#7B7F8D] hover:text-[#EAEAEA] text-center uppercase">
+          <button onclick="setBranchFilter('bulan_ini')" id="btnFilterBulan" class="flex-1 sm:flex-none px-3 py-1 text-[11px] font-medium tracking-wider rounded transition text-[#7B7F8D] hover:text-[#EAEAEA] text-center uppercase">
             Bulan Ini
           </button>
-
         </div>
-
       </div>
 
-
-      <!-- GRID -->
-
-      <div id="branchTrayContainer"
-           class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-
+      <!-- GRID TRAY 6 CABANG -->
+      <div id="branchTrayContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Rendered via JavaScript -->
       </div>
-
     </section>
 
-
-    <!-- ==================================================== -->
-    <!-- RIWAYAT TUTUP BUKU -->
-    <!-- ==================================================== -->
-
+    <!-- SECTION: LOG TUTUP BUKU TERAKHIR -->
     <section class="bento-card p-4 sm:p-5 space-y-4">
+      <div class="flex items-center justify-between border-b border-white/[0.08] pb-3">
+        <h2 class="font-bold text-xs tracking-wider text-[#EAEAEA] uppercase">Riwayat Tutup Buku Kasir</h2>
+        <span class="text-[10px] font-mono-num text-[#7B7F8D] tracking-wider uppercase">10 Data Terakhir • Klik untuk detail</span>
+      </div>
 
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/[0.08] pb-3">
+      <!-- TABLE CONTAINER WITH SCROLL FOR MOBILE -->
+      <div class="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
+        <table class="w-full text-left border-collapse text-xs min-w-[500px] sm:min-w-full">
+          <thead>
+            <tr class="border-b border-white/[0.08] text-[#7B7F8D] font-bold text-[10px] tracking-wider uppercase">
+              <th class="py-2.5 px-3">Waktu</th>
+              <th class="py-2.5 px-3">Cabang</th>
+              <th class="py-2.5 px-3">Kasir</th>
+              <th class="py-2.5 px-3 text-right">Uang Masuk</th>
+              <th class="py-2.5 px-3 text-right">Uang Keluar</th>
+            </tr>
+          </thead>
+          <tbody id="tableCloseBookBody" class="divide-y divide-white/[0.04] text-[#EAEAEA]">
+            <!-- Rendered via JavaScript -->
+          </tbody>
+        </table>
+      </div>
+    </section>
 
-        <div>
-
-          <h2 class="font-bold text-xs tracking-wider text-[#EAEAEA] uppercase">
-            Riwayat Tutup Buku Kasir
-          </h2>
-
-          <p class="text-[10px] text-[#7B7F8D] mt-1">
-            Rincian uang masuk berdasarkan metode pembayaran
-          </p>
-
+    <!-- MODAL DETAIL TUTUP BUKU -->
+    <div id="closeBookDetailModal" class="fixed inset-0 z-40 hidden items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+      <div class="bento-card w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl">
+        <div class="p-5 border-b border-white/[0.08] flex items-start justify-between">
+          <div>
+            <p class="text-[10px] text-[#7B7F8D] uppercase tracking-wider">Detail Tutup Buku</p>
+            <h3 id="detailBranch" class="text-sm font-bold text-[#EAEAEA] uppercase mt-1">-</h3>
+            <p id="detailMeta" class="text-[10px] text-[#7B7F8D] mt-1"></p>
+          </div>
+          <button onclick="closeCloseBookDetail()" class="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-[#7B7F8D] hover:text-white">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
         </div>
 
-        <span class="text-[10px] font-mono-num text-[#7B7F8D] tracking-wider uppercase">
-          10 Data Terakhir
-        </span>
+        <div class="p-5 space-y-4">
+          <div class="text-[10px] text-[#7B7F8D]">
+            Periode:
+            <span id="detailPeriod" class="font-mono-num text-[#EAEAEA]"></span>
+          </div>
 
+          <div class="space-y-3">
+            <div class="border border-white/[0.08] rounded-lg p-3">
+              <div class="flex justify-between items-center mb-2">
+                <span class="font-bold text-xs uppercase">Cash</span>
+                <span id="detailCashTotal" class="font-mono-num font-bold">Rp 0</span>
+              </div>
+              <div class="grid grid-cols-2 gap-2 text-[10px]">
+                <div><span class="text-[#7B7F8D]">Masuk</span><p id="detailCashIn" class="font-mono-num text-emerald-400">Rp 0</p></div>
+                <div><span class="text-[#7B7F8D]">Keluar</span><p id="detailCashOut" class="font-mono-num text-rose-400">Rp 0</p></div>
+              </div>
+            </div>
+
+            <div class="border border-white/[0.08] rounded-lg p-3">
+              <div class="flex justify-between items-center mb-2">
+                <span class="font-bold text-xs uppercase">QRIS</span>
+                <span id="detailQrisTotal" class="font-mono-num font-bold">Rp 0</span>
+              </div>
+              <div class="grid grid-cols-2 gap-2 text-[10px]">
+                <div><span class="text-[#7B7F8D]">Masuk</span><p id="detailQrisIn" class="font-mono-num text-emerald-400">Rp 0</p></div>
+                <div><span class="text-[#7B7F8D]">Keluar</span><p id="detailQrisOut" class="font-mono-num text-rose-400">Rp 0</p></div>
+              </div>
+            </div>
+
+            <div class="border border-white/[0.08] rounded-lg p-3">
+              <div class="flex justify-between items-center mb-2">
+                <span class="font-bold text-xs uppercase">Transfer</span>
+                <span id="detailTransferTotal" class="font-mono-num font-bold">Rp 0</span>
+              </div>
+              <div class="grid grid-cols-2 gap-2 text-[10px]">
+                <div><span class="text-[#7B7F8D]">Masuk</span><p id="detailTransferIn" class="font-mono-num text-emerald-400">Rp 0</p></div>
+                <div><span class="text-[#7B7F8D]">Keluar</span><p id="detailTransferOut" class="font-mono-num text-rose-400">Rp 0</p></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="border-t border-dashed border-white/[0.12] pt-3 space-y-2">
+            <div class="flex justify-between text-xs">
+              <span class="font-bold uppercase">Total Pemasukan</span>
+              <span id="detailTotalIn" class="font-mono-num font-bold text-emerald-400">Rp 0</span>
+            </div>
+            <div class="flex justify-between text-xs">
+              <span class="font-bold uppercase">Total Pengeluaran</span>
+              <span id="detailTotalOut" class="font-mono-num font-bold text-rose-400">Rp 0</span>
+            </div>
+            <div class="flex justify-between border-t border-white/[0.08] pt-2">
+              <span class="font-bold uppercase text-xs">Net</span>
+              <span id="detailNet" class="font-mono-num font-bold text-sm text-[#EAEAEA]">Rp 0</span>
+            </div>
+          </div>
+
+          <button onclick="closeCloseBookDetail()" class="w-full py-2.5 rounded-lg bg-[#5C6C8F] text-white text-xs font-bold uppercase tracking-wider hover:opacity-90 transition">
+            Tutup
+          </button>
+        </div>
       </div>
-
-
-      <!-- TABLE -->
-
-      <div class="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
-
-        <table class="w-full text-left border-collapse text-xs min-w-[1000px]">
-
-          <thead>
-
-            <tr class="border-b border-white/[0.08] text-[#7B7F8D] font-bold text-[10px] tracking-wider uppercase">
-
-              <th class="py-2.5 px-3">
-                Waktu
-              </th>
-
-              <th class="py-2.5 px-3">
-                Cabang
-              </th>
-
-              <th class="py-2.5 px-3">
-                Kasir
-              </th>
-
-              <th class="py-2.5 px-3 text-right">
-                Cash
-              </th>
-
-              <th class="py-2.5 px-3 text-right">
-                QRIS
-              </th>
-
-              <th class="py-2.5 px-3 text-right">
-                Transfer
-              </th>
-
-              <th class="py-2.5 px-3 text-right">
-                Total Masuk
-              </th>
-
-              <th class="py-2.5 px-3 text-right">
-                Pengeluaran
-              </th>
-
-              <th class="py-2.5 px-3 text-right">
-                Net
-              </th>
-
-            </tr>
-
-          </thead>
-
-
-          <tbody id="tableCloseBookBody"
-                 class="divide-y divide-white/[0.04] text-[#EAEAEA]">
-
-          </tbody>
-
-        </table>
-
-      </div>
-
-
-      <!-- LEGEND -->
-
-      <div class="pt-2 border-t border-white/[0.06] flex flex-wrap gap-x-5 gap-y-2 text-[10px] text-[#7B7F8D]">
-
-        <span>
-          CASH + QRIS + TRANSFER = TOTAL MASUK
-        </span>
-
-        <span>
-          NET = TOTAL MASUK - PENGELUARAN
-        </span>
-
-      </div>
-
-    </section>
+    </div>
 
   </main>
 
-
-  <!-- ====================================================== -->
-  <!-- JAVASCRIPT -->
-  <!-- ====================================================== -->
-
   <script>
-
-    // ========================================================
-    // STATE
-    // ========================================================
-
     let masterDataCache = null;
-
     let activeFilter = 'shift_baru';
+    let isFetchingMasterData = false;
+    let fetchRequestId = 0;
+    const FETCH_TIMEOUT_MS = 20000;
 
-    const WEBHOOK_URL =
-      'https://n8n-mzbmiib3etk4.kangkung.sumopod.my.id/webhook/0c2f335e-543b-4f3e-968e-f70d412f194b';
-
-
-    // ========================================================
-    // LOADING
-    // ========================================================
+    const WEBHOOK_URL = 'https://n8n-mzbmiib3etk4.kangkung.sumopod.my.id/webhook/0c2f335e-543b-4f3e-968e-f70d412f194b';
 
     function showLoading(show) {
-
-      const overlay =
-        document.getElementById('loadingOverlay');
-
+      const overlay = document.getElementById('loadingOverlay');
       if (!overlay) return;
-
-      if (show) {
-
-        overlay.classList.remove('hidden-overlay');
-
-      } else {
-
-        overlay.classList.add('hidden-overlay');
-
-      }
-
+      overlay.classList.toggle('hidden-overlay', !show);
     }
-
-
-    // ========================================================
-    // FORMAT RUPIAH
-    // ========================================================
 
     function formatRupiah(val) {
-
-      const num =
-        Number(val) || 0;
-
-      return 'Rp ' +
-        num.toLocaleString('id-ID');
-
+      const num = Number(val);
+      return 'Rp ' + (Number.isFinite(num) ? num : 0).toLocaleString('id-ID');
     }
 
+    function parseTimestamp(value) {
+      if (value === null || value === undefined || value === '') return 0;
+      const numeric = Number(value);
+      if (Number.isFinite(numeric) && numeric > 0) {
+        return numeric < 100000000000 ? numeric * 1000 : numeric;
+      }
+      const parsed = new Date(value).getTime();
+      return Number.isFinite(parsed) ? parsed : 0;
+    }
 
-    // ========================================================
-    // ESCAPE HTML
-    // ========================================================
+    function formatDate(value) {
+      const ts = parseTimestamp(value);
+      if (!ts) return 'Belum Pernah';
+      return new Date(ts).toLocaleString('id-ID', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
 
     function escapeHtml(value) {
-
-      if (
-        value === null ||
-        value === undefined
-      ) {
-        return '';
-      }
-
-      return String(value)
+      return String(value ?? '')
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
-
     }
 
+    function setStatusMessage(message, type = 'error') {
+      const container = document.getElementById('branchTrayContainer');
+      if (!container) return;
+      const cls = type === 'error'
+        ? 'text-rose-400'
+        : 'text-[#7B7F8D]';
+      container.innerHTML = `<div class="col-span-full text-center py-8 text-xs font-mono-num ${cls}">${escapeHtml(message)}</div>`;
+    }
 
-    // ========================================================
-    // NORMALIZE BRANCH
-    // ========================================================
+    function extractMasterPayload(result) {
+      let candidate = result;
+      if (Array.isArray(candidate)) candidate = candidate[0];
 
-    function normalizeBranch(value) {
+      if (candidate?.json?.data) return candidate.json.data;
+      if (candidate?.data) return candidate.data;
+      if (candidate?.json && (candidate.json.summary || candidate.json.pembukuan_logs)) return candidate.json;
+      if (candidate?.summary || candidate?.pembukuan_logs) return candidate;
 
-      if (
-        value === null ||
-        value === undefined
-      ) {
-        return '';
+      return null;
+    }
+
+    function validateMasterData(data) {
+      if (!data || typeof data !== 'object') {
+        throw new Error('Response master tidak memiliki data yang valid.');
       }
 
-      const raw =
-        String(value).trim();
-
-      const upper =
-        raw.toUpperCase();
-
-      const map = {
-
-        'WARUNG ACIL 2':
-          'Warung Acil 2',
-
-        'WARUNG ACIL 3':
-          'Warung Acil 3',
-
-        'WARUNG ACIL 4':
-          'Warung Acil 4',
-
-        'WARUNG LULU DAN ACIL 1':
-          'Warung Lulu dan Acil 1',
-
-        'WARUNG LULU DAN ACIL 2':
-          'Warung Lulu dan Acil 2',
-
-        'WARUNG LULU DAN ACIL 3':
-          'Warung Lulu dan Acil 3'
-
-      };
-
-      return map[upper] || raw;
-
-    }
-
-
-    // ========================================================
-    // GET BRANCH
-    // ========================================================
-
-    function getBranch(item) {
-
-      if (!item) return '';
-
-      return normalizeBranch(
-        item.CABANG ||
-        item.cabang ||
-        item.BRANCH ||
-        item.branch ||
-        ''
-      );
-
-    }
-
-
-    // ========================================================
-    // GET DATE
-    // ========================================================
-
-    function getItemTimestamp(item) {
-
-      if (!item) return 0;
-
-      const raw =
-        item.createdAt ||
-        item.created_at ||
-        item.tanggal ||
-        item.TANGGAL ||
-        item.WAKTU ||
-        item.waktu ||
-        item.DATE ||
-        item.date ||
-        item.timestamp;
-
-      if (raw) {
-
-        const parsed =
-          new Date(raw).getTime();
-
-        if (!isNaN(parsed)) {
-
-          return parsed;
-
-        }
-
+      if (!data.summary || typeof data.summary !== 'object') {
+        throw new Error('Data summary master tidak ditemukan.');
       }
 
-      /*
-       * ID hanya fallback terakhir.
-       * Jangan menggunakan ID sebagai tanggal sebenarnya.
-       */
-
-      return 0;
-
-    }
-
-
-    // ========================================================
-    // FORMAT DATE
-    // ========================================================
-
-    function formatDate(isoStr) {
-
-      if (!isoStr) {
-        return 'Belum Pernah';
+      if (!Array.isArray(data.summary.branch_performance)) {
+        throw new Error('Data performa cabang tidak valid.');
       }
 
-      const d =
-        new Date(isoStr);
-
-      if (isNaN(d.getTime())) {
-        return 'Belum Pernah';
+      if (!Array.isArray(data.pembukuan_logs)) {
+        throw new Error('Data riwayat tutup buku tidak valid.');
       }
 
-      return d.toLocaleString(
-        'id-ID',
-        {
-          day: '2-digit',
-          month: 'short',
-          year: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
-        }
-      );
-
+      return true;
     }
-
-
-    // ========================================================
-    // PAYMENT METHOD
-    // ========================================================
-
-    function getPaymentMethod(item) {
-
-      if (!item) return '';
-
-      return String(
-        item.kategori ||
-        item.TRANSAKSI ||
-        item.transaksi ||
-        item.METODE ||
-        item.metode ||
-        ''
-      )
-        .trim()
-        .toUpperCase();
-
-    }
-
-
-    // ========================================================
-    // AMOUNT
-    // ========================================================
-
-    function getAmount(item) {
-
-      if (!item) return 0;
-
-      const raw =
-        item.NOMINAL ??
-        item.nominal ??
-        0;
-
-      const value =
-        Number(raw);
-
-      return Number.isFinite(value)
-        ? value
-        : 0;
-
-    }
-
-
-    // ========================================================
-    // FETCH MASTER DATA
-    // ========================================================
 
     async function fetchMasterData() {
+      if (isFetchingMasterData) return;
 
+      isFetchingMasterData = true;
+      const requestId = ++fetchRequestId;
       showLoading(true);
 
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+
       try {
+        const response = await fetch(WEBHOOK_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'get_master' }),
+          signal: controller.signal,
+          cache: 'no-store'
+        });
 
-        const response =
-          await fetch(
-            WEBHOOK_URL,
-            {
-              method: 'POST',
+        const contentType = response.headers.get('content-type') || '';
+        let result;
 
-              headers: {
-                'Content-Type': 'application/json'
-              },
-
-              body: JSON.stringify({
-                action: 'get_master'
-              })
-            }
-          );
-
+        if (contentType.includes('application/json')) {
+          result = await response.json();
+        } else {
+          const text = await response.text();
+          try {
+            result = JSON.parse(text);
+          } catch {
+            throw new Error(`Server mengembalikan response non-JSON (HTTP ${response.status}).`);
+          }
+        }
 
         if (!response.ok) {
-
-          throw new Error(
-            'HTTP ' + response.status
-          );
-
+          const serverMessage =
+            result?.message ||
+            result?.error ||
+            result?.json?.message ||
+            result?.json?.error ||
+            `HTTP ${response.status}`;
+          throw new Error(`Gagal mengambil data master: ${serverMessage}`);
         }
 
+        const data = extractMasterPayload(result);
+        validateMasterData(data);
 
-        const result =
-          await response.json();
+        // Jangan biarkan response lama menimpa response yang lebih baru.
+        if (requestId !== fetchRequestId) return;
 
+        masterDataCache = data;
+        renderGlobalSummary();
+        renderBranchTrays();
+        renderCloseBookTable();
+      } catch (err) {
+        if (requestId !== fetchRequestId) return;
 
-        const payload =
-          Array.isArray(result)
-            ? result[0]
-            : result;
+        console.error('Gagal mengambil master data:', err);
 
-
-        if (
-          payload &&
-          payload.json &&
-          payload.json.data
-        ) {
-
-          masterDataCache =
-            payload.json.data;
-
+        let message = err?.message || 'Gagal memuat data master.';
+        if (err?.name === 'AbortError') {
+          message = 'Request timeout. Server tidak merespons dalam 20 detik.';
         }
 
-        else if (
-          payload &&
-          payload.data
-        ) {
+        setStatusMessage(message, 'error');
 
-          masterDataCache =
-            payload.data;
-
+        const tbody = document.getElementById('tableCloseBookBody');
+        if (tbody) {
+          tbody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-xs font-mono-num text-rose-400">${escapeHtml(message)}</td></tr>`;
         }
-
-        else {
-
-          throw new Error(
-            'Format response tidak dikenali'
-          );
-
-        }
-
-
-        if (masterDataCache) {
-
-          renderGlobalSummary();
-
-          renderBranchTrays();
-
-          renderCloseBookTable();
-
-        }
-
+      } finally {
+        clearTimeout(timeoutId);
+        isFetchingMasterData = false;
+        setTimeout(() => showLoading(false), 200);
       }
-
-      catch (err) {
-
-        console.error(
-          'Gagal mengambil master data:',
-          err
-        );
-
-        const container =
-          document.getElementById(
-            'branchTrayContainer'
-          );
-
-        if (container) {
-
-          container.innerHTML = `
-            <div class="col-span-full bento-card p-6 text-center">
-              <p class="text-xs text-rose-400">
-                Gagal memuat data dashboard.
-              </p>
-              <p class="text-[10px] text-[#7B7F8D] mt-2">
-                Silakan tekan tombol refresh.
-              </p>
-            </div>
-          `;
-
-        }
-
-      }
-
-      finally {
-
-        setTimeout(
-          () => showLoading(false),
-          300
-        );
-
-      }
-
     }
 
+    function getTransactionMethod(item) {
+      return String(
+        item?.TRANSAKSI ??
+        item?.transaksi ??
+        item?.METODE ??
+        item?.metode ??
+        ''
+      ).trim().toUpperCase();
+    }
 
-    // ========================================================
-    // GLOBAL SUMMARY
-    // ========================================================
+    function getTransactionAmount(item) {
+      return Number(
+        item?.NOMINAL ??
+        item?.nominal ??
+        0
+      ) || 0;
+    }
+
+    function getBranchValue(item) {
+      return String(
+        item?.CABANG ??
+        item?.cabang ??
+        item?.branch ??
+        ''
+      ).trim();
+    }
+
+    function sameBranch(a, b) {
+      return getBranchValue(a).toUpperCase() === String(b || '').trim().toUpperCase();
+    }
 
     function renderGlobalSummary() {
-
-      if (
-        !masterDataCache ||
-        !masterDataCache.summary
-      ) {
-        return;
-      }
-
-
-      const s =
-        masterDataCache.summary;
-
-
-      const totalIn =
-        Number(s.total_in) || 0;
-
-      const totalOut =
-        Number(s.total_out) || 0;
-
-
-      /*
-       * Gunakan data backend jika tersedia.
-       * Jika tidak, hitung ulang dari money_in.
-       */
-
-      let totalCash =
-        Number(s.total_cash) || 0;
-
-      let totalQris =
-        Number(s.total_qris) || 0;
-
-      let totalTransfer =
-        Number(s.total_transfer) || 0;
-
-
-      const moneyIn =
-        Array.isArray(masterDataCache.money_in)
-          ? masterDataCache.money_in
-          : [];
-
-
-      /*
-       * Recalculate payment totals dari data transaksi.
-       *
-       * Ini menjaga frontend tetap akurat jika field summary
-       * backend berbeda atau belum memiliki breakdown.
-       */
-
-      if (moneyIn.length > 0) {
-
-        totalCash = 0;
-
-        totalQris = 0;
-
-        totalTransfer = 0;
-
-
-        moneyIn.forEach(item => {
-
-          const amount =
-            getAmount(item);
-
-          const method =
-            getPaymentMethod(item);
-
-
-          if (method.includes('CASH')) {
-
-            totalCash += amount;
-
-          }
-
-          else if (method.includes('QRIS')) {
-
-            totalQris += amount;
-
-          }
-
-          else if (method.includes('TRANSFER')) {
-
-            totalTransfer += amount;
-
-          }
-
-        });
-
-      }
-
-
-      const totalNet =
-        totalIn - totalOut;
-
-
-      /*
-       * Sesuai asumsi bisnis:
-       *
-       * semua pengeluaran dianggap cash.
-       *
-       * Maka:
-       *
-       * UANG LACI =
-       * CASH MASUK - TOTAL PENGELUARAN
-       */
-
-      const cashDrawer =
-        totalCash - totalOut;
-
-
-      const totalNonCash =
-        totalQris + totalTransfer;
-
-
-      document.getElementById(
-        'statTotalIn'
-      ).innerText =
-        formatRupiah(totalIn);
-
-
-      document.getElementById(
-        'statTotalOut'
-      ).innerText =
-        formatRupiah(totalOut);
-
-
-      document.getElementById(
-        'statTotalNet'
-      ).innerText =
-        formatRupiah(totalNet);
-
-
-      document.getElementById(
-        'statTotalCash'
-      ).innerText =
-        formatRupiah(totalCash);
-
-
-      document.getElementById(
-        'statTotalQris'
-      ).innerText =
-        formatRupiah(totalQris);
-
-
-      document.getElementById(
-        'statTotalTransfer'
-      ).innerText =
-        formatRupiah(totalTransfer);
-
-
-      document.getElementById(
-        'statCashDrawer'
-      ).innerText =
-        formatRupiah(cashDrawer);
-
-    }
-
-
-    // ========================================================
-    // FILTER
-    // ========================================================
-
-    function setBranchFilter(filterType) {
-
-      activeFilter =
-        filterType;
-
-
-      const btnShift =
-        document.getElementById(
-          'btnFilterShift'
-        );
-
-      const btnMinggu =
-        document.getElementById(
-          'btnFilterMinggu'
-        );
-
-      const btnBulan =
-        document.getElementById(
-          'btnFilterBulan'
-        );
-
-
-      const inactiveClass =
-        'flex-1 sm:flex-none px-3 py-1.5 text-[11px] font-medium tracking-wider rounded transition text-[#7B7F8D] hover:text-[#EAEAEA] text-center uppercase';
-
-
-      const activeClass =
-        'flex-1 sm:flex-none px-3 py-1.5 text-[11px] font-bold tracking-wider rounded transition bg-[#5C6C8F] text-white text-center uppercase';
-
-
-      [btnShift, btnMinggu, btnBulan]
-        .forEach(btn => {
-
-          btn.className =
-            inactiveClass;
-
-        });
-
-
-      if (filterType === 'shift_baru') {
-
-        btnShift.className =
-          activeClass;
-
-      }
-
-      else if (filterType === 'minggu_ini') {
-
-        btnMinggu.className =
-          activeClass;
-
-      }
-
-      else if (filterType === 'bulan_ini') {
-
-        btnBulan.className =
-          activeClass;
-
-      }
-
-
-      updateBranchPeriodDescription();
-
-      renderBranchTrays();
-
-    }
-
-
-    // ========================================================
-    // PERIOD DESCRIPTION
-    // ========================================================
-
-    function updateBranchPeriodDescription() {
-
-      const el =
-        document.getElementById(
-          'branchPeriodDescription'
-        );
-
-      if (!el) return;
-
-
-      if (activeFilter === 'shift_baru') {
-
-        el.innerText =
-          'Transaksi setelah tutup buku terakhir masing-masing cabang';
-
-      }
-
-      else if (activeFilter === 'minggu_ini') {
-
-        el.innerText =
-          'Transaksi dari awal minggu berjalan sampai sekarang';
-
-      }
-
-      else if (activeFilter === 'bulan_ini') {
-
-        el.innerText =
-          'Transaksi dari awal bulan berjalan sampai sekarang';
-
-      }
-
-    }
-
-
-    // ========================================================
-    // RENDER BRANCH
-    // ========================================================
-
-    function renderBranchTrays() {
-
-      const container =
-        document.getElementById(
-          'branchTrayContainer'
-        );
-
-
-      if (!container) return;
-
-
-      container.innerHTML =
-        '';
-
-
-      if (
-        !masterDataCache ||
-        !masterDataCache.summary ||
-        !Array.isArray(
-          masterDataCache.summary.branch_performance
-        )
-      ) {
-
-        container.innerHTML = `
-          <div class="col-span-full text-center py-8 text-xs font-mono-num text-[#7B7F8D]">
-            Tidak ada data performa cabang.
-          </div>
-        `;
-
-        return;
-
-      }
-
-
-      const branches =
-        masterDataCache.summary.branch_performance;
-
-
-      if (branches.length === 0) {
-
-        container.innerHTML = `
-          <div class="col-span-full text-center py-8 text-xs font-mono-num text-[#7B7F8D]">
-            Tidak ada data cabang.
-          </div>
-        `;
-
-        return;
-
-      }
-
-
-      branches.forEach(b => {
-
-        const perf =
-          b[activeFilter] ||
-          {
-            pemasukan: 0,
-            pengeluaran: 0,
-            omset: 0
-          };
-
-
-        const pemasukan =
-          Number(perf.pemasukan) || 0;
-
-        const pengeluaran =
-          Number(perf.pengeluaran) || 0;
-
-        const omset =
-          Number(perf.omset) ||
-          (pemasukan - pengeluaran);
-
-
-        const lastCloseText =
-          formatDate(
-            b.last_close_book
-          );
-
-
-        const branchName =
-          escapeHtml(
-            b.cabang || '-'
-          );
-
-
-        const cardHtml = `
-
-          <div class="bento-card p-4 flex flex-col justify-between space-y-4 hover:border-white/20 transition">
-
-            <div class="flex items-start justify-between">
-
-              <div>
-
-                <h3 class="font-bold text-[#EAEAEA] text-sm tracking-wide uppercase">
-                  ${branchName}
-                </h3>
-
-                <p class="text-[10px] text-[#7B7F8D] mt-0.5 tracking-wider">
-
-                  TUTUP BUKU:
-
-                  <span class="font-mono-num text-[#EAEAEA]">
-                    ${escapeHtml(lastCloseText)}
-                  </span>
-
-                </p>
-
-              </div>
-
-
-              <span class="p-1.5 rounded-lg bg-white/5 border border-white/10 text-[#7B7F8D]">
-
-                <i data-lucide="store"
-                   class="w-3.5 h-3.5">
-                </i>
-
-              </span>
-
-            </div>
-
-
-            <div class="space-y-2 pt-2 border-t border-white/[0.06]">
-
-
-              <div class="flex justify-between items-center text-xs">
-
-                <span class="text-[11px] text-[#7B7F8D] uppercase tracking-wider">
-                  Pemasukan
-                </span>
-
-                <span class="font-mono-num font-semibold text-emerald-400">
-                  ${formatRupiah(pemasukan)}
-                </span>
-
-              </div>
-
-
-              <div class="flex justify-between items-center text-xs">
-
-                <span class="text-[11px] text-[#7B7F8D] uppercase tracking-wider">
-                  Pengeluaran
-                </span>
-
-                <span class="font-mono-num font-semibold text-rose-400">
-                  ${formatRupiah(pengeluaran)}
-                </span>
-
-              </div>
-
-
-              <div class="pt-2 border-t border-white/[0.06] flex justify-between items-center">
-
-                <span class="text-[10px] font-bold text-[#EAEAEA] uppercase tracking-wider">
-                  Omset Bersih
-                </span>
-
-                <span class="text-sm font-bold font-mono-num text-[#C7C5B8]">
-                  ${formatRupiah(omset)}
-                </span>
-
-              </div>
-
-
-            </div>
-
-          </div>
-
-        `;
-
-
-        container.insertAdjacentHTML(
-          'beforeend',
-          cardHtml
-        );
-
-      });
-
-
-      if (window.lucide) {
-
-        lucide.createIcons();
-
-      }
-
-    }
-
-
-    // ========================================================
-    // SORT CLOSE BOOK LOGS
-    // ========================================================
-
-    function sortCloseBookLogs(logs) {
-
-      return [...logs]
-        .sort((a, b) => {
-
-          const ta =
-            getLogTimestamp(a);
-
-          const tb =
-            getLogTimestamp(b);
-
-          return tb - ta;
-
-        });
-
-    }
-
-
-    // ========================================================
-    // LOG TIMESTAMP
-    // ========================================================
-
-    function getLogTimestamp(log) {
-
-      if (!log) return 0;
-
-
-      const raw =
-        log.waktu ||
-        log.WAKTU_TUTUP_BUKU ||
-        log.waktu_tutup_buku ||
-        log.createdAt ||
-        log.created_at;
-
-
-      if (!raw) return 0;
-
-
-      const timestamp =
-        new Date(raw).getTime();
-
-
-      return isNaN(timestamp)
-        ? 0
-        : timestamp;
-
-    }
-
-
-    // ========================================================
-    // GET LOG TOTAL IN
-    // ========================================================
-
-    function getLogTotalIn(log) {
-
-      return Number(
-        log.uang_masuk ??
-        log.UANG_MASUK ??
-        log.total_in ??
-        log.TOTAL_IN ??
-        0
-      ) || 0;
-
-    }
-
-
-    // ========================================================
-    // GET LOG TOTAL OUT
-    // ========================================================
-
-    function getLogTotalOut(log) {
-
-      return Number(
-        log.uang_keluar ??
-        log.UANG_KELUAR ??
-        log.total_out ??
-        log.TOTAL_OUT ??
-        0
-      ) || 0;
-
-    }
-
-
-    // ========================================================
-    // CALCULATE PAYMENT BREAKDOWN FOR A CLOSE BOOK
-    // ========================================================
-    //
-    // Penting:
-    //
-    // Frontend tidak mengambil angka cash/qris/transfer
-    // dari pembukuan log karena log lama hanya menyimpan
-    // UANG_MASUK dan UANG_KELUAR.
-    //
-    // Kita hitung dari money_in:
-    //
-    // previous close < transaksi <= current close
-    //
-    // dengan cabang yang sama.
-    //
-    // ========================================================
-
-    function calculateCloseBookBreakdown(
-      currentLog,
-      previousBranchLog
-    ) {
-
-      const result = {
-
-        cash: 0,
-
-        qris: 0,
-
-        transfer: 0,
-
-        total: 0,
-
-        matched: false
-
+      if (!masterDataCache?.summary) return;
+
+      const s = masterDataCache.summary;
+      const allIn = Array.isArray(masterDataCache.money_in) ? masterDataCache.money_in : [];
+      const allOut = Array.isArray(masterDataCache.money_out) ? masterDataCache.money_out : [];
+
+      let totalIn = 0;
+      let totalOut = 0;
+
+      const methods = {
+        CASH: { in: 0, out: 0 },
+        QRIS: { in: 0, out: 0 },
+        TRANSFER: { in: 0, out: 0 }
       };
 
-
-      if (!masterDataCache) {
-
-        return result;
-
-      }
-
-
-      const moneyIn =
-        Array.isArray(
-          masterDataCache.money_in
-        )
-          ? masterDataCache.money_in
-          : [];
-
-
-      if (moneyIn.length === 0) {
-
-        return result;
-
-      }
-
-
-      const branch =
-        getBranch(currentLog);
-
-
-      const currentTime =
-        getLogTimestamp(currentLog);
-
-
-      const previousTime =
-        previousBranchLog
-          ? getLogTimestamp(
-              previousBranchLog
-            )
-          : 0;
-
-
-      if (!currentTime) {
-
-        return result;
-
-      }
-
-
-      moneyIn.forEach(item => {
-
-        const itemBranch =
-          getBranch(item);
-
-
-        if (
-          branch &&
-          itemBranch &&
-          itemBranch !== branch
-        ) {
-
-          return;
-
-        }
-
-
-        /*
-         * Jika transaksi tidak memiliki createdAt,
-         * jangan dipaksakan masuk ke periode.
-         */
-
-        const itemTime =
-          getItemTimestamp(item);
-
-
-        if (!itemTime) {
-
-          return;
-
-        }
-
-
-        /*
-         * Batas bawah:
-         *
-         * lebih besar dari tutup buku sebelumnya.
-         */
-
-        if (
-          previousTime &&
-          itemTime <= previousTime
-        ) {
-
-          return;
-
-        }
-
-
-        /*
-         * Batas atas:
-         *
-         * transaksi sampai dengan waktu tutup buku ini.
-         */
-
-        if (
-          itemTime > currentTime
-        ) {
-
-          return;
-
-        }
-
-
-        const amount =
-          getAmount(item);
-
-
-        const method =
-          getPaymentMethod(item);
-
-
-        if (method.includes('CASH')) {
-
-          result.cash += amount;
-
-          result.total += amount;
-
-          result.matched = true;
-
-        }
-
-        else if (method.includes('QRIS')) {
-
-          result.qris += amount;
-
-          result.total += amount;
-
-          result.matched = true;
-
-        }
-
-        else if (method.includes('TRANSFER')) {
-
-          result.transfer += amount;
-
-          result.total += amount;
-
-          result.matched = true;
-
-        }
-
+      allIn.forEach(item => {
+        const amount = getTransactionAmount(item);
+        const method = getTransactionMethod(item);
+        totalIn += amount;
+
+        if (method === 'CASH') methods.CASH.in += amount;
+        else if (method === 'QRIS') methods.QRIS.in += amount;
+        else if (method === 'TRANSFER' || method === 'TRF') methods.TRANSFER.in += amount;
       });
 
+      allOut.forEach(item => {
+        const amount = getTransactionAmount(item);
+        const method = getTransactionMethod(item);
+        totalOut += amount;
 
-      return result;
-
-    }
-
-
-    // ========================================================
-    // FIND PREVIOUS LOG FOR SAME BRANCH
-    // ========================================================
-
-    function findPreviousBranchLog(
-      logs,
-      currentLog
-    ) {
-
-      const branch =
-        getBranch(currentLog);
-
-
-      const currentTime =
-        getLogTimestamp(currentLog);
-
-
-      let previous = null;
-
-      let previousTime = 0;
-
-
-      logs.forEach(log => {
-
-        if (log === currentLog) {
-          return;
-        }
-
-
-        const logBranch =
-          getBranch(log);
-
-
-        if (
-          branch &&
-          logBranch &&
-          logBranch !== branch
-        ) {
-
-          return;
-
-        }
-
-
-        const logTime =
-          getLogTimestamp(log);
-
-
-        if (!logTime) {
-          return;
-        }
-
-
-        if (
-          logTime < currentTime &&
-          logTime > previousTime
-        ) {
-
-          previous =
-            log;
-
-          previousTime =
-            logTime;
-
-        }
-
+        if (method === 'CASH') methods.CASH.out += amount;
+        else if (method === 'QRIS') methods.QRIS.out += amount;
+        else if (method === 'TRANSFER' || method === 'TRF') methods.TRANSFER.out += amount;
       });
 
+      const totalNet = totalIn - totalOut;
+      const totalBalance =
+        (methods.CASH.in - methods.CASH.out) +
+        (methods.QRIS.in - methods.QRIS.out) +
+        (methods.TRANSFER.in - methods.TRANSFER.out);
 
-      return previous;
+      document.getElementById('statTotalIn').innerText = formatRupiah(totalIn);
+      document.getElementById('statTotalOut').innerText = formatRupiah(totalOut);
+      document.getElementById('statTotalNet').innerText = formatRupiah(totalNet);
+      document.getElementById('statTotalBalance').innerText = formatRupiah(totalBalance);
 
+      document.getElementById('methodCashIn').innerText = formatRupiah(methods.CASH.in);
+      document.getElementById('methodCashOut').innerText = formatRupiah(methods.CASH.out);
+      document.getElementById('methodCashBalance').innerText = formatRupiah(methods.CASH.in - methods.CASH.out);
+
+      document.getElementById('methodQrisIn').innerText = formatRupiah(methods.QRIS.in);
+      document.getElementById('methodQrisOut').innerText = formatRupiah(methods.QRIS.out);
+      document.getElementById('methodQrisBalance').innerText = formatRupiah(methods.QRIS.in - methods.QRIS.out);
+
+      document.getElementById('methodTransferIn').innerText = formatRupiah(methods.TRANSFER.in);
+      document.getElementById('methodTransferOut').innerText = formatRupiah(methods.TRANSFER.out);
+      document.getElementById('methodTransferBalance').innerText = formatRupiah(methods.TRANSFER.in - methods.TRANSFER.out);
     }
 
+    function setBranchFilter(filterType) {
+      const allowed = ['shift_baru', 'minggu_ini', 'bulan_ini'];
+      if (!allowed.includes(filterType)) return;
 
-    // ========================================================
-    // RENDER CLOSE BOOK TABLE
-    // ========================================================
+      activeFilter = filterType;
+
+      const btnShift = document.getElementById('btnFilterShift');
+      const btnMinggu = document.getElementById('btnFilterMinggu');
+      const btnBulan = document.getElementById('btnFilterBulan');
+
+      [btnShift, btnMinggu, btnBulan].forEach(btn => {
+        if (!btn) return;
+        btn.className = 'flex-1 sm:flex-none px-3 py-1 text-[11px] font-medium tracking-wider rounded transition text-[#7B7F8D] hover:text-[#EAEAEA] text-center uppercase';
+      });
+
+      const activeBtn = {
+        shift_baru: btnShift,
+        minggu_ini: btnMinggu,
+        bulan_ini: btnBulan
+      }[filterType];
+
+      if (activeBtn) {
+        activeBtn.className = 'flex-1 sm:flex-none px-3 py-1 text-[11px] font-bold tracking-wider rounded transition bg-[#5C6C8F] text-white text-center uppercase';
+      }
+
+      renderBranchTrays();
+    }
+
+    function renderBranchTrays() {
+      const container = document.getElementById('branchTrayContainer');
+      if (!container) return;
+
+      container.innerHTML = '';
+
+      const branches = masterDataCache?.summary?.branch_performance;
+
+      if (!Array.isArray(branches)) {
+        container.innerHTML = `<div class="col-span-full text-center py-8 text-xs font-mono-num text-[#7B7F8D]">Tidak ada data performa cabang.</div>`;
+        return;
+      }
+
+      if (branches.length === 0) {
+        container.innerHTML = `<div class="col-span-full text-center py-8 text-xs font-mono-num text-[#7B7F8D]">Belum ada data cabang.</div>`;
+        return;
+      }
+
+      const countLabel = document.querySelector('section p.text-\\[11px\\]');
+      if (countLabel) {
+        countLabel.textContent = `Ringkasan transaksi dan omset di ${branches.length} cabang`;
+      }
+
+      branches.forEach(b => {
+        if (!b || typeof b !== 'object') return;
+
+        const perf = b[activeFilter] && typeof b[activeFilter] === 'object'
+          ? b[activeFilter]
+          : { pemasukan: 0, pengeluaran: 0, omset: 0 };
+
+        const cabang = escapeHtml(b.cabang || '-');
+        const lastCloseText = escapeHtml(formatDate(b.last_close_book));
+
+        const cardHtml = `
+          <div class="bento-card p-4 flex flex-col justify-between space-y-4 hover:border-white/20 transition">
+            <div class="flex items-start justify-between">
+              <div>
+                <h3 class="font-bold text-[#EAEAEA] text-sm tracking-wide uppercase">${cabang}</h3>
+                <p class="text-[10px] text-[#7B7F8D] mt-0.5 tracking-wider">TUTUP BUKU: <span class="font-mono-num text-[#EAEAEA]">${lastCloseText}</span></p>
+              </div>
+              <span class="p-1.5 rounded-lg bg-white/5 border border-white/10 text-[#7B7F8D]">
+                <i data-lucide="store" class="w-3.5 h-3.5"></i>
+              </span>
+            </div>
+
+            <div class="space-y-2 pt-2 border-t border-white/[0.06]">
+              <div class="flex justify-between items-center text-xs">
+                <span class="text-[11px] text-[#7B7F8D] uppercase tracking-wider">Pemasukan</span>
+                <span class="font-mono-num font-semibold text-emerald-400">${formatRupiah(perf.pemasukan)}</span>
+              </div>
+              <div class="flex justify-between items-center text-xs">
+                <span class="text-[11px] text-[#7B7F8D] uppercase tracking-wider">Pengeluaran</span>
+                <span class="font-mono-num font-semibold text-rose-400">${formatRupiah(perf.pengeluaran)}</span>
+              </div>
+              <div class="pt-2 border-t border-white/[0.06] flex justify-between items-center">
+                <span class="text-[10px] font-bold text-[#EAEAEA] uppercase tracking-wider">Omset Bersih</span>
+                <span class="text-sm font-bold font-mono-num text-[#C7C5B8]">${formatRupiah(perf.omset)}</span>
+              </div>
+            </div>
+          </div>
+        `;
+
+        container.insertAdjacentHTML('beforeend', cardHtml);
+      });
+
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function getCloseBookTimestamp(log) {
+      if (!log || typeof log !== 'object') return 0;
+      return parseTimestamp(
+        log.waktu ??
+        log.createdAt ??
+        log.created_at ??
+        log.WAKTU_TUTUP_BUKU ??
+        log.tanggal ??
+        log.TANGGAL
+      );
+    }
+
+    function getLogUser(log) {
+      return log?.user ?? log?.kasir ?? log?.KASIR ?? '-';
+    }
+
+    function getLogBranch(log) {
+      return log?.cabang ?? log?.CABANG ?? '-';
+    }
+
+    function getLogTimestamp(log) {
+      return getCloseBookTimestamp(log);
+    }
+
+    function sortCloseBookLogs(logs) {
+      return (Array.isArray(logs) ? logs : [])
+        .filter(log => log && typeof log === 'object')
+        .map((log, index) => ({
+          log,
+          index,
+          ts: getLogTimestamp(log)
+        }))
+        .sort((a, b) => {
+          if (b.ts !== a.ts) return b.ts - a.ts;
+          return b.index - a.index;
+        })
+        .map(item => item.log);
+    }
+
+    function getPreviousCloseForLog(currentLog, allSortedLogs) {
+      const currentTs = getLogTimestamp(currentLog);
+      const currentBranch = getLogBranch(currentLog);
+
+      for (const candidate of allSortedLogs) {
+        if (candidate === currentLog) continue;
+
+        const candidateTs = getLogTimestamp(candidate);
+
+        if (
+          sameBranch(candidate, currentBranch) &&
+          candidateTs > 0 &&
+          candidateTs < currentTs
+        ) {
+          return candidate;
+        }
+      }
+
+      return null;
+    }
+
+    function calculateCloseBookDetail(currentLog, allSortedLogs) {
+      const currentTs = getLogTimestamp(currentLog);
+      const previousLog = getPreviousCloseForLog(currentLog, allSortedLogs);
+      const previousTs = previousLog ? getLogTimestamp(previousLog) : 0;
+      const branch = getLogBranch(currentLog);
+
+      const result = {
+        cashIn: 0,
+        cashOut: 0,
+        qrisIn: 0,
+        qrisOut: 0,
+        transferIn: 0,
+        transferOut: 0,
+        totalIn: 0,
+        totalOut: 0
+      };
+
+      const allIn = Array.isArray(masterDataCache?.money_in) ? masterDataCache.money_in : [];
+      const allOut = Array.isArray(masterDataCache?.money_out) ? masterDataCache.money_out : [];
+
+      const isInPeriod = (item) => {
+        if (!sameBranch(item, branch)) return false;
+
+        const ts = parseTimestamp(
+          item?.createdAt ??
+          item?.created_at ??
+          item?.TANGGAL ??
+          item?.tanggal ??
+          item?.WAKTU ??
+          item?.waktu ??
+          item?.DATE ??
+          item?.date ??
+          item?.timestamp
+        );
+
+        if (!ts || !currentTs) return false;
+
+        return ts > previousTs && ts <= currentTs;
+      };
+
+      allIn.forEach(item => {
+        if (!isInPeriod(item)) return;
+
+        const amount = getTransactionAmount(item);
+        const method = getTransactionMethod(item);
+
+        result.totalIn += amount;
+
+        if (method === 'CASH') result.cashIn += amount;
+        else if (method === 'QRIS') result.qrisIn += amount;
+        else if (method === 'TRANSFER' || method === 'TRF') result.transferIn += amount;
+      });
+
+      allOut.forEach(item => {
+        if (!isInPeriod(item)) return;
+
+        const amount = getTransactionAmount(item);
+        const method = getTransactionMethod(item);
+
+        result.totalOut += amount;
+
+        if (method === 'CASH') result.cashOut += amount;
+        else if (method === 'QRIS') result.qrisOut += amount;
+        else if (method === 'TRANSFER' || method === 'TRF') result.transferOut += amount;
+      });
+
+      result.cash = result.cashIn - result.cashOut;
+      result.qris = result.qrisIn - result.qrisOut;
+      result.transfer = result.transferIn - result.transferOut;
+      result.net = result.totalIn - result.totalOut;
+
+      return {
+        ...result,
+        previousLog,
+        previousTs,
+        currentTs
+      };
+    }
+
+    function openCloseBookDetail(index) {
+      const logs = sortCloseBookLogs(masterDataCache?.pembukuan_logs);
+      const currentLog = logs[index];
+
+      if (!currentLog) return;
+
+      const detail = calculateCloseBookDetail(currentLog, logs);
+      const branch = getLogBranch(currentLog);
+      const user = getLogUser(currentLog);
+
+      document.getElementById('detailBranch').innerText = branch;
+      document.getElementById('detailMeta').innerText =
+        `${user} • ${formatDate(currentLog.waktu ?? currentLog.createdAt ?? currentLog.created_at ?? currentLog.tanggal ?? currentLog.TANGGAL)}`;
+
+      const fromText = detail.previousTs
+        ? formatDate(detail.previousTs)
+        : 'Awal data';
+      const toText = detail.currentTs
+        ? formatDate(detail.currentTs)
+        : '-';
+
+      document.getElementById('detailPeriod').innerText =
+        `${fromText} → ${toText}`;
+
+      document.getElementById('detailCashIn').innerText = formatRupiah(detail.cashIn);
+      document.getElementById('detailCashOut').innerText = formatRupiah(detail.cashOut);
+      document.getElementById('detailCashTotal').innerText = formatRupiah(detail.cash);
+
+      document.getElementById('detailQrisIn').innerText = formatRupiah(detail.qrisIn);
+      document.getElementById('detailQrisOut').innerText = formatRupiah(detail.qrisOut);
+      document.getElementById('detailQrisTotal').innerText = formatRupiah(detail.qris);
+
+      document.getElementById('detailTransferIn').innerText = formatRupiah(detail.transferIn);
+      document.getElementById('detailTransferOut').innerText = formatRupiah(detail.transferOut);
+      document.getElementById('detailTransferTotal').innerText = formatRupiah(detail.transfer);
+
+      document.getElementById('detailTotalIn').innerText = formatRupiah(detail.totalIn);
+      document.getElementById('detailTotalOut').innerText = formatRupiah(detail.totalOut);
+      document.getElementById('detailNet').innerText = formatRupiah(detail.net);
+
+      const modal = document.getElementById('closeBookDetailModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function closeCloseBookDetail() {
+      const modal = document.getElementById('closeBookDetailModal');
+      if (!modal) return;
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
 
     function renderCloseBookTable() {
-
-      const tbody =
-        document.getElementById(
-          'tableCloseBookBody'
-        );
-
-
+      const tbody = document.getElementById('tableCloseBookBody');
       if (!tbody) return;
 
+      tbody.innerHTML = '';
 
-      tbody.innerHTML =
-        '';
+      const logs = masterDataCache?.pembukuan_logs;
 
-
-      if (
-        !masterDataCache ||
-        !Array.isArray(
-          masterDataCache.pembukuan_logs
-        ) ||
-        masterDataCache.pembukuan_logs.length === 0
-      ) {
-
-        tbody.innerHTML = `
-
-          <tr>
-
-            <td colspan="9"
-                class="py-8 text-center text-xs font-mono-num text-[#7B7F8D]">
-
-              Belum ada riwayat tutup buku
-
-            </td>
-
-          </tr>
-
-        `;
-
+      if (!Array.isArray(logs) || logs.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-xs font-mono-num text-[#7B7F8D]">Belum ada riwayat tutup buku</td></tr>`;
         return;
-
       }
 
+      // Backend sekarang mengirim seluruh histori.
+      // Master tetap menampilkan 10 terbaru, tetapi seluruh histori
+      // dipakai sebagai referensi untuk mencari previous close per cabang.
+      const allSortedLogs = sortCloseBookLogs(logs);
+      const visibleLogs = allSortedLogs.slice(0, 10);
 
-      const allLogs =
-        sortCloseBookLogs(
-          masterDataCache.pembukuan_logs
-        );
+      visibleLogs.forEach((log, index) => {
+        const waktu = escapeHtml(formatDate(
+          log.waktu ?? log.createdAt ?? log.created_at ?? log.WAKTU_TUTUP_BUKU ?? log.tanggal ?? log.TANGGAL
+        ));
+        const cabang = escapeHtml(getLogBranch(log));
+        const user = escapeHtml(getLogUser(log));
 
-
-      /*
-       * Hanya tampilkan 10 terbaru.
-       */
-
-      const logs =
-        allLogs.slice(0, 10);
-
-
-      /*
-       * Untuk mencari previous close,
-       * kita gunakan semua log yang tersedia.
-       */
-
-      logs.forEach(log => {
-
-        const previousLog =
-          findPreviousBranchLog(
-            allLogs,
-            log
-          );
-
-
-        const breakdown =
-          calculateCloseBookBreakdown(
-            log,
-            previousLog
-          );
-
-
-        /*
-         * Jika hasil perhitungan transaksi
-         * tersedia, gunakan breakdown tersebut.
-         *
-         * Jika tidak, gunakan total log sebagai
-         * fallback hanya untuk Total Masuk.
-         */
-
-        let cash =
-          breakdown.cash;
-
-        let qris =
-          breakdown.qris;
-
-        let transfer =
-          breakdown.transfer;
-
-
-        const loggedTotalIn =
-          getLogTotalIn(log);
-
-
-        const loggedTotalOut =
-          getLogTotalOut(log);
-
-
-        /*
-         * Karena breakdown harus benar-benar
-         * berasal dari transaksi, jangan membagi
-         * total secara estimasi.
-         *
-         * Jika tidak ada transaksi yang cocok,
-         * tampilkan 0 untuk breakdown.
-         */
-
-
-        const calculatedTotal =
-          breakdown.matched
-            ? breakdown.total
-            : 0;
-
-
-        /*
-         * Untuk Total Masuk:
-         *
-         * gunakan hasil transaksi jika ada.
-         * Jika tidak, gunakan nilai UANG_MASUK
-         * dari log lama.
-         */
-
-        const totalIn =
-          breakdown.matched
-            ? calculatedTotal
-            : loggedTotalIn;
-
-
-        const net =
-          totalIn -
-          loggedTotalOut;
-
-
-        const waktu =
-          escapeHtml(
-            formatDate(
-              log.waktu ||
-              log.WAKTU_TUTUP_BUKU ||
-              log.createdAt
-            )
-          );
-
-
-        const cabang =
-          escapeHtml(
-            log.cabang ||
-            log.CABANG ||
-            '-'
-          );
-
-
-        const user =
-          escapeHtml(
-            log.user ||
-            log.USER ||
-            '-'
-          );
-
+        const detail = calculateCloseBookDetail(log, allSortedLogs);
 
         const trHtml = `
-
-          <tr class="hover:bg-white/[0.025] transition">
-
-            <!-- WAKTU -->
-
-            <td class="py-3 px-3 whitespace-nowrap font-mono-num text-[#7B7F8D] text-[11px]">
-
-              ${waktu}
-
-            </td>
-
-
-            <!-- CABANG -->
-
-            <td class="py-3 px-3 font-semibold text-[#EAEAEA] uppercase tracking-wide">
-
-              ${cabang}
-
-            </td>
-
-
-            <!-- KASIR -->
-
-            <td class="py-3 px-3 text-[#7B7F8D]">
-
-              ${user}
-
-            </td>
-
-
-            <!-- CASH -->
-
-            <td class="py-3 px-3 text-right font-mono-num font-medium text-emerald-400">
-
-              ${formatRupiah(cash)}
-
-            </td>
-
-
-            <!-- QRIS -->
-
-            <td class="py-3 px-3 text-right font-mono-num font-medium text-blue-400">
-
-              ${formatRupiah(qris)}
-
-            </td>
-
-
-            <!-- TRANSFER -->
-
-            <td class="py-3 px-3 text-right font-mono-num font-medium text-purple-400">
-
-              ${formatRupiah(transfer)}
-
-            </td>
-
-
-            <!-- TOTAL MASUK -->
-
-            <td class="py-3 px-3 text-right font-mono-num font-semibold text-[#EAEAEA]">
-
-              ${formatRupiah(totalIn)}
-
-            </td>
-
-
-            <!-- OUT -->
-
-            <td class="py-3 px-3 text-right font-mono-num font-medium text-rose-400">
-
-              ${formatRupiah(loggedTotalOut)}
-
-            </td>
-
-
-            <!-- NET -->
-
-            <td class="py-3 px-3 text-right font-mono-num font-bold text-[#C7C5B8]">
-
-              ${formatRupiah(net)}
-
-            </td>
-
+          <tr
+            class="hover:bg-white/[0.04] transition cursor-pointer"
+            onclick="openCloseBookDetail(${index})"
+            title="Klik untuk melihat breakdown Cash / QRIS / Transfer"
+          >
+            <td class="py-2.5 px-3 whitespace-nowrap font-mono-num text-[#7B7F8D] text-[11px]">${waktu}</td>
+            <td class="py-2.5 px-3 font-semibold text-[#EAEAEA] uppercase tracking-wide">${cabang}</td>
+            <td class="py-2.5 px-3 text-[#7B7F8D]">${user}</td>
+            <td class="py-2.5 px-3 text-right font-mono-num font-medium text-emerald-400">${formatRupiah(detail.totalIn)}</td>
+            <td class="py-2.5 px-3 text-right font-mono-num font-medium text-rose-400">${formatRupiah(detail.totalOut)}</td>
           </tr>
-
         `;
 
-
-        tbody.insertAdjacentHTML(
-          'beforeend',
-          trHtml
-        );
-
+        tbody.insertAdjacentHTML('beforeend', trHtml);
       });
-
     }
 
-
-    // ========================================================
-    // LOGOUT
-    // ========================================================
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape') {
+        closeCloseBookDetail();
+      }
+    });
 
     function logout() {
-
-      localStorage.clear();
-
-      window.location.href =
-        'index.html';
-
+      // Jangan gunakan localStorage.clear() agar setting/penyimpanan aplikasi lain
+      // pada domain yang sama tidak ikut terhapus.
+      localStorage.removeItem('warung_acil_session');
+      window.location.href = 'index.html';
     }
 
-
-    // ========================================================
-    // INITIALIZE
-    // ========================================================
-
-    document.addEventListener(
-      'DOMContentLoaded',
-      () => {
-
-        updateBranchPeriodDescription();
-
-        fetchMasterData();
-
-        if (window.lucide) {
-
-          lucide.createIcons();
-
-        }
-
-      }
-    );
-
+    document.addEventListener('DOMContentLoaded', () => {
+      fetchMasterData();
+      if (window.lucide) lucide.createIcons();
+    });
   </script>
-
 </body>
 </html>
